@@ -1,0 +1,25 @@
+name: Branch Name Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate-branch-name:
+    name: Validate Branch Name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check format
+        run: |
+          BRANCH_NAME="${{ github.head_ref }}"
+          # Regex for: <prefix>/(<issue-id>-)<description>
+          # Prefixes: feat, fix, refactor, docs, ci, test, chore
+          REGEX="^(feat|fix|refactor|docs|ci|test|chore)\/([0-9]+-)?.+$"
+          
+          if [[ ! $BRANCH_NAME =~ $REGEX ]]; then
+            echo "::error::Branch name '$BRANCH_NAME' does not match the required format: <prefix>/(<issue-id>-)<description>"
+            echo "Allowed prefixes: feat, fix, refactor, docs, ci, test, chore"
+            echo "Example: feat/123-add-login-page or feat/add-login-page"
+            exit 1
+          fi
+          echo "Branch name '$BRANCH_NAME' is valid."
