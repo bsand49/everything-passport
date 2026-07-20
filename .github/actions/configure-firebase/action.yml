@@ -45,21 +45,18 @@ runs:
       run: |
         if [ -z "$SERVICE_ACCOUNT_JSON" ]; then
           echo "Using dummy Firebase options for CI build."
-          cat <<EOF > $OUT_PATH
-          import 'package:firebase_core/firebase_core.dart';
-          import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
-          
-          class DefaultFirebaseOptions {
-            static FirebaseOptions get currentPlatform {
-              return const FirebaseOptions(
-                apiKey: 'dummy',
-                appId: 'dummy',
-                messagingSenderId: 'dummy',
-                projectId: 'dummy',
-              );
-            }
-          }
-          EOF
+          printf "import 'package:firebase_core/firebase_core.dart';\n" > $OUT_PATH
+          printf "import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;\n\n" >> $OUT_PATH
+          printf "class DefaultFirebaseOptions {\n" >> $OUT_PATH
+          printf "  static FirebaseOptions get currentPlatform {\n" >> $OUT_PATH
+          printf "    return const FirebaseOptions(\n" >> $OUT_PATH
+          printf "      apiKey: 'dummy',\n" >> $OUT_PATH
+          printf "      appId: 'dummy',\n" >> $OUT_PATH
+          printf "      messagingSenderId: 'dummy',\n" >> $OUT_PATH
+          printf "      projectId: 'dummy',\n" >> $OUT_PATH
+          printf "    );\n" >> $OUT_PATH
+          printf "  }\n" >> $OUT_PATH
+          printf "}\n" >> $OUT_PATH
         else
           echo "$SERVICE_ACCOUNT_JSON" > service-account.json
           export GOOGLE_APPLICATION_CREDENTIALS=service-account.json
