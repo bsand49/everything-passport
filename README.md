@@ -53,5 +53,9 @@ The `issue-id` is optional but should be provided where possible to help track c
 6. **Open a PR**: Open a Pull Request against the `main` branch. The [Pull Request Template](.github/pull_request_template.md) will be automatically applied; please fill it out completely.
 7. **Code Review**: Address any feedback from reviewers and ensure all CI/CD checks (branch name, tests, coverage) pass.
 
+## Code Ownership
+
+This project uses a [CODEOWNERS](.github/CODEOWNERS) file to define responsibility for the codebase. Currently, @bsand49 is the primary owner for all files in this repository.
+
 ---
 © 2026 Everything Passport Team
