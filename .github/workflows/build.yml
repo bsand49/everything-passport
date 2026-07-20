@@ -14,6 +14,7 @@ jobs:
   build-and-test-mobile:
     name: Build and Test (Mobile)
     runs-on: ubuntu-latest
+    environment: dev
 
     permissions:
       pull-requests: write
@@ -29,7 +30,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version-file: mobile/pubspec.yaml
+          channel: 'stable'
           cache: true
           pub-cache: true
 
@@ -86,7 +87,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version-file: mobile/pubspec.yaml
+          channel: 'stable'
           cache: true
           pub-cache: true
 
