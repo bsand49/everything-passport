@@ -474,13 +474,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
           // Add a clear icon button if a date is selected
           suffixIcon: _dateOfBirth != null
               ? IconButton(
-            icon: const Icon(Icons.clear),
-            onPressed: () {
-              setState(() {
-                _dateOfBirth = null;
-              });
-            },
-          )
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    setState(() {
+                      _dateOfBirth = null;
+                    });
+                  },
+                )
               : null,
         ),
         child: Text(_formattedDate),
@@ -567,12 +567,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
             prefixIcon: Icon(Icons.flag),
             suffixIcon: controller.text.isNotEmpty
                 ? IconButton(
-              icon: const Icon(Icons.clear),
-              onPressed: () {
-                controller.clear();
-                setState(() => _nationality = null);
-              },
-            )
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      controller.clear();
+                      setState(() => _nationality = null);
+                    },
+                  )
                 : null,
           ),
         );

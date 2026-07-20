@@ -93,13 +93,16 @@ void main() {
     });
 
     test('fullName handles empty names', () {
-      const profile1 = UserProfile(uid: '1', username: 'u', firstName: 'John', lastName: '');
+      const profile1 =
+          UserProfile(uid: '1', username: 'u', firstName: 'John', lastName: '');
       expect(profile1.fullName, 'John');
 
-      const profile2 = UserProfile(uid: '1', username: 'u', firstName: '', lastName: 'Doe');
+      const profile2 =
+          UserProfile(uid: '1', username: 'u', firstName: '', lastName: 'Doe');
       expect(profile2.fullName, 'Doe');
 
-      const profile3 = UserProfile(uid: '1', username: 'u', firstName: '', lastName: '');
+      const profile3 =
+          UserProfile(uid: '1', username: 'u', firstName: '', lastName: '');
       expect(profile3.fullName, '');
     });
 
@@ -120,8 +123,10 @@ void main() {
       expect(updated.lastName, 'B');
     });
 
-    test('copyWith returns same instance values when no arguments provided', () {
-      const profile = UserProfile(uid: '1', username: 'u', firstName: 'A', lastName: 'B');
+    test('copyWith returns same instance values when no arguments provided',
+        () {
+      const profile =
+          UserProfile(uid: '1', username: 'u', firstName: 'A', lastName: 'B');
       final updated = profile.copyWith();
       expect(updated, equals(profile));
     });
@@ -146,14 +151,14 @@ void main() {
 
       // Reflexive
       expect(p1, equals(p1));
-      
+
       // Symmetric
       expect(p1, equals(p2));
       expect(p2, equals(p1));
-      
+
       // HashCode
       expect(p1.hashCode, equals(p2.hashCode));
-      
+
       // Not equal
       expect(p1, isNot(equals(p3)));
       expect(p1, isNot(equals(null)));
@@ -167,7 +172,8 @@ void main() {
         firstName: 'John',
         lastName: 'Doe',
       );
-      expect(profile.toString(), 'UserProfile(uid: 123, username: jdoe, fullName: John Doe)');
+      expect(profile.toString(),
+          'UserProfile(uid: 123, username: jdoe, fullName: John Doe)');
     });
 
     test('fromMap handles null values by using defaults', () {

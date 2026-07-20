@@ -45,7 +45,8 @@ void main() {
     });
 
     group('Constructor', () {
-      test('UserService constructor hits Firestore fallback when db is null', () {
+      test('UserService constructor hits Firestore fallback when db is null',
+          () {
         expect(
           () => UserService(storage: mockStorage),
           throwsA(anyOf(
@@ -55,7 +56,8 @@ void main() {
         );
       });
 
-      test('UserService constructor hits Storage fallback when storage is null', () {
+      test('UserService constructor hits Storage fallback when storage is null',
+          () {
         expect(
           () => UserService(db: mockFirestore),
           throwsA(anyOf(
@@ -117,7 +119,8 @@ void main() {
           stream,
           emitsInOrder([
             isA<UserProfile>().having((p) => p.username, 'username', 'hero'),
-            isA<UserProfile>().having((p) => p.username, 'username', 'super_hero'),
+            isA<UserProfile>()
+                .having((p) => p.username, 'username', 'super_hero'),
             isNull,
           ]),
         );
@@ -147,7 +150,8 @@ void main() {
         expect(available, isFalse);
       });
 
-      test('returns false when checking availability with mixed case', () async {
+      test('returns false when checking availability with mixed case',
+          () async {
         await mockFirestore
             .collection('usernames')
             .doc('taken')
@@ -169,9 +173,11 @@ void main() {
 
       test('returns false on error', () async {
         final mockFailingFirestore = MockFirestore();
-        when(mockFailingFirestore.collection(any)).thenThrow(Exception('Firestore Error'));
-        
-        final failingService = UserService(db: mockFailingFirestore, storage: mockStorage);
+        when(mockFailingFirestore.collection(any))
+            .thenThrow(Exception('Firestore Error'));
+
+        final failingService =
+            UserService(db: mockFailingFirestore, storage: mockStorage);
         final available =
             await failingService.isUsernameAvailable('new_user', 'uid_123');
         expect(available, isFalse);
@@ -179,7 +185,8 @@ void main() {
     });
 
     group('saveProfileWithUsername', () {
-      test('creates both documents for a new user and normalizes casing', () async {
+      test('creates both documents for a new user and normalizes casing',
+          () async {
         final profile = UserProfile(
           uid: 'uid_123',
           username: 'New_HeRo',
@@ -265,8 +272,10 @@ void main() {
 
         expect(
           () => userService.saveProfileWithUsername(profile, ''),
-          throwsA(isA<UsernameAlreadyTakenException>().having((e) => e.toString(),
-              'description', contains('is already taken'))),
+          throwsA(isA<UsernameAlreadyTakenException>().having(
+              (e) => e.toString(),
+              'description',
+              contains('is already taken'))),
         );
       });
 
@@ -276,10 +285,13 @@ void main() {
           final path = invocation.positionalArguments[0] as String;
           return mockFirestore.collection(path);
         });
-        when(mockFailingFirestore.runTransaction<void>(any, timeout: anyNamed('timeout'), maxAttempts: anyNamed('maxAttempts')))
+        when(mockFailingFirestore.runTransaction<void>(any,
+                timeout: anyNamed('timeout'),
+                maxAttempts: anyNamed('maxAttempts')))
             .thenThrow(Exception('Transaction failed'));
-        
-        final failingService = UserService(db: mockFailingFirestore, storage: mockStorage);
+
+        final failingService =
+            UserService(db: mockFailingFirestore, storage: mockStorage);
 
         final profile = UserProfile(
           uid: 'uid_123',
@@ -315,15 +327,16 @@ void main() {
         // Make the UploadTask act like a Future that completes with an error
         when(mockUploadTask.then(any, onError: anyNamed('onError')))
             .thenAnswer((invocation) {
-              final onValue = invocation.positionalArguments[0] as Function;
-              final onError = invocation.namedArguments[#onError] as Function?;
-              return Future<TaskSnapshot>.error(Exception('Upload failed')).then(
-                (snapshot) => onValue(snapshot),
-                onError: onError,
-              );
-            });
+          final onValue = invocation.positionalArguments[0] as Function;
+          final onError = invocation.namedArguments[#onError] as Function?;
+          return Future<TaskSnapshot>.error(Exception('Upload failed')).then(
+            (snapshot) => onValue(snapshot),
+            onError: onError,
+          );
+        });
 
-        final failingService = UserService(db: mockFirestore, storage: mockStorage);
+        final failingService =
+            UserService(db: mockFirestore, storage: mockStorage);
 
         await expectLater(
           failingService.uploadProfilePicture('uid_123', tempFile),
@@ -331,7 +344,9 @@ void main() {
         );
       });
 
-      test('throws exception when upload task completes with a non-success state', () async {
+      test(
+          'throws exception when upload task completes with a non-success state',
+          () async {
         final mockStorage = MockStorage();
         final mockRef = MockStorageReference();
         final mockUploadTask = MockUploadTaskMockito();
@@ -340,25 +355,27 @@ void main() {
         when(mockStorage.ref()).thenReturn(mockRef);
         when(mockRef.child(any)).thenReturn(mockRef);
         when(mockRef.putFile(any, any)).thenAnswer((_) => mockUploadTask);
-        
+
         when(mockSnapshot.state).thenReturn(TaskState.error);
 
         // Make the UploadTask act like a Future that completes with the error snapshot
         when(mockUploadTask.then(any, onError: anyNamed('onError')))
             .thenAnswer((invocation) {
-              final onValue = invocation.positionalArguments[0] as Function;
-              final onError = invocation.namedArguments[#onError] as Function?;
-              return Future<TaskSnapshot>.value(mockSnapshot).then(
-                (snapshot) => onValue(snapshot),
-                onError: onError,
-              );
-            });
+          final onValue = invocation.positionalArguments[0] as Function;
+          final onError = invocation.namedArguments[#onError] as Function?;
+          return Future<TaskSnapshot>.value(mockSnapshot).then(
+            (snapshot) => onValue(snapshot),
+            onError: onError,
+          );
+        });
 
-        final stateFailingService = UserService(db: mockFirestore, storage: mockStorage);
+        final stateFailingService =
+            UserService(db: mockFirestore, storage: mockStorage);
 
         await expectLater(
           stateFailingService.uploadProfilePicture('uid_123', tempFile),
-          throwsA(isA<Exception>().having((e) => e.toString(), 'description', contains('Upload failed with state'))),
+          throwsA(isA<Exception>().having((e) => e.toString(), 'description',
+              contains('Upload failed with state'))),
         );
       });
     });

@@ -71,7 +71,8 @@ void main() {
     when(mockUser.photoURL).thenReturn(null);
 
     // Default Metadata mock stubbing
-    when(mockMetadataService.getCountries(forceRefresh: anyNamed('forceRefresh')))
+    when(mockMetadataService.getCountries(
+            forceRefresh: anyNamed('forceRefresh')))
         .thenAnswer((_) async => [
               Country(id: 'US', name: 'United States', searchKeywords: ['usa']),
               Country(id: 'CA', name: 'Canada', searchKeywords: ['can']),
@@ -101,12 +102,15 @@ void main() {
   });
 
   group('UserProfilePage Initialization', () {
-    testWidgets('shows "Not Logged In" when user is null', (WidgetTester tester) async {
-      await tester.pumpWidget(createTestableWidget(child: const UserProfilePage(), user: null));
+    testWidgets('shows "Not Logged In" when user is null',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+          createTestableWidget(child: const UserProfilePage(), user: null));
       expect(find.text('Not Logged In'), findsOneWidget);
     });
 
-    testWidgets('Google Photo auto-trigger coverage', (WidgetTester tester) async {
+    testWidgets('Google Photo auto-trigger coverage',
+        (WidgetTester tester) async {
       setViewport(tester);
       final userWithPhoto = MockUser();
       when(userWithPhoto.uid).thenReturn('test_uid');
@@ -158,7 +162,8 @@ void main() {
 
       // 3. Nationality autocomplete
       final nationalityFinder = find.byType(Autocomplete<Country>);
-      final nationalityField = find.descendant(of: nationalityFinder, matching: find.byType(TextField));
+      final nationalityField = find.descendant(
+          of: nationalityFinder, matching: find.byType(TextField));
       await tester.enterText(nationalityField, '');
       await tester.pumpAndSettle();
       expect(find.text('Canada'), findsOneWidget);
@@ -182,7 +187,12 @@ void main() {
     });
 
     testWidgets('Nationality fallback', (WidgetTester tester) async {
-      final profile = UserProfile(uid: 'u', username: 'u', firstName: 'A', lastName: 'B', nationality: 'BAD');
+      final profile = UserProfile(
+          uid: 'u',
+          username: 'u',
+          firstName: 'A',
+          lastName: 'B',
+          nationality: 'BAD');
       await tester.pumpWidget(createTestableWidget(
         child: const UserProfilePage(),
         userService: mockUserService,
@@ -191,7 +201,8 @@ void main() {
         user: mockUser,
       ));
       await tester.pumpAndSettle();
-      expect(find.widgetWithText(TextFormField, 'United States'), findsOneWidget);
+      expect(
+          find.widgetWithText(TextFormField, 'United States'), findsOneWidget);
     });
 
     testWidgets('Public profile toggle', (WidgetTester tester) async {
@@ -207,7 +218,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      final toggleFinder = find.widgetWithText(SwitchListTile, 'Public Profile');
+      final toggleFinder =
+          find.widgetWithText(SwitchListTile, 'Public Profile');
       expect(find.byIcon(Icons.public), findsOneWidget);
 
       await tester.tap(toggleFinder);
@@ -276,7 +288,8 @@ void main() {
       expect(find.byIcon(Icons.check_circle), findsOneWidget);
     });
 
-    testWidgets('Date of Birth field clear button', (WidgetTester tester) async {
+    testWidgets('Date of Birth field clear button',
+        (WidgetTester tester) async {
       setViewport(tester);
 
       await tester.pumpWidget(createTestableWidget(
@@ -439,7 +452,8 @@ void main() {
   });
 
   group('UserProfilePage Profile Photo', () {
-    testWidgets('Google Photo coverage (Success, Failure, Exception)', (WidgetTester tester) async {
+    testWidgets('Google Photo coverage (Success, Failure, Exception)',
+        (WidgetTester tester) async {
       setViewport(tester);
 
       final profileNoPhoto = UserProfile(
@@ -473,23 +487,26 @@ void main() {
       // Success path
       when(mockHttpClient.get(any))
           .thenAnswer((_) async => http.Response.bytes([1, 2, 3], 200));
-      await tester.runAsync(() async => await state.useGooglePhoto('https://example.com/photo.jpg'));
+      await tester.runAsync(() async =>
+          await state.useGooglePhoto('https://example.com/photo.jpg'));
       await tester.pump();
 
       // Failure path
       when(mockHttpClient.get(any))
           .thenAnswer((_) async => http.Response('Not Found', 404));
-      await tester.runAsync(() async => await state.useGooglePhoto('https://example.com/photo.jpg'));
+      await tester.runAsync(() async =>
+          await state.useGooglePhoto('https://example.com/photo.jpg'));
       await tester.pump();
 
       // Exception path
-      when(mockHttpClient.get(any))
-          .thenThrow(Exception('Network error'));
-      await tester.runAsync(() async => await state.useGooglePhoto('https://example.com/photo.jpg'));
+      when(mockHttpClient.get(any)).thenThrow(Exception('Network error'));
+      await tester.runAsync(() async =>
+          await state.useGooglePhoto('https://example.com/photo.jpg'));
       await tester.pump();
     });
 
-    testWidgets('uploadProfilePicture is called when image is selected', (WidgetTester tester) async {
+    testWidgets('uploadProfilePicture is called when image is selected',
+        (WidgetTester tester) async {
       setViewport(tester);
 
       final mockUserNoPhoto = MockUser();
@@ -513,17 +530,20 @@ void main() {
 
       final dynamic state = tester.state(find.byType(UserProfilePage));
 
-      await tester.runAsync(() async => await state.useGooglePhoto('https://example.com/photo.jpg'));
-      
+      await tester.runAsync(() async =>
+          await state.useGooglePhoto('https://example.com/photo.jpg'));
+
       // Use a more robust wait than manual for loop
-      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 500)));
+      await tester
+          .runAsync(() => Future.delayed(const Duration(milliseconds: 500)));
       await tester.pump();
 
       verifyNever(mockUserService.uploadProfilePicture(any, any));
 
       await tester.tap(find.text('Save Changes'));
-      
-      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 500)));
+
+      await tester
+          .runAsync(() => Future.delayed(const Duration(milliseconds: 500)));
       await tester.pump();
 
       verify(mockUserService.uploadProfilePicture(any, any)).called(1);
@@ -531,7 +551,8 @@ void main() {
   });
 
   group('UserProfilePage Profile Photo Selection', () {
-    testWidgets('picks and crops profile picture successfully', (WidgetTester tester) async {
+    testWidgets('picks and crops profile picture successfully',
+        (WidgetTester tester) async {
       setViewport(tester);
 
       when(mockImagePickerPlatform.getImageFromSource(
@@ -573,7 +594,8 @@ void main() {
       verify(mockUserService.uploadProfilePicture(any, any)).called(1);
     });
 
-    testWidgets('cancels image picking gracefully', (WidgetTester tester) async {
+    testWidgets('cancels image picking gracefully',
+        (WidgetTester tester) async {
       setViewport(tester);
 
       when(mockImagePickerPlatform.getImageFromSource(
@@ -601,7 +623,8 @@ void main() {
       verifyNever(mockUserService.uploadProfilePicture(any, any));
     });
 
-    testWidgets('cancels image cropping gracefully', (WidgetTester tester) async {
+    testWidgets('cancels image cropping gracefully',
+        (WidgetTester tester) async {
       setViewport(tester);
 
       when(mockImagePickerPlatform.getImageFromSource(
@@ -663,8 +686,9 @@ void setupGlobalMocks() {
 }
 
 void setupMethodChannelMocks() {
-  final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-  
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+
   messenger.setMockMethodCallHandler(
     const MethodChannel('plugins.flutter.io/path_provider'),
     (MethodCall methodCall) async => '.',
@@ -679,7 +703,8 @@ void setupMethodChannelMocks() {
   );
 }
 
-class MockPathProviderPlatform extends PathProviderPlatform with MockPlatformInterfaceMixin {
+class MockPathProviderPlatform extends PathProviderPlatform
+    with MockPlatformInterfaceMixin {
   @override
   Future<String?> getTemporaryPath() async => '.';
   @override
@@ -693,7 +718,9 @@ class MockPathProviderPlatform extends PathProviderPlatform with MockPlatformInt
   @override
   Future<List<String>?> getExternalCachePaths() async => [];
   @override
-  Future<List<String>?> getExternalStoragePaths({StorageDirectory? type}) async => [];
+  Future<List<String>?> getExternalStoragePaths(
+          {StorageDirectory? type}) async =>
+      [];
   @override
   Future<String?> getDownloadsPath() async => '.';
 }

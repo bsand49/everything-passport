@@ -60,9 +60,9 @@ class AuthService {
 
       final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
-      final clientAuth =
-          await googleUser.authorizationClient.authorizationForScopes(_googleScopes) ??
-              await googleUser.authorizationClient.authorizeScopes(_googleScopes);
+      final clientAuth = await googleUser.authorizationClient
+              .authorizationForScopes(_googleScopes) ??
+          await googleUser.authorizationClient.authorizeScopes(_googleScopes);
 
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: clientAuth.accessToken,
@@ -103,7 +103,8 @@ class AuthService {
         await signOut();
       }
     } on FirebaseAuthException catch (e) {
-      debugPrint('AuthService: Account deletion error [${e.code}]: ${e.message}');
+      debugPrint(
+          'AuthService: Account deletion error [${e.code}]: ${e.message}');
       rethrow;
     } catch (e) {
       debugPrint('AuthService: Unexpected account deletion error: $e');

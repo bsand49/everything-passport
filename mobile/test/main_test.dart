@@ -32,7 +32,8 @@ void main() async {
   }
 
   group('AuthWrapper Tests', () {
-    testWidgets('shows LoginPage when user is null', (WidgetTester tester) async {
+    testWidgets('shows LoginPage when user is null',
+        (WidgetTester tester) async {
       await tester.pumpWidget(createTestableWidget(
         child: const AuthWrapper(),
         user: null,
@@ -41,7 +42,8 @@ void main() async {
       expect(find.byType(LoginPage), findsOneWidget);
     });
 
-    testWidgets('shows UserProfilePage when user is logged in but profile is null',
+    testWidgets(
+        'shows UserProfilePage when user is logged in but profile is null',
         (WidgetTester tester) async {
       await tester.pumpWidget(createTestableWidget(
         child: const AuthWrapper(),
@@ -52,7 +54,8 @@ void main() async {
       expect(find.byType(UserProfilePage), findsOneWidget);
     });
 
-    testWidgets('shows UserProfilePage when user is logged in but profile is incomplete',
+    testWidgets(
+        'shows UserProfilePage when user is logged in but profile is incomplete',
         (WidgetTester tester) async {
       final incompleteProfile = UserProfile(
         uid: 'test_uid',
@@ -90,7 +93,8 @@ void main() async {
   });
 
   group('MyApp Tests', () {
-    testWidgets('MyApp renders MaterialApp with correct title and setup', (WidgetTester tester) async {
+    testWidgets('MyApp renders MaterialApp with correct title and setup',
+        (WidgetTester tester) async {
       final fakeAuth = FakeAuthService();
       final fakeUser = FakeUserService();
       final fakeMeta = FakeMetadataService();
@@ -108,7 +112,8 @@ void main() async {
       expect(app.theme?.useMaterial3, true);
     });
 
-    testWidgets('MyApp coverage: handles default providers and disposal', (WidgetTester tester) async {
+    testWidgets('MyApp coverage: handles default providers and disposal',
+        (WidgetTester tester) async {
       final fakeAuth = FakeAuthService();
       final fakeUser = FakeUserService();
 

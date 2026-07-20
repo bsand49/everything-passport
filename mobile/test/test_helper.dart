@@ -14,7 +14,7 @@ import 'package:rxdart/rxdart.dart';
 // Manual Fake classes with call tracking to avoid Mockito null-safety issues with 'any'
 class FakeAuthService extends Fake implements AuthService {
   final _userSubject = BehaviorSubject<User?>.seeded(null);
-  
+
   String? lastEmail;
   String? lastPassword;
   int signInWithEmailCalls = 0;

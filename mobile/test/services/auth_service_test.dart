@@ -14,9 +14,12 @@ import 'auth_service_test.mocks.dart';
   MockSpec<User>(as: #MockUserMockito),
   MockSpec<GoogleSignIn>(as: #MockGoogleSignInMockito),
   MockSpec<GoogleSignInAccount>(as: #MockGoogleSignInAccountMockito),
-  MockSpec<GoogleSignInAuthentication>(as: #MockGoogleSignInAuthenticationMockito),
-  MockSpec<GoogleSignInAuthorizationClient>(as: #MockGoogleSignInAuthorizationClient),
-  MockSpec<GoogleSignInClientAuthorization>(as: #MockGoogleSignInClientAuthorization),
+  MockSpec<GoogleSignInAuthentication>(
+      as: #MockGoogleSignInAuthenticationMockito),
+  MockSpec<GoogleSignInAuthorizationClient>(
+      as: #MockGoogleSignInAuthorizationClient),
+  MockSpec<GoogleSignInClientAuthorization>(
+      as: #MockGoogleSignInClientAuthorization),
   MockSpec<UserCredential>(as: #MockUserCredential),
 ])
 void main() {
@@ -34,7 +37,9 @@ void main() {
     });
 
     group('Constructor', () {
-      test('AuthService() throws FirebaseException when Firebase is not initialized', () {
+      test(
+          'AuthService() throws FirebaseException when Firebase is not initialized',
+          () {
         expect(() => AuthService(), throwsA(isA<FirebaseException>()));
       });
 
@@ -42,8 +47,11 @@ void main() {
         expect(() => AuthService(auth: mockAuth), returnsNormally);
       });
 
-      test('AuthService(googleSignIn: mockGoogleSignIn) throws FirebaseException when Firebase is not initialized', () {
-        expect(() => AuthService(googleSignIn: mockGoogleSignIn), throwsA(isA<FirebaseException>()));
+      test(
+          'AuthService(googleSignIn: mockGoogleSignIn) throws FirebaseException when Firebase is not initialized',
+          () {
+        expect(() => AuthService(googleSignIn: mockGoogleSignIn),
+            throwsA(isA<FirebaseException>()));
       });
     });
 
@@ -171,7 +179,8 @@ void main() {
         when(mockGoogle.authenticate()).thenAnswer((_) async => mockAccount);
         when(mockAccount.authentication).thenReturn(mockAuthDetails);
         when(mockAccount.authorizationClient).thenReturn(mockAuthClient);
-        when(mockAuthClient.authorizationForScopes(any)).thenAnswer((_) async => mockClientAuth);
+        when(mockAuthClient.authorizationForScopes(any))
+            .thenAnswer((_) async => mockClientAuth);
         when(mockAuthDetails.idToken).thenReturn('fake-id');
         when(mockClientAuth.accessToken).thenReturn('fake-token');
 
@@ -182,7 +191,9 @@ void main() {
         expect(service.currentUser, isNotNull);
       });
 
-      test('signInWithGoogle success path when authorizationForScopes returns null (calls authorizeScopes)', () async {
+      test(
+          'signInWithGoogle success path when authorizationForScopes returns null (calls authorizeScopes)',
+          () async {
         final mockGoogle = MockGoogleSignInMockito();
         final mockAccount = MockGoogleSignInAccountMockito();
         final mockAuthDetails = MockGoogleSignInAuthenticationMockito();
@@ -192,8 +203,10 @@ void main() {
         when(mockGoogle.authenticate()).thenAnswer((_) async => mockAccount);
         when(mockAccount.authentication).thenReturn(mockAuthDetails);
         when(mockAccount.authorizationClient).thenReturn(mockAuthClient);
-        when(mockAuthClient.authorizationForScopes(any)).thenAnswer((_) async => null);
-        when(mockAuthClient.authorizeScopes(any)).thenAnswer((_) async => mockClientAuth);
+        when(mockAuthClient.authorizationForScopes(any))
+            .thenAnswer((_) async => null);
+        when(mockAuthClient.authorizeScopes(any))
+            .thenAnswer((_) async => mockClientAuth);
         when(mockAuthDetails.idToken).thenReturn('fake-id');
         when(mockClientAuth.accessToken).thenReturn('fake-token');
 
@@ -207,11 +220,13 @@ void main() {
         verify(mockAuthClient.authorizeScopes(any)).called(1);
       });
 
-      test('signInWithGoogle returns null on user cancellation (GoogleSignInException)',
+      test(
+          'signInWithGoogle returns null on user cancellation (GoogleSignInException)',
           () async {
         final cancelledGoogle = MockGoogleSignInMockito();
         when(cancelledGoogle.authenticate()).thenThrow(
-            const GoogleSignInException(code: GoogleSignInExceptionCode.canceled));
+            const GoogleSignInException(
+                code: GoogleSignInExceptionCode.canceled));
 
         final service =
             AuthService(googleSignIn: cancelledGoogle, auth: mockAuth);
@@ -282,7 +297,8 @@ void main() {
         expect(authService.currentUser, isNull);
       });
 
-      test('deleteAccount does nothing and remains null if no user logged in', () async {
+      test('deleteAccount does nothing and remains null if no user logged in',
+          () async {
         expect(authService.currentUser, isNull);
         await authService.deleteAccount();
         expect(authService.currentUser, isNull);

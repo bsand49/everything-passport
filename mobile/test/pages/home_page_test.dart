@@ -30,7 +30,8 @@ void main() {
 
   setUpAll(() {
     // Provide a dummy Route for Mockito's 'any' / 'captureAny' null-safety verification
-    provideDummy<Route<dynamic>>(MaterialPageRoute(builder: (_) => const SizedBox()));
+    provideDummy<Route<dynamic>>(
+        MaterialPageRoute(builder: (_) => const SizedBox()));
     HttpOverrides.global = MockHttpOverrides();
   });
 
@@ -88,7 +89,8 @@ void main() {
       ));
 
       expect(find.text('traveler_john'), findsOneWidget);
-      expect(find.text('Welcome to Everything Passport, John!'), findsOneWidget);
+      expect(
+          find.text('Welcome to Everything Passport, John!'), findsOneWidget);
     });
 
     testWidgets('displays default person icon when photoUrl is null',
@@ -110,7 +112,8 @@ void main() {
       expect(find.byIcon(Icons.person), findsOneWidget);
     });
 
-    testWidgets('displays CircleAvatar with CachedNetworkImage when photoUrl is present',
+    testWidgets(
+        'displays CircleAvatar with CachedNetworkImage when photoUrl is present',
         (WidgetTester tester) async {
       await tester.pumpWidget(createTestableWidget(
         child: HomePage(),
@@ -123,7 +126,7 @@ void main() {
 
       final CircleAvatar avatar = tester.widget(circleAvatarFinder);
       expect(avatar.backgroundImage, isA<CachedNetworkImageProvider>());
-      
+
       final provider = avatar.backgroundImage as CachedNetworkImageProvider;
       expect(provider.url, 'https://example.com/photo.jpg');
     });
@@ -170,7 +173,8 @@ void main() {
       expect(find.text('Add New'), findsNothing); // Verify sheet popped
     });
 
-    testWidgets('navigates to SettingsPage on settings button tap (isolated route test)',
+    testWidgets(
+        'navigates to SettingsPage on settings button tap (isolated route test)',
         (WidgetTester tester) async {
       await tester.pumpWidget(createTestableWidget(
         child: HomePage(),
@@ -183,10 +187,11 @@ void main() {
       await tester.pumpAndSettle();
 
       // Capture and verify navigation occurred using Mockito's captureAny and called(2)
-      final verification = verify(mockObserver.didPush(captureAny, any))..called(2);
+      final verification = verify(mockObserver.didPush(captureAny, any))
+        ..called(2);
       final Route<dynamic> route = verification.captured[1] as Route<dynamic>;
       expect(route, isA<MaterialPageRoute>());
-      
+
       final BuildContext context = tester.element(find.byType(Navigator));
       final widget = (route as MaterialPageRoute).builder(context);
       expect(widget, isA<SettingsPage>());
@@ -205,9 +210,11 @@ class MockHttpOverrides extends HttpOverrides {
 
 class MockHttpClient extends Fake implements HttpClient {
   @override
-  Future<HttpClientRequest> getUrl(Uri url) => Future.value(MockHttpClientRequest());
+  Future<HttpClientRequest> getUrl(Uri url) =>
+      Future.value(MockHttpClientRequest());
   @override
-  Future<HttpClientRequest> openUrl(String method, Uri url) => Future.value(MockHttpClientRequest());
+  Future<HttpClientRequest> openUrl(String method, Uri url) =>
+      Future.value(MockHttpClientRequest());
   @override
   set autoUncompress(bool value) {}
   @override
@@ -253,12 +260,16 @@ class MockHttpClientResponse extends Fake implements HttpClientResponse {
   @override
   List<RedirectInfo> get redirects => [];
   @override
-  HttpClientResponseCompressionState get compressionState => HttpClientResponseCompressionState.notCompressed;
+  HttpClientResponseCompressionState get compressionState =>
+      HttpClientResponseCompressionState.notCompressed;
   @override
   StreamSubscription<List<int>> listen(void Function(List<int> event)? onData,
       {Function? onError, void Function()? onDone, bool? cancelOnError}) {
-    final stream = Stream<List<int>>.fromIterable([[1, 2, 3]]);
-    return stream.listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+    final stream = Stream<List<int>>.fromIterable([
+      [1, 2, 3]
+    ]);
+    return stream.listen(onData,
+        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 }
 
@@ -268,12 +279,14 @@ class MockHttpHeaders extends Fake implements HttpHeaders {
   void add(String name, Object value, {bool preserveHeaderCase = false}) {
     _headers.putIfAbsent(name, () => []).add(value.toString());
   }
+
   @override
   List<String>? operator [](String name) => _headers[name];
   @override
   void forEach(void Function(String name, List<String> values) f) {
     _headers.forEach(f);
   }
+
   @override
   set contentType(ContentType? value) {}
 }

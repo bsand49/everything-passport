@@ -69,8 +69,8 @@ void main() {
     final passwordFinder = find.byKey(const Key('passwordField'));
     expect(
         tester
-            .widget<TextField>(
-                find.descendant(of: passwordFinder, matching: find.byType(TextField)))
+            .widget<TextField>(find.descendant(
+                of: passwordFinder, matching: find.byType(TextField)))
             .obscureText,
         isTrue);
 
@@ -79,8 +79,8 @@ void main() {
 
     expect(
         tester
-            .widget<TextField>(
-                find.descendant(of: passwordFinder, matching: find.byType(TextField)))
+            .widget<TextField>(find.descendant(
+                of: passwordFinder, matching: find.byType(TextField)))
             .obscureText,
         isFalse);
   });
@@ -102,13 +102,13 @@ void main() {
     await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
     await tester.pump();
 
-    verify(mockAuthService.signInWithEmail('test@example.com', 'password123')).called(1);
+    verify(mockAuthService.signInWithEmail('test@example.com', 'password123'))
+        .called(1);
   });
 
   testWidgets('LoginPage calls signInWithGoogle on Google button tap',
       (WidgetTester tester) async {
-    when(mockAuthService.signInWithGoogle())
-        .thenAnswer((_) async => null);
+    when(mockAuthService.signInWithGoogle()).thenAnswer((_) async => null);
 
     await tester.pumpWidget(createTestableWidget(
       child: const LoginPage(),

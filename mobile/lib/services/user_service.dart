@@ -30,7 +30,11 @@ class UserService {
   ///
   /// Returns `null` if the profile does not exist or an error occurs.
   Stream<UserProfile?> streamProfile(String uid) {
-    return _db.collection(_usersCollection).doc(uid).snapshots().map((snapshot) {
+    return _db
+        .collection(_usersCollection)
+        .doc(uid)
+        .snapshots()
+        .map((snapshot) {
       try {
         if (snapshot.exists && snapshot.data() != null) {
           return UserProfile.fromMap(uid, snapshot.data()!);

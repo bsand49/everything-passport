@@ -9,7 +9,8 @@ class MetadataService {
   MetadataService({FirebaseFirestore? db})
       : _db = db ?? FirebaseFirestore.instance;
 
-  static List<Country> _fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? _) {
+  static List<Country> _fromFirestore(
+      DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? _) {
     final data = snapshot.data();
     final List<dynamic> options = data?['options'] ?? [];
     return options
@@ -17,7 +18,8 @@ class MetadataService {
         .toList();
   }
 
-  static Map<String, Object?> toFirestore(List<Country> countries, SetOptions? _) {
+  static Map<String, Object?> toFirestore(
+      List<Country> countries, SetOptions? _) {
     return {
       'options': countries.map((c) => c.toMap()).toList(),
     };

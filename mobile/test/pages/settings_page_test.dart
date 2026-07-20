@@ -47,7 +47,8 @@ void main() {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const SettingsPage()),
+                    MaterialPageRoute(
+                        builder: (context) => const SettingsPage()),
                   );
                 },
                 child: const Text('Go to Settings'),
@@ -65,7 +66,8 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('displays header and options correctly', (WidgetTester tester) async {
+    testWidgets('displays header and options correctly',
+        (WidgetTester tester) async {
       await pumpSettingsPage(tester);
 
       expect(find.text('Settings'), findsOneWidget);
@@ -85,7 +87,8 @@ void main() {
       expect(find.byType(UserProfilePage), findsOneWidget);
     });
 
-    testWidgets('shows logout confirmation dialog and handles successful sign out',
+    testWidgets(
+        'shows logout confirmation dialog and handles successful sign out',
         (WidgetTester tester) async {
       when(mockAuthService.signOut()).thenAnswer((_) async {});
 

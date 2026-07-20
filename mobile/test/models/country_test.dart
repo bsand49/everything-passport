@@ -85,14 +85,14 @@ void main() {
 
       // Reflexive
       expect(country1, equals(country1));
-      
+
       // Symmetric
       expect(country1, equals(country2));
       expect(country2, equals(country1));
-      
+
       // HashCode
       expect(country1.hashCode, equals(country2.hashCode));
-      
+
       // Not equal
       expect(country1, isNot(equals(country3)));
       expect(country1, isNot(equals(null)));
@@ -105,7 +105,8 @@ void main() {
     });
 
     test('copyWith returns same values when no arguments provided', () {
-      const country = Country(id: 'DE', name: 'Germany', searchKeywords: ['germany']);
+      const country =
+          Country(id: 'DE', name: 'Germany', searchKeywords: ['germany']);
       final updated = country.copyWith();
       expect(updated, equals(country));
     });

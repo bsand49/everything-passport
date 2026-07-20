@@ -20,7 +20,8 @@ void main() {
 
   setUpAll(() {
     // Provide a dummy Route for Mockito's 'any' null-safety verification
-    provideDummy<Route<dynamic>>(MaterialPageRoute(builder: (_) => const SizedBox()));
+    provideDummy<Route<dynamic>>(
+        MaterialPageRoute(builder: (_) => const SizedBox()));
   });
 
   setUp(() {
@@ -35,13 +36,15 @@ void main() {
   }) async {
     await tester.enterText(find.byKey(SignUpPage.emailFieldKey), email);
     await tester.enterText(find.byKey(SignUpPage.passwordFieldKey), password);
-    await tester.enterText(find.byKey(SignUpPage.confirmPasswordFieldKey), confirmPassword);
+    await tester.enterText(
+        find.byKey(SignUpPage.confirmPasswordFieldKey), confirmPassword);
     await tester.tap(find.byKey(SignUpPage.signUpButtonKey));
     await tester.pump();
   }
 
   group('SignUpPage Widget Tests', () {
-    testWidgets('displays fields and sign up button', (WidgetTester tester) async {
+    testWidgets('displays fields and sign up button',
+        (WidgetTester tester) async {
       await tester.pumpWidget(createTestableWidget(
         child: const SignUpPage(),
         authService: mockAuthService,
@@ -68,7 +71,8 @@ void main() {
         verifyNever(mockAuthService.signUpWithEmail(any, any));
       });
 
-      testWidgets('shows error on invalid email format', (WidgetTester tester) async {
+      testWidgets('shows error on invalid email format',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget(
           child: const SignUpPage(),
           authService: mockAuthService,
@@ -98,11 +102,13 @@ void main() {
           confirmPassword: '12345',
         );
 
-        expect(find.text('Password must be at least 6 characters'), findsOneWidget);
+        expect(find.text('Password must be at least 6 characters'),
+            findsOneWidget);
         verifyNever(mockAuthService.signUpWithEmail(any, any));
       });
 
-      testWidgets('shows error if passwords do not match', (WidgetTester tester) async {
+      testWidgets('shows error if passwords do not match',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget(
           child: const SignUpPage(),
           authService: mockAuthService,
@@ -121,7 +127,8 @@ void main() {
     });
 
     group('Auth Action Tests', () {
-      testWidgets('calls signUpWithEmail and pops navigation on valid input', (WidgetTester tester) async {
+      testWidgets('calls signUpWithEmail and pops navigation on valid input',
+          (WidgetTester tester) async {
         final mockObserver = MockNavigatorObserver();
         final mockUserCredential = MockUserCredential();
 
@@ -141,7 +148,9 @@ void main() {
           confirmPassword: 'password123',
         );
 
-        verify(mockAuthService.signUpWithEmail('test@example.com', 'password123')).called(1);
+        verify(mockAuthService.signUpWithEmail(
+                'test@example.com', 'password123'))
+            .called(1);
         verify(mockObserver.didPop(any, any)).called(1);
       });
 
@@ -161,10 +170,13 @@ void main() {
           confirmPassword: 'password123',
         );
 
-        expect(find.textContaining('Sign Up Failed: Exception: Network timeout'), findsOneWidget);
+        expect(
+            find.textContaining('Sign Up Failed: Exception: Network timeout'),
+            findsOneWidget);
       });
 
-      testWidgets('shows loading indicator during request', (WidgetTester tester) async {
+      testWidgets('shows loading indicator during request',
+          (WidgetTester tester) async {
         final completer = Completer<UserCredential?>();
 
         when(mockAuthService.signUpWithEmail(any, any))
@@ -192,7 +204,8 @@ void main() {
     });
 
     group('Interactive UI State Tests', () {
-      testWidgets('toggles password visibility on suffix icon tap', (WidgetTester tester) async {
+      testWidgets('toggles password visibility on suffix icon tap',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget(
           child: const SignUpPage(),
           authService: mockAuthService,
@@ -225,7 +238,8 @@ void main() {
         expect(toggledTextField.obscureText, isFalse);
       });
 
-      testWidgets('toggles confirm password visibility on suffix icon tap', (WidgetTester tester) async {
+      testWidgets('toggles confirm password visibility on suffix icon tap',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget(
           child: const SignUpPage(),
           authService: mockAuthService,
