@@ -10,6 +10,8 @@ This repository is a monorepo containing the following components:
 - **backend/**: The server-side logic and API (if applicable).
 - **web/**: The web-based interface for the application.
 - **docs/**: Project documentation and architecture diagrams.
+- **[CHANGELOG.md](CHANGELOG.md)**: Tracking of released and unreleased changes.
+- **[RELEASING.md](docs/RELEASING.md)**: Instructions and process for cutting new releases.
 
 ## Quick Start
 
