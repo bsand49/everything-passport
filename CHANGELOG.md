@@ -31,6 +31,7 @@ When adding to this file, please use the following headers to group changes:
 - **Repository Management**:
     - `CODEOWNERS` file for automated review assignments.
     - `dependabot.yml` for automated dependency updates.
+    - `dependabot-auto-merge.yml` for auto merging PRs raised by dependabot, when safe to do so.
     - Pull Request template and branch naming conventions.
     - Comprehensive `README.md` and documentation structure.
 - **Documentation**:
