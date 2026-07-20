@@ -36,16 +36,6 @@ cd ..
 ```
 *Note: If you are on an Apple Silicon (M1/M2/M3) Mac, you may need to run `arch -x86_64 pod install` if you encounter compatibility issues.*
 
-#### Linux
-Ensure you have the necessary build tools and libraries for Flutter Linux development:
-```bash
-sudo apt-get update
-sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
-```
-
-#### Windows
-Ensure you have "Desktop development with C++" installed via the Visual Studio Installer if you plan to run the Windows desktop version.
-
 ### 4. Firebase Configuration
 The Firebase configuration files (`google-services.json`, `GoogleService-Info.plist`, and `firebase_options.dart`) are **not** included in the repository for security reasons.
 
@@ -59,10 +49,15 @@ To set up Firebase locally:
     firebase login
     ```
 3.  **Configure the project**:
-    ```bash
-    flutterfire configure
-    ```
-    Follow the prompts to select/create your Firebase project and platforms. This will generate the necessary configuration files.
+    - **Development**:
+      ```bash
+      flutterfire configure --out=lib/firebase_options_dev.dart
+      ```
+    - **Production (Optional)**:
+      ```bash
+      flutterfire configure --out=lib/firebase_options_prod.dart
+      ```
+    Follow the prompts to select/create your Firebase project and platforms. This will generate the necessary configuration files (including the environment-specific Dart options expected by the app).
 
 ### 5. Google Sign-In Setup (Android)
 To use Google Sign-In on the Android emulator or a physical device:
@@ -108,10 +103,22 @@ Before running `flutter run`, you must have a target device (physical or virtual
 
 ## Running the Application
 
+### Environment Configuration
+
+The application requires specific environment variables to be set at build time using the `--dart-define` flag.
+
+| Variable | Description | Allowed Values | Default |
+| :--- | :--- | :--- | :--- |
+| `ENV` | The target environment (affects Firebase initialization). | `dev`, `prod` | `dev` |
+| `SERVER_CLIENT_ID` | The Google Sign-In Web Client ID. | String from Firebase/GCP Console | (Required) |
+
+> [!NOTE]
+> You can find the `SERVER_CLIENT_ID` in the `google-services.json` file (as `client_id` under `oauth_client` with `client_type` 3) or in the Google Cloud Console under APIs & Services > Credentials.
+
 ### From the Command Line
-To run on a connected device or emulator:
+To run on a connected device or emulator with the required environment variables:
 ```bash
-flutter run
+flutter run --dart-define=ENV=dev --dart-define=SERVER_CLIENT_ID=your-client-id
 ```
 
 ### From an IDE
@@ -127,7 +134,7 @@ This project uses `mockito` for unit testing, which requires code generation. If
 
 Run the build runner command to generate the mocks:
 ```bash
-flutter pub run build_runner build --delete-conflicting-outputs
+dart run build_runner build --delete-conflicting-outputs
 ```
 
 *Note: You can add `--watch` to the command to continuously regenerate mocks as you edit test files.*
@@ -172,7 +179,8 @@ flutter test --dart-define=ENV=prod integration_test/app_test.dart
 *   `lib/main.dart`: Entry point and authentication wrapper.
 *   `lib/services/`: Business logic and API clients (e.g., `AuthService`).
 *   `lib/pages/`: UI screens (Login, Sign Up, Home).
-*   `lib/firebase_options.dart`: Firebase configuration for all platforms.
+*   `lib/firebase_options_dev.dart`: Firebase configuration for the development environment.
+*   `lib/firebase_options_prod.dart`: (Optional) Firebase configuration for the production environment.
 
 ## Troubleshooting
 
