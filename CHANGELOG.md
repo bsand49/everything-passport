@@ -31,11 +31,13 @@ When adding to this file, please use the following headers to group changes:
 - **Repository Management**:
     - `CODEOWNERS` file for automated review assignments.
     - `dependabot.yml` for automated dependency updates.
-    - `dependabot-auto-merge.yml` for auto merging PRs raised by dependabot, when safe to do so.
+    - `dependabot-auto-merge.yml` for auto merging PRs raised by dependabot, with refined logic for draft PRs and merge status.
+    - **Git Hooks**: Integrated `Lefthook` for automated pre-commit quality checks and 90% coverage enforcement, with support for local environment overrides.
     - Pull Request template and branch naming conventions.
     - Comprehensive `README.md` and documentation structure.
 - **Documentation**:
     - Added `CHANGELOG.md` (this file) to track changes.
     - Added `RELEASING.md` to document the release process.
+    - Added local environment setup guide for GUI Git clients (macOS, Linux, Windows).
 
 [Unreleased]: https://github.com/bsand49/everything-passport/compare/v0.0.0...HEAD

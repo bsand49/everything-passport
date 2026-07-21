@@ -18,6 +18,11 @@ modules.xml
 # Local AI agent runtimes
 .artifacts/
 
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+
 # Environment files
 .env
 .env.*
+lefthook-local.yml

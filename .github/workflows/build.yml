@@ -59,7 +59,7 @@ jobs:
       - name: Report code coverage
         uses: ./.github/actions/report-coverage
         with:
-          threshold: ${{ vars.MOBILE_COVERAGE_THRESHOLD || 80 }}
+          threshold: ${{ vars.MOBILE_COVERAGE_THRESHOLD || 90 }}
 
       - name: Build debug APK
         run: flutter build apk --debug --no-pub

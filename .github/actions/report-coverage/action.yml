@@ -8,7 +8,7 @@ inputs:
   threshold:
     description: 'Coverage percentage threshold'
     required: true
-    default: '80'
+    default: '90'
   header:
     description: 'Unique header for the sticky comment'
     required: true
