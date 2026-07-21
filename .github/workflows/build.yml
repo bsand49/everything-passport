@@ -1,5 +1,5 @@
 name: Build and Test
-run-name: Build and Test for PR #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
+run-name: "Build and Test for PR #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}"
 
 on:
   pull_request:
