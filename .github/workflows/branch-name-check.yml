@@ -9,6 +9,7 @@ jobs:
   validate-branch-name:
     name: Validate Branch Name
     runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
     steps:
       - name: Check format
         run: |
