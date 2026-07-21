@@ -34,6 +34,9 @@ jobs:
           cache: true
           pub-cache: true
 
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+
       - name: Configure Firebase
         uses: ./.github/actions/configure-firebase
         with:
@@ -43,9 +46,6 @@ jobs:
           ios-bundle-id: 'com.bsand49.everythingPassport'
           output-path: 'lib/firebase_options_dev.dart'
           working-directory: 'mobile'
-
-      - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed .
 
       - name: Install dependencies
         run: flutter pub get
