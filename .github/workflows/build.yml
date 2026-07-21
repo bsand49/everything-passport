@@ -34,6 +34,9 @@ jobs:
           cache: true
           pub-cache: true
 
+      - name: Install dependencies
+        run: flutter pub get
+
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
 
@@ -46,9 +49,6 @@ jobs:
           ios-bundle-id: 'com.bsand49.everythingPassport'
           output-path: 'lib/firebase_options_dev.dart'
           working-directory: 'mobile'
-
-      - name: Install dependencies
-        run: flutter pub get
 
       - name: Run static analysis
         run: flutter analyze
@@ -91,6 +91,9 @@ jobs:
           cache: true
           pub-cache: true
 
+      - name: Install dependencies
+        run: flutter pub get
+
       - name: Configure Firebase
         uses: ./.github/actions/configure-firebase
         with:
@@ -100,9 +103,6 @@ jobs:
           ios-bundle-id: 'com.bsand49.everythingPassport'
           output-path: 'lib/firebase_options_dev.dart'
           working-directory: 'mobile'
-
-      - name: Install dependencies
-        run: flutter pub get
 
       - name: Enable KVM
         run: |
