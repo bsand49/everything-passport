@@ -93,7 +93,7 @@ void main() {
             email: 'test@example.com', password: 'password123');
 
         final result = await authService.signInWithEmail(
-            'test@example.com', 'password123');
+            email: 'test@example.com', password: 'password123');
         expect(result?.user?.email, 'test@example.com');
       });
 
@@ -108,7 +108,8 @@ void main() {
             AuthService(auth: failingAuth, googleSignIn: mockGoogleSignIn);
 
         expect(
-          () => service.signInWithEmail('error@test.com', 'pass'),
+          () => service.signInWithEmail(
+              email: 'error@test.com', password: 'pass'),
           throwsA(isA<FirebaseAuthException>()),
         );
       });
@@ -124,14 +125,15 @@ void main() {
             AuthService(auth: failingAuth, googleSignIn: mockGoogleSignIn);
 
         expect(
-          () => service.signInWithEmail('error@test.com', 'pass'),
+          () => service.signInWithEmail(
+              email: 'error@test.com', password: 'pass'),
           throwsException,
         );
       });
 
       test('Sign up with email and password success', () async {
-        final result =
-            await authService.signUpWithEmail('new@example.com', 'password123');
+        final result = await authService.signUpWithEmail(
+            email: 'new@example.com', password: 'password123');
         expect(result?.user?.email, 'new@example.com');
       });
 
@@ -146,7 +148,8 @@ void main() {
             AuthService(auth: failingAuth, googleSignIn: mockGoogleSignIn);
 
         expect(
-          () => service.signUpWithEmail('error@test.com', 'pass'),
+          () => service.signUpWithEmail(
+              email: 'error@test.com', password: 'pass'),
           throwsA(isA<FirebaseAuthException>()),
         );
       });
@@ -162,7 +165,8 @@ void main() {
             AuthService(auth: failingAuth, googleSignIn: mockGoogleSignIn);
 
         expect(
-          () => service.signUpWithEmail('error@test.com', 'pass'),
+          () => service.signUpWithEmail(
+              email: 'error@test.com', password: 'pass'),
           throwsException,
         );
       });
@@ -251,7 +255,7 @@ void main() {
 
     group('Password Reset', () {
       test('sendPasswordResetEmail success', () async {
-        await authService.sendPasswordResetEmail('test@example.com');
+        await authService.sendPasswordResetEmail(email: 'test@example.com');
         // Success if no exception thrown
       });
 
@@ -266,7 +270,7 @@ void main() {
             AuthService(auth: failingAuth, googleSignIn: mockGoogleSignIn);
 
         expect(
-          () => service.sendPasswordResetEmail('error@test.com'),
+          () => service.sendPasswordResetEmail(email: 'error@test.com'),
           throwsA(isA<FirebaseAuthException>()),
         );
       });
@@ -282,7 +286,7 @@ void main() {
             AuthService(auth: failingAuth, googleSignIn: mockGoogleSignIn);
 
         expect(
-          () => service.sendPasswordResetEmail('error@test.com'),
+          () => service.sendPasswordResetEmail(email: 'error@test.com'),
           throwsException,
         );
       });

@@ -6,21 +6,21 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:everything_passport/pages/home_page.dart';
-import 'package:everything_passport/pages/settings_page.dart';
+import 'package:everything_passport/screens/home_screen.dart';
+import 'package:everything_passport/screens/settings_screen.dart';
 import 'package:everything_passport/models/user_profile.dart';
 import 'package:everything_passport/services/auth_service.dart';
-import 'package:everything_passport/services/user_service.dart';
+import 'package:everything_passport/services/user_profile_service.dart';
 import 'package:everything_passport/services/metadata_service.dart';
 import '../test_helper.dart';
 
-import 'home_page_test.mocks.dart';
+import 'home_screen_test.mocks.dart';
 
 @GenerateNiceMocks([
   MockSpec<NavigatorObserver>(),
   MockSpec<User>(),
   MockSpec<AuthService>(),
-  MockSpec<UserService>(),
+  MockSpec<UserProfileService>(),
   MockSpec<MetadataService>(),
 ])
 void main() {
@@ -39,15 +39,15 @@ void main() {
     mockUser = MockUser();
     mockObserver = MockNavigatorObserver();
     mockProfile = UserProfile(
-      uid: 'test_uid',
+      userId: 'test_user',
       username: 'traveler_john',
       firstName: 'John',
       lastName: 'Doe',
       photoUrl: 'https://example.com/photo.jpg',
     );
 
-    // Stub mock user properties required by HomePage
-    when(mockUser.uid).thenReturn('test_uid');
+    // Stub mock user properties required by HomeScreen
+    when(mockUser.uid).thenReturn('test_user');
     when(mockUser.email).thenReturn('test@example.com');
     when(mockUser.photoURL).thenReturn('https://example.com/photo.jpg');
   });
@@ -58,11 +58,11 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
   }
 
-  group('HomePage - Rendering States', () {
+  group('HomeScreen - Rendering States', () {
     testWidgets('displays "Not Logged In" when user is null',
         (WidgetTester tester) async {
       await tester.pumpWidget(createTestableWidget(
-        child: HomePage(),
+        child: HomeScreen(),
         user: null,
       ));
 
@@ -72,7 +72,7 @@ void main() {
     testWidgets('displays loader when userProfile is null',
         (WidgetTester tester) async {
       await tester.pumpWidget(createTestableWidget(
-        child: HomePage(),
+        child: HomeScreen(),
         user: mockUser,
         userProfile: null,
       ));
@@ -83,7 +83,7 @@ void main() {
     testWidgets('displays username and welcome message with correct name',
         (WidgetTester tester) async {
       await tester.pumpWidget(createTestableWidget(
-        child: HomePage(),
+        child: HomeScreen(),
         user: mockUser,
         userProfile: mockProfile,
       ));
@@ -96,7 +96,7 @@ void main() {
     testWidgets('displays default person icon when photoUrl is null',
         (WidgetTester tester) async {
       final profileNoPhoto = UserProfile(
-        uid: 'test_uid',
+        userId: 'test_user',
         username: 'traveler_john',
         firstName: 'John',
         lastName: 'Doe',
@@ -104,7 +104,7 @@ void main() {
       );
 
       await tester.pumpWidget(createTestableWidget(
-        child: HomePage(),
+        child: HomeScreen(),
         user: mockUser,
         userProfile: profileNoPhoto,
       ));
@@ -116,7 +116,7 @@ void main() {
         'displays CircleAvatar with CachedNetworkImage when photoUrl is present',
         (WidgetTester tester) async {
       await tester.pumpWidget(createTestableWidget(
-        child: HomePage(),
+        child: HomeScreen(),
         user: mockUser,
         userProfile: mockProfile,
       ));
@@ -132,13 +132,13 @@ void main() {
     });
   });
 
-  group('HomePage - User Actions & Navigation', () {
+  group('HomeScreen - User Actions & Navigation', () {
     testWidgets('opens bottom sheet and handles Add Trip tap',
         (WidgetTester tester) async {
       setLargeViewport(tester);
 
       await tester.pumpWidget(createTestableWidget(
-        child: HomePage(),
+        child: HomeScreen(),
         user: mockUser,
         userProfile: mockProfile,
       ));
@@ -159,7 +159,7 @@ void main() {
       setLargeViewport(tester);
 
       await tester.pumpWidget(createTestableWidget(
-        child: HomePage(),
+        child: HomeScreen(),
         user: mockUser,
         userProfile: mockProfile,
       ));
@@ -174,10 +174,10 @@ void main() {
     });
 
     testWidgets(
-        'navigates to SettingsPage on settings button tap (isolated route test)',
+        'navigates to SettingsScreen on settings button tap (isolated route test)',
         (WidgetTester tester) async {
       await tester.pumpWidget(createTestableWidget(
-        child: HomePage(),
+        child: HomeScreen(),
         user: mockUser,
         userProfile: mockProfile,
         observer: mockObserver,
@@ -194,7 +194,7 @@ void main() {
 
       final BuildContext context = tester.element(find.byType(Navigator));
       final widget = (route as MaterialPageRoute).builder(context);
-      expect(widget, isA<SettingsPage>());
+      expect(widget, isA<SettingsScreen>());
     });
   });
 }

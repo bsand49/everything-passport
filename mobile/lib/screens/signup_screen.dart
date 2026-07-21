@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 
-class SignUpPage extends StatefulWidget {
-  const SignUpPage({super.key});
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
 
   static const emailFieldKey = Key('signUpEmailField');
   static const passwordFieldKey = Key('signUpPasswordField');
@@ -11,10 +11,10 @@ class SignUpPage extends StatefulWidget {
   static const signUpButtonKey = Key('signUpButton');
 
   @override
-  State<SignUpPage> createState() => _SignUpPageState();
+  State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _SignUpPageState extends State<SignUpPage> {
+class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -41,8 +41,8 @@ class _SignUpPageState extends State<SignUpPage> {
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
       await authService.signUpWithEmail(
-        _emailController.text.trim(),
-        _passwordController
+        email: _emailController.text.trim(),
+        password: _passwordController
             .text, // Don't trim passwords as spaces can be intentional
       );
       if (mounted) {
@@ -72,7 +72,7 @@ class _SignUpPageState extends State<SignUpPage> {
             children: [
               const SizedBox(height: 40),
               TextFormField(
-                key: SignUpPage.emailFieldKey,
+                key: SignUpScreen.emailFieldKey,
                 controller: _emailController,
                 decoration: const InputDecoration(
                   labelText: 'Email',
@@ -94,7 +94,7 @@ class _SignUpPageState extends State<SignUpPage> {
               ),
               const SizedBox(height: 16),
               TextFormField(
-                key: SignUpPage.passwordFieldKey,
+                key: SignUpScreen.passwordFieldKey,
                 controller: _passwordController,
                 decoration: InputDecoration(
                   labelText: 'Password',
@@ -123,7 +123,7 @@ class _SignUpPageState extends State<SignUpPage> {
               ),
               const SizedBox(height: 16),
               TextFormField(
-                key: SignUpPage.confirmPasswordFieldKey,
+                key: SignUpScreen.confirmPasswordFieldKey,
                 controller: _confirmPasswordController,
                 decoration: InputDecoration(
                   labelText: 'Confirm Password',
@@ -158,7 +158,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    key: SignUpPage.signUpButtonKey,
+                    key: SignUpScreen.signUpButtonKey,
                     onPressed: _signUp,
                     child: const Text('Sign Up'),
                   ),

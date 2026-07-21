@@ -4,17 +4,17 @@ import 'package:everything_passport/models/user_profile.dart';
 
 void main() {
   group('UserProfile Model Tests', () {
-    const testUid = 'uid_123';
+    const testUserId = 'user_123';
 
     test('Constructor creates UserProfile with default isPublic', () {
       const profile = UserProfile(
-        uid: testUid,
+        userId: testUserId,
         username: 'hero',
         firstName: 'John',
         lastName: 'Doe',
       );
 
-      expect(profile.uid, testUid);
+      expect(profile.userId, testUserId);
       expect(profile.isPublic, isFalse);
       expect(profile.username, 'hero');
     });
@@ -32,9 +32,9 @@ void main() {
         'photoUrl': 'https://example.com/photo.jpg',
       };
 
-      final profile = UserProfile.fromMap(testUid, map);
+      final profile = UserProfile.fromMap(testUserId, map);
 
-      expect(profile.uid, testUid);
+      expect(profile.userId, testUserId);
       expect(profile.email, 'john@example.com');
       expect(profile.username, 'johndoe');
       expect(profile.firstName, 'John');
@@ -46,7 +46,7 @@ void main() {
     });
 
     test('fromMap handles missing data with defaults', () {
-      final profile = UserProfile.fromMap(testUid, {});
+      final profile = UserProfile.fromMap(testUserId, {});
 
       expect(profile.username, '');
       expect(profile.firstName, '');
@@ -58,7 +58,7 @@ void main() {
     test('toMap serializes all fields correctly', () {
       final dob = DateTime(1990, 1, 1);
       final profile = UserProfile(
-        uid: testUid,
+        userId: testUserId,
         email: 'john@example.com',
         username: 'johndoe',
         firstName: 'John',
@@ -84,7 +84,7 @@ void main() {
 
     test('fullName returns correct string', () {
       const profile = UserProfile(
-        uid: '1',
+        userId: '1',
         username: 'u',
         firstName: 'John',
         lastName: 'Doe',
@@ -93,22 +93,22 @@ void main() {
     });
 
     test('fullName handles empty names', () {
-      const profile1 =
-          UserProfile(uid: '1', username: 'u', firstName: 'John', lastName: '');
+      const profile1 = UserProfile(
+          userId: '1', username: 'u', firstName: 'John', lastName: '');
       expect(profile1.fullName, 'John');
 
-      const profile2 =
-          UserProfile(uid: '1', username: 'u', firstName: '', lastName: 'Doe');
+      const profile2 = UserProfile(
+          userId: '1', username: 'u', firstName: '', lastName: 'Doe');
       expect(profile2.fullName, 'Doe');
 
       const profile3 =
-          UserProfile(uid: '1', username: 'u', firstName: '', lastName: '');
+          UserProfile(userId: '1', username: 'u', firstName: '', lastName: '');
       expect(profile3.fullName, '');
     });
 
     test('copyWith updates specified fields', () {
       const profile = UserProfile(
-        uid: '1',
+        userId: '1',
         username: 'u',
         firstName: 'A',
         lastName: 'B',
@@ -116,7 +116,7 @@ void main() {
 
       final updated = profile.copyWith(username: 'new_u', isPublic: true);
 
-      expect(updated.uid, '1');
+      expect(updated.userId, '1');
       expect(updated.username, 'new_u');
       expect(updated.isPublic, isTrue);
       expect(updated.firstName, 'A');
@@ -125,8 +125,8 @@ void main() {
 
     test('copyWith returns same instance values when no arguments provided',
         () {
-      const profile =
-          UserProfile(uid: '1', username: 'u', firstName: 'A', lastName: 'B');
+      const profile = UserProfile(
+          userId: '1', username: 'u', firstName: 'A', lastName: 'B');
       final updated = profile.copyWith();
       expect(updated, equals(profile));
     });
@@ -134,14 +134,14 @@ void main() {
     test('equality works correctly', () {
       final dob = DateTime(2000, 1, 1);
       final p1 = UserProfile(
-        uid: '1',
+        userId: '1',
         username: 'u',
         firstName: 'A',
         lastName: 'B',
         dateOfBirth: dob,
       );
       final p2 = UserProfile(
-        uid: '1',
+        userId: '1',
         username: 'u',
         firstName: 'A',
         lastName: 'B',
@@ -167,13 +167,13 @@ void main() {
 
     test('toString returns expected format', () {
       const profile = UserProfile(
-        uid: '123',
+        userId: '123',
         username: 'jdoe',
         firstName: 'John',
         lastName: 'Doe',
       );
       expect(profile.toString(),
-          'UserProfile(uid: 123, username: jdoe, fullName: John Doe)');
+          'UserProfile(userId: 123, email: null, username: jdoe, firstName: John, lastName: Doe, isPublic: false, dateOfBirth: null, nationality: null, photoUrl: null)');
     });
 
     test('fromMap handles null values by using defaults', () {
@@ -191,26 +191,26 @@ void main() {
 
     group('isIncomplete logic', () {
       test('is true if username is empty', () {
-        const profile =
-            UserProfile(uid: '1', username: '', firstName: 'A', lastName: 'B');
+        const profile = UserProfile(
+            userId: '1', username: '', firstName: 'A', lastName: 'B');
         expect(profile.isIncomplete, isTrue);
       });
 
       test('is true if firstName is empty', () {
-        const profile =
-            UserProfile(uid: '1', username: 'U', firstName: '', lastName: 'B');
+        const profile = UserProfile(
+            userId: '1', username: 'U', firstName: '', lastName: 'B');
         expect(profile.isIncomplete, isTrue);
       });
 
       test('is true if lastName is empty', () {
-        const profile =
-            UserProfile(uid: '1', username: 'U', firstName: 'A', lastName: '');
+        const profile = UserProfile(
+            userId: '1', username: 'U', firstName: 'A', lastName: '');
         expect(profile.isIncomplete, isTrue);
       });
 
       test('is false if all required fields are present', () {
-        const profile =
-            UserProfile(uid: '1', username: 'U', firstName: 'A', lastName: 'B');
+        const profile = UserProfile(
+            userId: '1', username: 'U', firstName: 'A', lastName: 'B');
         expect(profile.isIncomplete, isFalse);
       });
     });

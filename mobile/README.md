@@ -178,7 +178,7 @@ flutter test --dart-define=ENV=prod integration_test/app_test.dart
 ## Project Structure
 *   `lib/main.dart`: Entry point and authentication wrapper.
 *   `lib/services/`: Business logic and API clients (e.g., `AuthService`).
-*   `lib/pages/`: UI screens (Login, Sign Up, Home).
+*   `lib/screens/`: UI screens (Login, Sign Up, Home).
 *   `lib/firebase_options_dev.dart`: Firebase configuration for the development environment.
 *   `lib/firebase_options_prod.dart`: (Optional) Firebase configuration for the production environment.
 

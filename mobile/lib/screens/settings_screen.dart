@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
-import 'user_profile_page.dart';
+import 'user_profile_screen.dart';
 
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
 
   Future<void> _handleLogout(BuildContext context) async {
     final authService = context.read<AuthService>();
@@ -66,7 +66,7 @@ class SettingsPage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const UserProfilePage(),
+                  builder: (context) => const UserProfileScreen(),
                 ),
               );
             },

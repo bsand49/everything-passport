@@ -20,7 +20,8 @@ class AuthService {
   Stream<User?> get user => _auth.authStateChanges();
 
   /// Sign in with Email and Password.
-  Future<UserCredential?> signInWithEmail(String email, String password) async {
+  Future<UserCredential?> signInWithEmail(
+      {required String email, required String password}) async {
     try {
       return await _auth.signInWithEmailAndPassword(
         email: email,
@@ -36,7 +37,8 @@ class AuthService {
   }
 
   /// Register with Email and Password.
-  Future<UserCredential?> signUpWithEmail(String email, String password) async {
+  Future<UserCredential?> signUpWithEmail(
+      {required String email, required String password}) async {
     try {
       return await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -80,7 +82,7 @@ class AuthService {
   }
 
   /// Sends a password reset email to the specified [email].
-  Future<void> sendPasswordResetEmail(String email) async {
+  Future<void> sendPasswordResetEmail({required String email}) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {

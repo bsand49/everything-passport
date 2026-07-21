@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:everything_passport/pages/settings_page.dart';
-import 'package:everything_passport/pages/user_profile_page.dart';
+import 'package:everything_passport/screens/settings_screen.dart';
+import 'package:everything_passport/screens/user_profile_screen.dart';
 import 'package:everything_passport/models/user_profile.dart';
 import 'package:everything_passport/services/auth_service.dart';
 import '../test_helper.dart';
 
-import 'settings_page_test.mocks.dart';
+import 'settings_screen_test.mocks.dart';
 
 @GenerateNiceMocks([
   MockSpec<AuthService>(),
   MockSpec<NavigatorObserver>(),
 ])
 void main() {
-  group('SettingsPage Tests', () {
+  group('SettingsScreen Tests', () {
     late MockAuthService mockAuthService;
     late UserProfile mockProfile;
     late MockNavigatorObserver mockObserver;
@@ -28,7 +28,7 @@ void main() {
     setUp(() {
       mockAuthService = MockAuthService();
       mockProfile = UserProfile(
-        uid: 'test_uid',
+        userId: 'test_user',
         username: 'traveler_john',
         firstName: 'John',
         lastName: 'Doe',
@@ -37,8 +37,8 @@ void main() {
     });
 
     /// Helper to reduce redundant pumpWidget boilerplate
-    /// Pushes SettingsPage onto a parent route so that popping works realistically
-    Future<void> pumpSettingsPage(WidgetTester tester) async {
+    /// Pushes SettingsScreen onto a parent route so that popping works realistically
+    Future<void> pumpSettingsScreen(WidgetTester tester) async {
       await tester.pumpWidget(createTestableWidget(
         child: Scaffold(
           body: Builder(
@@ -48,7 +48,7 @@ void main() {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const SettingsPage()),
+                        builder: (context) => const SettingsScreen()),
                   );
                 },
                 child: const Text('Go to Settings'),
@@ -61,14 +61,14 @@ void main() {
         observer: mockObserver,
       ));
 
-      // Navigate to SettingsPage
+      // Navigate to SettingsScreen
       await tester.tap(find.text('Go to Settings'));
       await tester.pumpAndSettle();
     }
 
     testWidgets('displays header and options correctly',
         (WidgetTester tester) async {
-      await pumpSettingsPage(tester);
+      await pumpSettingsScreen(tester);
 
       expect(find.text('Settings'), findsOneWidget);
       expect(find.text('Edit Profile'), findsOneWidget);
@@ -77,14 +77,14 @@ void main() {
       expect(find.text('App Version 1.0.0'), findsOneWidget);
     });
 
-    testWidgets('navigates to UserProfilePage on Edit Profile tap',
+    testWidgets('navigates to UserProfileScreen on Edit Profile tap',
         (WidgetTester tester) async {
-      await pumpSettingsPage(tester);
+      await pumpSettingsScreen(tester);
 
       await tester.tap(find.text('Edit Profile'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(UserProfilePage), findsOneWidget);
+      expect(find.byType(UserProfileScreen), findsOneWidget);
     });
 
     testWidgets(
@@ -92,7 +92,7 @@ void main() {
         (WidgetTester tester) async {
       when(mockAuthService.signOut()).thenAnswer((_) async {});
 
-      await pumpSettingsPage(tester);
+      await pumpSettingsScreen(tester);
 
       await tester.tap(find.text('Logout'));
       await tester.pumpAndSettle();
@@ -110,7 +110,7 @@ void main() {
 
     testWidgets('shows logout dialog and dismisses on Cancel tap',
         (WidgetTester tester) async {
-      await pumpSettingsPage(tester);
+      await pumpSettingsScreen(tester);
 
       await tester.tap(find.text('Logout'));
       await tester.pumpAndSettle();
@@ -129,7 +129,7 @@ void main() {
         (WidgetTester tester) async {
       when(mockAuthService.signOut()).thenThrow(Exception('Network error'));
 
-      await pumpSettingsPage(tester);
+      await pumpSettingsScreen(tester);
 
       // Trigger the logout flow
       await tester.tap(find.text('Logout'));

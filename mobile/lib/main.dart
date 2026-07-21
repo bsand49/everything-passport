@@ -9,12 +9,12 @@ import 'firebase_options_dev.dart' as dev;
 import 'firebase_options_dev.dart'
     as prod; // TODO: Amend to firebase_options_prod.dart once prod project is created
 import 'services/auth_service.dart';
-import 'services/user_service.dart';
+import 'services/user_profile_service.dart';
 import 'services/metadata_service.dart';
 import 'models/user_profile.dart';
-import 'pages/login_page.dart';
-import 'pages/home_page.dart';
-import 'pages/user_profile_page.dart';
+import 'screens/login_screen.dart';
+import 'screens/home_screen.dart';
+import 'screens/user_profile_screen.dart';
 import 'package:http/http.dart' as http;
 
 // coverage:ignore-start
@@ -43,14 +43,14 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final AuthService? authService;
-  final UserService? userService;
+  final UserProfileService? userProfileService;
   final MetadataService? metadataService;
   final http.Client? httpClient;
 
   const MyApp({
     super.key,
     this.authService,
-    this.userService,
+    this.userProfileService,
     this.metadataService,
     this.httpClient,
   });
@@ -68,8 +68,8 @@ class MyApp extends StatelessWidget {
         Provider<AuthService>(
           create: (_) => authService ?? AuthService(),
         ),
-        Provider<UserService>(
-          create: (_) => userService ?? UserService(),
+        Provider<UserProfileService>(
+          create: (_) => userProfileService ?? UserProfileService(),
         ),
         Provider<MetadataService>(
           create: (_) => metadataService ?? MetadataService(),
@@ -80,10 +80,10 @@ class MyApp extends StatelessWidget {
         ),
         StreamProvider<UserProfile?>(
           create: (context) {
-            final userService = context.read<UserService>();
+            final userProfileService = context.read<UserProfileService>();
             return context.read<AuthService>().user.switchMap((user) {
               if (user == null) return Stream.value(null);
-              return userService.streamProfile(user.uid);
+              return userProfileService.streamProfile(userId: user.uid);
             });
           },
           initialData: null,
@@ -126,13 +126,13 @@ class AuthWrapper extends StatelessWidget {
     final profile = context.watch<UserProfile?>();
 
     if (user == null) {
-      return const LoginPage();
+      return const LoginScreen();
     }
 
     if (profile == null || profile.isIncomplete) {
-      return const UserProfilePage();
+      return const UserProfileScreen();
     }
 
-    return const HomePage();
+    return const HomeScreen();
   }
 }

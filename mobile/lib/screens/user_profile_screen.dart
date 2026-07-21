@@ -12,17 +12,17 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../models/user_profile.dart';
 import '../models/country.dart';
-import '../services/user_service.dart';
+import '../services/user_profile_service.dart';
 import '../services/metadata_service.dart';
 
-class UserProfilePage extends StatefulWidget {
-  const UserProfilePage({super.key});
+class UserProfileScreen extends StatefulWidget {
+  const UserProfileScreen({super.key});
 
   @override
-  State<UserProfilePage> createState() => _UserProfilePageState();
+  State<UserProfileScreen> createState() => _UserProfileScreenState();
 }
 
-class _UserProfilePageState extends State<UserProfilePage> {
+class _UserProfileScreenState extends State<UserProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _firstNameController = TextEditingController();
@@ -189,12 +189,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
     _usernameDebounce = Timer(const Duration(milliseconds: 500), () async {
       setState(() => _isCheckingUsername = true);
 
-      final userService = Provider.of<UserService>(context, listen: false);
+      final userProfileService =
+          Provider.of<UserProfileService>(context, listen: false);
       final user = Provider.of<User?>(context, listen: false);
 
       if (user != null) {
-        final isAvailable =
-            await userService.isUsernameAvailable(trimmedValue, user.uid);
+        final isAvailable = await userProfileService.isUsernameAvailable(
+            username: trimmedValue, currentUserId: user.uid);
         if (mounted) {
           setState(() {
             _isUsernameAvailable = isAvailable;
@@ -248,16 +249,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
     setState(() => _isLoading = true);
 
     try {
-      final userService = Provider.of<UserService>(context, listen: false);
+      final userProfileService =
+          Provider.of<UserProfileService>(context, listen: false);
 
       String? photoUrl = _currentPhotoUrl;
       if (_selectedImage != null) {
-        photoUrl =
-            await userService.uploadProfilePicture(user.uid, _selectedImage!);
+        photoUrl = await userProfileService.uploadProfilePicture(
+            userId: user.uid, image: _selectedImage!);
       }
 
       final profile = UserProfile(
-        uid: user.uid,
+        userId: user.uid,
         email: user.email,
         username: _usernameController.text.trim(),
         firstName: _firstNameController.text.trim(),
@@ -268,8 +270,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
         photoUrl: photoUrl,
       );
 
-      await userService.saveProfileWithUsername(
-          profile, currentProfile?.username ?? '');
+      await userProfileService.saveProfile(
+          profile: profile, oldUsername: currentProfile?.username ?? '');
       if (mounted) {
         if (Navigator.canPop(context)) {
           Navigator.pop(context);

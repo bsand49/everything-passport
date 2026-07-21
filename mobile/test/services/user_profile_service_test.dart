@@ -5,11 +5,11 @@ import 'package:firebase_storage_mocks/firebase_storage_mocks.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:everything_passport/services/user_service.dart';
+import 'package:everything_passport/services/user_profile_service.dart';
 import 'package:everything_passport/models/user_profile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-import 'user_service_test.mocks.dart';
+import 'package:everything_passport/exceptions/username_already_taken_exception.dart';
+import 'user_profile_service_test.mocks.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<FirebaseFirestore>(as: #MockFirestore),
@@ -19,20 +19,25 @@ import 'user_service_test.mocks.dart';
   MockSpec<TaskSnapshot>(as: #MockTaskSnapshotMockito),
 ])
 void main() {
-  group('UserService Tests', () {
+  group('UserProfileService Tests', () {
     late FakeFirebaseFirestore mockFirestore;
     late MockFirebaseStorage mockStorage;
-    late UserService userService;
+    late UserProfileService userProfileService;
     late Directory tempDir;
     late File tempFile;
+
+    const String usersProfilesCollection = 'userProfiles';
+    const String usernamesCollection = 'usernames';
 
     setUp(() async {
       mockFirestore = FakeFirebaseFirestore();
       mockStorage = MockFirebaseStorage();
-      userService = UserService(db: mockFirestore, storage: mockStorage);
+      userProfileService =
+          UserProfileService(db: mockFirestore, storage: mockStorage);
 
       // Secure directory isolated to each individual test run
-      tempDir = await Directory.systemTemp.createTemp('user_service_test_');
+      tempDir =
+          await Directory.systemTemp.createTemp('user_profile_service_test_');
       tempFile = File('${tempDir.path}/test_image.jpg');
       await tempFile.create(recursive: true);
     });
@@ -45,10 +50,11 @@ void main() {
     });
 
     group('Constructor', () {
-      test('UserService constructor hits Firestore fallback when db is null',
+      test(
+          'UserProfileService constructor hits Firestore fallback when db is null',
           () {
         expect(
-          () => UserService(storage: mockStorage),
+          () => UserProfileService(storage: mockStorage),
           throwsA(anyOf(
             isA<StateError>(),
             isA<FirebaseException>(),
@@ -56,10 +62,11 @@ void main() {
         );
       });
 
-      test('UserService constructor hits Storage fallback when storage is null',
+      test(
+          'UserProfileService constructor hits Storage fallback when storage is null',
           () {
         expect(
-          () => UserService(db: mockFirestore),
+          () => UserProfileService(db: mockFirestore),
           throwsA(anyOf(
             isA<StateError>(),
             isA<FirebaseException>(),
@@ -70,8 +77,11 @@ void main() {
 
     group('streamProfile', () {
       test('emits UserProfile when document exists', () async {
-        final uid = 'uid_123';
-        await mockFirestore.collection('users').doc(uid).set({
+        final userId = 'user_123';
+        await mockFirestore
+            .collection(usersProfilesCollection)
+            .doc(userId)
+            .set({
           'username': 'hero',
           'firstName': 'John',
           'lastName': 'Doe',
@@ -79,7 +89,8 @@ void main() {
           'isPublic': true,
         });
 
-        final profile = await userService.streamProfile(uid).first;
+        final profile =
+            await userProfileService.streamProfile(userId: userId).first;
         expect(
           profile,
           isA<UserProfile>()
@@ -89,23 +100,30 @@ void main() {
       });
 
       test('emits null when document does not exist', () async {
-        final profile = await userService.streamProfile('non_existent').first;
+        final profile = await userProfileService
+            .streamProfile(userId: 'non_existent')
+            .first;
         expect(profile, isNull);
       });
 
       test('emits null on error during mapping', () async {
-        final uid = 'uid_123';
-        await mockFirestore.collection('users').doc(uid).set({
+        final userId = 'user_123';
+        await mockFirestore
+            .collection(usersProfilesCollection)
+            .doc(userId)
+            .set({
           'username': 123, // Malformed type throws in UserProfile.fromMap
         });
 
-        final profile = await userService.streamProfile(uid).first;
+        final profile =
+            await userProfileService.streamProfile(userId: userId).first;
         expect(profile, isNull);
       });
 
       test('emits updated UserProfile when document is updated', () async {
-        final uid = 'uid_123';
-        final userDocRef = mockFirestore.collection('users').doc(uid);
+        final userId = 'user_123';
+        final userDocRef =
+            mockFirestore.collection(usersProfilesCollection).doc(userId);
 
         await userDocRef.set({
           'username': 'hero',
@@ -113,7 +131,7 @@ void main() {
           'lastName': 'Doe',
         });
 
-        final stream = userService.streamProfile(uid);
+        final stream = userProfileService.streamProfile(userId: userId);
 
         expectLater(
           stream,
@@ -133,125 +151,90 @@ void main() {
       });
     });
 
-    group('isUsernameAvailable', () {
-      test('returns true for non-existent username', () async {
-        final available =
-            await userService.isUsernameAvailable('new_user', 'uid_123');
-        expect(available, isTrue);
-      });
-
-      test('returns false for username taken by another user', () async {
-        await mockFirestore
-            .collection('usernames')
-            .doc('taken')
-            .set({'uid': 'other_uid'});
-        final available =
-            await userService.isUsernameAvailable('taken', 'uid_123');
-        expect(available, isFalse);
-      });
-
-      test('returns false when checking availability with mixed case',
-          () async {
-        await mockFirestore
-            .collection('usernames')
-            .doc('taken')
-            .set({'uid': 'other_uid'});
-        final available =
-            await userService.isUsernameAvailable('TaKeN', 'uid_123');
-        expect(available, isFalse);
-      });
-
-      test('returns true if username belongs to current user', () async {
-        await mockFirestore
-            .collection('usernames')
-            .doc('myname')
-            .set({'uid': 'uid_123'});
-        final available =
-            await userService.isUsernameAvailable('myname', 'uid_123');
-        expect(available, isTrue);
-      });
-
-      test('returns false on error', () async {
-        final mockFailingFirestore = MockFirestore();
-        when(mockFailingFirestore.collection(any))
-            .thenThrow(Exception('Firestore Error'));
-
-        final failingService =
-            UserService(db: mockFailingFirestore, storage: mockStorage);
-        final available =
-            await failingService.isUsernameAvailable('new_user', 'uid_123');
-        expect(available, isFalse);
-      });
-    });
-
-    group('saveProfileWithUsername', () {
+    group('saveProfile', () {
       test('creates both documents for a new user and normalizes casing',
           () async {
         final profile = UserProfile(
-          uid: 'uid_123',
+          userId: 'user_123',
           username: 'New_HeRo',
           firstName: 'John',
           lastName: 'Doe',
         );
 
-        await userService.saveProfileWithUsername(profile, '');
+        await userProfileService.saveProfile(profile: profile, oldUsername: '');
 
-        final userDoc =
-            await mockFirestore.collection('users').doc('uid_123').get();
+        final userDoc = await mockFirestore
+            .collection(usersProfilesCollection)
+            .doc('user_123')
+            .get();
         expect(userDoc.data()?['username'], 'new_hero');
 
-        final usernameDoc =
-            await mockFirestore.collection('usernames').doc('new_hero').get();
-        expect(usernameDoc.data()?['uid'], 'uid_123');
+        final usernameDoc = await mockFirestore
+            .collection(usernamesCollection)
+            .doc('new_hero')
+            .get();
+        expect(usernameDoc.data()?['userId'], 'user_123');
       });
 
       test('handles username change and deletes old mapping', () async {
         await mockFirestore
-            .collection('usernames')
+            .collection(usernamesCollection)
             .doc('old_name')
-            .set({'uid': 'uid_123'});
+            .set({'userId': 'user_123'});
 
         final profile = UserProfile(
-          uid: 'uid_123',
+          userId: 'user_123',
           username: 'new_name',
           firstName: 'John',
           lastName: 'Doe',
         );
 
-        await userService.saveProfileWithUsername(profile, 'old_name');
+        await userProfileService.saveProfile(
+            profile: profile, oldUsername: 'old_name');
 
         expect(
-            (await mockFirestore.collection('usernames').doc('old_name').get())
+            (await mockFirestore
+                    .collection(usernamesCollection)
+                    .doc('old_name')
+                    .get())
                 .exists,
             isFalse);
         expect(
-            (await mockFirestore.collection('usernames').doc('new_name').get())
-                .data()?['uid'],
-            'uid_123');
+            (await mockFirestore
+                    .collection(usernamesCollection)
+                    .doc('new_name')
+                    .get())
+                .data()?['userId'],
+            'user_123');
       });
 
       test('does not update mapping if username is unchanged', () async {
         await mockFirestore
-            .collection('usernames')
+            .collection(usernamesCollection)
             .doc('same')
-            .set({'uid': 'uid_123'});
+            .set({'userId': 'user_123'});
 
         final profile = UserProfile(
-          uid: 'uid_123',
+          userId: 'user_123',
           username: 'same',
           firstName: 'Updated',
           lastName: 'Doe',
         );
 
-        await userService.saveProfileWithUsername(profile, 'same');
+        await userProfileService.saveProfile(
+            profile: profile, oldUsername: 'same');
 
-        final usernameDoc =
-            await mockFirestore.collection('usernames').doc('same').get();
+        final usernameDoc = await mockFirestore
+            .collection(usernamesCollection)
+            .doc('same')
+            .get();
         expect(usernameDoc.exists, isTrue);
-        expect(usernameDoc.data()?['uid'], 'uid_123');
+        expect(usernameDoc.data()?['userId'], 'user_123');
 
-        final userDoc =
-            await mockFirestore.collection('users').doc('uid_123').get();
+        final userDoc = await mockFirestore
+            .collection(usersProfilesCollection)
+            .doc('user_123')
+            .get();
         expect(userDoc.data()?['firstName'], 'Updated');
       });
 
@@ -259,19 +242,20 @@ void main() {
           'throws Exception if username taken by someone else during transaction',
           () async {
         await mockFirestore
-            .collection('usernames')
+            .collection(usernamesCollection)
             .doc('stolen')
-            .set({'uid': 'villain'});
+            .set({'userId': 'villain'});
 
         final profile = UserProfile(
-          uid: 'uid_123',
+          userId: 'user_123',
           username: 'stolen',
           firstName: 'Hero',
           lastName: 'Doe',
         );
 
         expect(
-          () => userService.saveProfileWithUsername(profile, ''),
+          () =>
+              userProfileService.saveProfile(profile: profile, oldUsername: ''),
           throwsA(isA<UsernameAlreadyTakenException>().having(
               (e) => e.toString(),
               'description',
@@ -291,28 +275,81 @@ void main() {
             .thenThrow(Exception('Transaction failed'));
 
         final failingService =
-            UserService(db: mockFailingFirestore, storage: mockStorage);
+            UserProfileService(db: mockFailingFirestore, storage: mockStorage);
 
         final profile = UserProfile(
-          uid: 'uid_123',
+          userId: 'user_123',
           username: 'new_name',
           firstName: 'John',
           lastName: 'Doe',
         );
 
         expect(
-          () => failingService.saveProfileWithUsername(profile, 'old_name'),
+          () => failingService.saveProfile(
+              profile: profile, oldUsername: 'old_name'),
           throwsException,
         );
       });
     });
 
+    group('isUsernameAvailable', () {
+      test('returns true for non-existent username', () async {
+        final available = await userProfileService.isUsernameAvailable(
+            username: 'new_user', currentUserId: 'user_123');
+        expect(available, isTrue);
+      });
+
+      test('returns false for username taken by another user', () async {
+        await mockFirestore
+            .collection(usernamesCollection)
+            .doc('taken')
+            .set({'userId': 'other_user'});
+        final available = await userProfileService.isUsernameAvailable(
+            username: 'taken', currentUserId: 'user_123');
+        expect(available, isFalse);
+      });
+
+      test('returns false when checking availability with mixed case',
+          () async {
+        await mockFirestore
+            .collection(usernamesCollection)
+            .doc('taken')
+            .set({'userId': 'other_user'});
+        final available = await userProfileService.isUsernameAvailable(
+            username: 'TaKeN', currentUserId: 'user_123');
+        expect(available, isFalse);
+      });
+
+      test('returns true if username belongs to current user', () async {
+        await mockFirestore
+            .collection(usernamesCollection)
+            .doc('myname')
+            .set({'userId': 'user_123'});
+        final available = await userProfileService.isUsernameAvailable(
+            username: 'myname', currentUserId: 'user_123');
+        expect(available, isTrue);
+      });
+
+      test('returns false on error', () async {
+        final mockFailingFirestore = MockFirestore();
+        when(mockFailingFirestore.collection(any))
+            .thenThrow(Exception('Firestore Error'));
+
+        final failingService =
+            UserProfileService(db: mockFailingFirestore, storage: mockStorage);
+        final available = await failingService.isUsernameAvailable(
+            username: 'new_user', currentUserId: 'user_123');
+        expect(available, isFalse);
+      });
+    });
+
     group('uploadProfilePicture', () {
       test('uploads file and returns download URL', () async {
-        final url = await userService.uploadProfilePicture('uid_123', tempFile);
+        final url = await userProfileService.uploadProfilePicture(
+            userId: 'user_123', image: tempFile);
 
         expect(url, isNotEmpty);
-        expect(url, contains('uid_123'));
+        expect(url, contains('user_123'));
       });
 
       test('throws exception on failed upload', () async {
@@ -336,10 +373,11 @@ void main() {
         });
 
         final failingService =
-            UserService(db: mockFirestore, storage: mockStorage);
+            UserProfileService(db: mockFirestore, storage: mockStorage);
 
         await expectLater(
-          failingService.uploadProfilePicture('uid_123', tempFile),
+          failingService.uploadProfilePicture(
+              userId: 'user_123', image: tempFile),
           throwsException,
         );
       });
@@ -370,10 +408,11 @@ void main() {
         });
 
         final stateFailingService =
-            UserService(db: mockFirestore, storage: mockStorage);
+            UserProfileService(db: mockFirestore, storage: mockStorage);
 
         await expectLater(
-          stateFailingService.uploadProfilePicture('uid_123', tempFile),
+          stateFailingService.uploadProfilePicture(
+              userId: 'user_123', image: tempFile),
           throwsA(isA<Exception>().having((e) => e.toString(), 'description',
               contains('Upload failed with state'))),
         );

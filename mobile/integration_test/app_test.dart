@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:everything_passport/main.dart' as app;
-import 'package:everything_passport/pages/login_page.dart';
+import 'package:everything_passport/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -20,8 +20,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Verify that we are on the LoginPage (the expected starting point for a fresh boot)
-      expect(find.byType(LoginPage), findsOneWidget);
+      // Verify that we are on the LoginScreen (the expected starting point for a fresh boot)
+      expect(find.byType(LoginScreen), findsOneWidget);
 
       // Verify some basic UI elements on the login page
       expect(find.text('Login'), findsWidgets);

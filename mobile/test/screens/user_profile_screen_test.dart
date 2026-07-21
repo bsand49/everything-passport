@@ -10,18 +10,18 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 import 'package:image_cropper_platform_interface/image_cropper_platform_interface.dart';
 import 'package:http/http.dart' as http;
-import 'package:everything_passport/pages/user_profile_page.dart';
-import 'package:everything_passport/services/user_service.dart';
+import 'package:everything_passport/screens/user_profile_screen.dart';
+import 'package:everything_passport/services/user_profile_service.dart';
 import 'package:everything_passport/services/metadata_service.dart';
 import 'package:everything_passport/models/user_profile.dart';
 import 'package:everything_passport/models/country.dart';
 import '../test_helper.dart';
 
-import 'user_profile_page_test.mocks.dart';
-import 'user_profile_page_test.mocks.dart' as base_mocks;
+import 'user_profile_screen_test.mocks.dart';
+import 'user_profile_screen_test.mocks.dart' as base_mocks;
 
 @GenerateNiceMocks([
-  MockSpec<UserService>(),
+  MockSpec<UserProfileService>(),
   MockSpec<MetadataService>(),
   MockSpec<User>(),
   MockSpec<ImagePickerPlatform>(),
@@ -34,7 +34,7 @@ void main() {
   // Global Mock Setup
   setupGlobalMocks();
 
-  late MockUserService mockUserService;
+  late MockUserProfileService mockUserProfileService;
   late MockMetadataService mockMetadataService;
   late MockUser mockUser;
   late UserProfile mockProfile;
@@ -60,13 +60,13 @@ void main() {
     ImagePickerPlatform.instance = mockImagePickerPlatform;
     ImageCropperPlatform.instance = mockImageCropperPlatform;
 
-    mockUserService = MockUserService();
+    mockUserProfileService = MockUserProfileService();
     mockMetadataService = MockMetadataService();
     mockUser = MockUser();
     mockHttpClient = MockHttpClient();
 
     // Default User mock stubbing
-    when(mockUser.uid).thenReturn('test_uid');
+    when(mockUser.uid).thenReturn('test_user');
     when(mockUser.email).thenReturn('test@example.com');
     when(mockUser.photoURL).thenReturn(null);
 
@@ -83,7 +83,7 @@ void main() {
         .thenAnswer((_) async => http.Response.bytes([1, 2, 3], 200));
 
     mockProfile = UserProfile(
-      uid: 'test_uid',
+      userId: 'test_user',
       username: 'traveler_john',
       firstName: 'John',
       lastName: 'Doe',
@@ -101,11 +101,11 @@ void main() {
     ImageCropperPlatform.instance = originalImageCropper;
   });
 
-  group('UserProfilePage Initialization', () {
+  group('UserProfileScreen Initialization', () {
     testWidgets('shows "Not Logged In" when user is null',
         (WidgetTester tester) async {
       await tester.pumpWidget(
-          createTestableWidget(child: const UserProfilePage(), user: null));
+          createTestableWidget(child: const UserProfileScreen(), user: null));
       expect(find.text('Not Logged In'), findsOneWidget);
     });
 
@@ -113,13 +113,13 @@ void main() {
         (WidgetTester tester) async {
       setViewport(tester);
       final userWithPhoto = MockUser();
-      when(userWithPhoto.uid).thenReturn('test_uid');
+      when(userWithPhoto.uid).thenReturn('test_user');
       when(userWithPhoto.email).thenReturn('test@example.com');
       when(userWithPhoto.photoURL).thenReturn('https://example.com/photo.jpg');
 
       await tester.pumpWidget(createTestableWidget(
-        child: const UserProfilePage(),
-        userService: mockUserService,
+        child: const UserProfileScreen(),
+        userProfileService: mockUserProfileService,
         metadataService: mockMetadataService,
         user: userWithPhoto,
         userProfile: null,
@@ -131,16 +131,18 @@ void main() {
     });
   });
 
-  group('UserProfilePage Form Interaction', () {
+  group('UserProfileScreen Form Interaction', () {
     testWidgets('Form and logic branches', (WidgetTester tester) async {
       setViewport(tester);
 
-      when(mockUserService.isUsernameAvailable(any, any))
+      when(mockUserProfileService.isUsernameAvailable(
+              username: anyNamed('username'),
+              currentUserId: anyNamed('currentUserId')))
           .thenAnswer((_) async => true);
 
       await tester.pumpWidget(createTestableWidget(
-        child: const UserProfilePage(),
-        userService: mockUserService,
+        child: const UserProfileScreen(),
+        userProfileService: mockUserProfileService,
         metadataService: mockMetadataService,
         user: mockUser,
         userProfile: mockProfile,
@@ -178,7 +180,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // 5. Submit error
-      when(mockUserService.saveProfileWithUsername(any, any))
+      when(mockUserProfileService.saveProfile(
+              profile: anyNamed('profile'),
+              oldUsername: anyNamed('oldUsername')))
           .thenThrow(Exception('Failed to save profile'));
 
       await tester.tap(find.text('Save Changes'));
@@ -188,14 +192,14 @@ void main() {
 
     testWidgets('Nationality fallback', (WidgetTester tester) async {
       final profile = UserProfile(
-          uid: 'u',
+          userId: 'u',
           username: 'u',
           firstName: 'A',
           lastName: 'B',
           nationality: 'BAD');
       await tester.pumpWidget(createTestableWidget(
-        child: const UserProfilePage(),
-        userService: mockUserService,
+        child: const UserProfileScreen(),
+        userProfileService: mockUserProfileService,
         metadataService: mockMetadataService,
         userProfile: profile,
         user: mockUser,
@@ -209,8 +213,8 @@ void main() {
       setViewport(tester);
 
       await tester.pumpWidget(createTestableWidget(
-        child: const UserProfilePage(),
-        userService: mockUserService,
+        child: const UserProfileScreen(),
+        userProfileService: mockUserProfileService,
         metadataService: mockMetadataService,
         user: mockUser,
         userProfile: mockProfile,
@@ -233,12 +237,14 @@ void main() {
 
     testWidgets('Username already taken', (WidgetTester tester) async {
       setViewport(tester);
-      when(mockUserService.isUsernameAvailable(any, any))
+      when(mockUserProfileService.isUsernameAvailable(
+              username: anyNamed('username'),
+              currentUserId: anyNamed('currentUserId')))
           .thenAnswer((_) async => false);
 
       await tester.pumpWidget(createTestableWidget(
-        child: const UserProfilePage(),
-        userService: mockUserService,
+        child: const UserProfileScreen(),
+        userProfileService: mockUserProfileService,
         metadataService: mockMetadataService,
         user: mockUser,
         userProfile: mockProfile,
@@ -261,12 +267,14 @@ void main() {
 
     testWidgets('Username field edge cases', (WidgetTester tester) async {
       setViewport(tester);
-      when(mockUserService.isUsernameAvailable(any, any))
+      when(mockUserProfileService.isUsernameAvailable(
+              username: anyNamed('username'),
+              currentUserId: anyNamed('currentUserId')))
           .thenAnswer((_) async => true);
 
       await tester.pumpWidget(createTestableWidget(
-        child: const UserProfilePage(),
-        userService: mockUserService,
+        child: const UserProfileScreen(),
+        userProfileService: mockUserProfileService,
         metadataService: mockMetadataService,
         user: mockUser,
         userProfile: mockProfile,
@@ -293,8 +301,8 @@ void main() {
       setViewport(tester);
 
       await tester.pumpWidget(createTestableWidget(
-        child: const UserProfilePage(),
-        userService: mockUserService,
+        child: const UserProfileScreen(),
+        userProfileService: mockUserProfileService,
         metadataService: mockMetadataService,
         user: mockUser,
         userProfile: mockProfile,
@@ -343,8 +351,8 @@ void main() {
       setViewport(tester);
 
       await tester.pumpWidget(createTestableWidget(
-        child: const UserProfilePage(),
-        userService: mockUserService,
+        child: const UserProfileScreen(),
+        userProfileService: mockUserProfileService,
         metadataService: mockMetadataService,
         user: mockUser,
         userProfile: mockProfile,
@@ -390,16 +398,18 @@ void main() {
     });
   });
 
-  group('UserProfilePage Submission', () {
+  group('UserProfileScreen Submission', () {
     testWidgets('Loading state during submission', (WidgetTester tester) async {
       setViewport(tester);
       final saveCompleter = Completer<void>();
-      when(mockUserService.saveProfileWithUsername(any, any))
+      when(mockUserProfileService.saveProfile(
+              profile: anyNamed('profile'),
+              oldUsername: anyNamed('oldUsername')))
           .thenAnswer((_) => saveCompleter.future);
 
       await tester.pumpWidget(createTestableWidget(
-        child: const UserProfilePage(),
-        userService: mockUserService,
+        child: const UserProfileScreen(),
+        userProfileService: mockUserProfileService,
         metadataService: mockMetadataService,
         user: mockUser,
         userProfile: mockProfile,
@@ -427,12 +437,12 @@ void main() {
           return ElevatedButton(
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const UserProfilePage()),
+              MaterialPageRoute(builder: (_) => const UserProfileScreen()),
             ),
             child: const Text('Push'),
           );
         }),
-        userService: mockUserService,
+        userProfileService: mockUserProfileService,
         metadataService: mockMetadataService,
         user: mockUser,
         userProfile: mockProfile,
@@ -441,23 +451,23 @@ void main() {
       await tester.tap(find.text('Push'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(UserProfilePage), findsOneWidget);
+      expect(find.byType(UserProfileScreen), findsOneWidget);
 
       await tester.tap(find.text('Save Changes'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(UserProfilePage), findsNothing);
+      expect(find.byType(UserProfileScreen), findsNothing);
       expect(find.text('Push'), findsOneWidget);
     });
   });
 
-  group('UserProfilePage Profile Photo', () {
+  group('UserProfileScreen Profile Photo', () {
     testWidgets('Google Photo coverage (Success, Failure, Exception)',
         (WidgetTester tester) async {
       setViewport(tester);
 
       final profileNoPhoto = UserProfile(
-        uid: 'test_uid',
+        userId: 'test_user',
         username: 'traveler_john',
         firstName: 'John',
         lastName: 'Doe',
@@ -468,13 +478,13 @@ void main() {
       );
 
       final mockUserNoPhoto = MockUser();
-      when(mockUserNoPhoto.uid).thenReturn('test_uid');
+      when(mockUserNoPhoto.uid).thenReturn('test_user');
       when(mockUserNoPhoto.email).thenReturn('test@example.com');
       when(mockUserNoPhoto.photoURL).thenReturn(null);
 
       await tester.pumpWidget(createTestableWidget(
-        child: const UserProfilePage(),
-        userService: mockUserService,
+        child: const UserProfileScreen(),
+        userProfileService: mockUserProfileService,
         metadataService: mockMetadataService,
         user: mockUserNoPhoto,
         userProfile: profileNoPhoto,
@@ -482,7 +492,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      final dynamic state = tester.state(find.byType(UserProfilePage));
+      final dynamic state = tester.state(find.byType(UserProfileScreen));
 
       // Success path
       when(mockHttpClient.get(any))
@@ -510,16 +520,17 @@ void main() {
       setViewport(tester);
 
       final mockUserNoPhoto = MockUser();
-      when(mockUserNoPhoto.uid).thenReturn('test_uid');
+      when(mockUserNoPhoto.uid).thenReturn('test_user');
       when(mockUserNoPhoto.email).thenReturn('test@example.com');
       when(mockUserNoPhoto.photoURL).thenReturn(null);
 
-      when(mockUserService.uploadProfilePicture(any, any))
+      when(mockUserProfileService.uploadProfilePicture(
+              userId: anyNamed('userId'), image: anyNamed('image')))
           .thenAnswer((_) async => 'https://example.com/photo.jpg');
 
       await tester.pumpWidget(createTestableWidget(
-        child: const UserProfilePage(),
-        userService: mockUserService,
+        child: const UserProfileScreen(),
+        userProfileService: mockUserProfileService,
         metadataService: mockMetadataService,
         user: mockUserNoPhoto,
         userProfile: mockProfile,
@@ -528,7 +539,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      final dynamic state = tester.state(find.byType(UserProfilePage));
+      final dynamic state = tester.state(find.byType(UserProfileScreen));
 
       await tester.runAsync(() async =>
           await state.useGooglePhoto('https://example.com/photo.jpg'));
@@ -538,7 +549,8 @@ void main() {
           .runAsync(() => Future.delayed(const Duration(milliseconds: 500)));
       await tester.pump();
 
-      verifyNever(mockUserService.uploadProfilePicture(any, any));
+      verifyNever(mockUserProfileService.uploadProfilePicture(
+          userId: anyNamed('userId'), image: anyNamed('image')));
 
       await tester.tap(find.text('Save Changes'));
 
@@ -546,11 +558,13 @@ void main() {
           .runAsync(() => Future.delayed(const Duration(milliseconds: 500)));
       await tester.pump();
 
-      verify(mockUserService.uploadProfilePicture(any, any)).called(1);
+      verify(mockUserProfileService.uploadProfilePicture(
+              userId: anyNamed('userId'), image: anyNamed('image')))
+          .called(1);
     });
   });
 
-  group('UserProfilePage Profile Photo Selection', () {
+  group('UserProfileScreen Profile Photo Selection', () {
     testWidgets('picks and crops profile picture successfully',
         (WidgetTester tester) async {
       setViewport(tester);
@@ -570,12 +584,13 @@ void main() {
         uiSettings: anyNamed('uiSettings'),
       )).thenAnswer((_) async => CroppedFile('test/assets/cropped_image.jpg'));
 
-      when(mockUserService.uploadProfilePicture(any, any))
+      when(mockUserProfileService.uploadProfilePicture(
+              userId: anyNamed('userId'), image: anyNamed('image')))
           .thenAnswer((_) async => 'https://example.com/new_photo.jpg');
 
       await tester.pumpWidget(createTestableWidget(
-        child: const UserProfilePage(),
-        userService: mockUserService,
+        child: const UserProfileScreen(),
+        userProfileService: mockUserProfileService,
         metadataService: mockMetadataService,
         user: mockUser,
         userProfile: mockProfile,
@@ -591,7 +606,9 @@ void main() {
       await tester.tap(find.text('Save Changes'));
       await tester.pumpAndSettle();
 
-      verify(mockUserService.uploadProfilePicture(any, any)).called(1);
+      verify(mockUserProfileService.uploadProfilePicture(
+              userId: anyNamed('userId'), image: anyNamed('image')))
+          .called(1);
     });
 
     testWidgets('cancels image picking gracefully',
@@ -604,8 +621,8 @@ void main() {
       )).thenAnswer((_) async => null);
 
       await tester.pumpWidget(createTestableWidget(
-        child: const UserProfilePage(),
-        userService: mockUserService,
+        child: const UserProfileScreen(),
+        userProfileService: mockUserProfileService,
         metadataService: mockMetadataService,
         user: mockUser,
         userProfile: mockProfile,
@@ -620,7 +637,8 @@ void main() {
       await tester.tap(find.text('Save Changes'));
       await tester.pumpAndSettle();
 
-      verifyNever(mockUserService.uploadProfilePicture(any, any));
+      verifyNever(mockUserProfileService.uploadProfilePicture(
+          userId: anyNamed('userId'), image: anyNamed('image')));
     });
 
     testWidgets('cancels image cropping gracefully',
@@ -643,8 +661,8 @@ void main() {
       )).thenAnswer((_) async => null);
 
       await tester.pumpWidget(createTestableWidget(
-        child: const UserProfilePage(),
-        userService: mockUserService,
+        child: const UserProfileScreen(),
+        userProfileService: mockUserProfileService,
         metadataService: mockMetadataService,
         user: mockUser,
         userProfile: mockProfile,
@@ -659,7 +677,8 @@ void main() {
       await tester.tap(find.text('Save Changes'));
       await tester.pumpAndSettle();
 
-      verifyNever(mockUserService.uploadProfilePicture(any, any));
+      verifyNever(mockUserProfileService.uploadProfilePicture(
+          userId: anyNamed('userId'), image: anyNamed('image')));
     });
   });
 }

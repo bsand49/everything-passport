@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 @immutable
 class UserProfile {
   /// The unique identifier for the user (usually from Firebase Auth).
-  final String uid;
+  final String userId;
 
   /// The user's email address.
   final String? email;
@@ -33,7 +33,7 @@ class UserProfile {
 
   /// Creates a [UserProfile] instance.
   const UserProfile({
-    required this.uid,
+    required this.userId,
     this.email,
     required this.username,
     required this.firstName,
@@ -45,9 +45,9 @@ class UserProfile {
   });
 
   /// Creates a [UserProfile] instance from a Firestore map.
-  factory UserProfile.fromMap(String uid, Map<String, dynamic> map) {
+  factory UserProfile.fromMap(String userId, Map<String, dynamic> map) {
     return UserProfile(
-      uid: uid,
+      userId: userId,
       email: map['email'] as String?,
       username: map['username'] as String? ?? '',
       firstName: map['firstName'] as String? ?? '',
@@ -85,7 +85,7 @@ class UserProfile {
 
   /// Creates a copy of this [UserProfile] but with the given fields replaced with the new values.
   UserProfile copyWith({
-    String? uid,
+    String? userId,
     String? email,
     String? username,
     String? firstName,
@@ -96,7 +96,7 @@ class UserProfile {
     String? photoUrl,
   }) {
     return UserProfile(
-      uid: uid ?? this.uid,
+      userId: userId ?? this.userId,
       email: email ?? this.email,
       username: username ?? this.username,
       firstName: firstName ?? this.firstName,
@@ -110,7 +110,7 @@ class UserProfile {
 
   @override
   String toString() {
-    return 'UserProfile(uid: $uid, username: $username, fullName: $fullName)';
+    return 'UserProfile(userId: $userId, email: $email, username: $username, firstName: $firstName, lastName: $lastName, isPublic: $isPublic, dateOfBirth: $dateOfBirth, nationality: $nationality, photoUrl: $photoUrl)';
   }
 
   @override
@@ -118,7 +118,7 @@ class UserProfile {
     if (identical(this, other)) return true;
 
     return other is UserProfile &&
-        other.uid == uid &&
+        other.userId == userId &&
         other.email == email &&
         other.username == username &&
         other.firstName == firstName &&
@@ -131,7 +131,7 @@ class UserProfile {
 
   @override
   int get hashCode {
-    return uid.hashCode ^
+    return userId.hashCode ^
         email.hashCode ^
         username.hashCode ^
         firstName.hashCode ^

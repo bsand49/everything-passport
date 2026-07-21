@@ -5,9 +5,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_core_platform_interface/test.dart';
 import 'package:everything_passport/main.dart';
-import 'package:everything_passport/pages/login_page.dart';
-import 'package:everything_passport/pages/home_page.dart';
-import 'package:everything_passport/pages/user_profile_page.dart';
+import 'package:everything_passport/screens/login_screen.dart';
+import 'package:everything_passport/screens/home_screen.dart';
+import 'package:everything_passport/screens/user_profile_screen.dart';
 import 'package:everything_passport/models/user_profile.dart';
 import 'package:everything_passport/services/metadata_service.dart';
 import 'package:http/http.dart' as http;
@@ -32,18 +32,18 @@ void main() async {
   }
 
   group('AuthWrapper Tests', () {
-    testWidgets('shows LoginPage when user is null',
+    testWidgets('shows LoginScreen when user is null',
         (WidgetTester tester) async {
       await tester.pumpWidget(createTestableWidget(
         child: const AuthWrapper(),
         user: null,
       ));
 
-      expect(find.byType(LoginPage), findsOneWidget);
+      expect(find.byType(LoginScreen), findsOneWidget);
     });
 
     testWidgets(
-        'shows UserProfilePage when user is logged in but profile is null',
+        'shows UserProfileScreen when user is logged in but profile is null',
         (WidgetTester tester) async {
       await tester.pumpWidget(createTestableWidget(
         child: const AuthWrapper(),
@@ -51,14 +51,14 @@ void main() async {
         userProfile: null,
       ));
 
-      expect(find.byType(UserProfilePage), findsOneWidget);
+      expect(find.byType(UserProfileScreen), findsOneWidget);
     });
 
     testWidgets(
-        'shows UserProfilePage when user is logged in but profile is incomplete',
+        'shows UserProfileScreen when user is logged in but profile is incomplete',
         (WidgetTester tester) async {
       final incompleteProfile = UserProfile(
-        uid: 'test_uid',
+        userId: 'test_uid',
         username: '', // incomplete
         firstName: 'Test',
         lastName: 'User',
@@ -70,13 +70,14 @@ void main() async {
         userProfile: incompleteProfile,
       ));
 
-      expect(find.byType(UserProfilePage), findsOneWidget);
+      expect(find.byType(UserProfileScreen), findsOneWidget);
     });
 
-    testWidgets('shows HomePage when user is logged in and profile is complete',
+    testWidgets(
+        'shows HomeScreen when user is logged in and profile is complete',
         (WidgetTester tester) async {
       final completeProfile = const UserProfile(
-        uid: 'test_uid',
+        userId: 'test_uid',
         username: 'testuser',
         firstName: 'Test',
         lastName: 'User',
@@ -88,7 +89,7 @@ void main() async {
         userProfile: completeProfile,
       ));
 
-      expect(find.byType(HomePage), findsOneWidget);
+      expect(find.byType(HomeScreen), findsOneWidget);
     });
   });
 
@@ -96,12 +97,12 @@ void main() async {
     testWidgets('MyApp renders MaterialApp with correct title and setup',
         (WidgetTester tester) async {
       final fakeAuth = FakeAuthService();
-      final fakeUser = FakeUserService();
+      final fakeUser = FakeUserProfileService();
       final fakeMeta = FakeMetadataService();
 
       await tester.pumpWidget(MyApp(
         authService: fakeAuth,
-        userService: fakeUser,
+        userProfileService: fakeUser,
         metadataService: fakeMeta,
       ));
       await tester.pump();
@@ -115,14 +116,14 @@ void main() async {
     testWidgets('MyApp coverage: handles default providers and disposal',
         (WidgetTester tester) async {
       final fakeAuth = FakeAuthService();
-      final fakeUser = FakeUserService();
+      final fakeUser = FakeUserProfileService();
 
       // Emit a user to hit line 84 (switchMap branch for streamProfile)
       fakeAuth.emitUser(FakeUser());
 
       await tester.pumpWidget(MyApp(
         authService: fakeAuth,
-        userService: fakeUser,
+        userProfileService: fakeUser,
         // Leave metadataService and httpClient null to hit lines 61, 73
       ));
       await tester.pump(); // Allow streams to propagate

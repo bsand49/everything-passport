@@ -3,66 +3,40 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mime/mime.dart';
 import 'dart:io';
+import '../exceptions/username_already_taken_exception.dart';
 import '../models/user_profile.dart';
 
-/// Exception thrown when a user attempts to claim a username that is already taken.
-class UsernameAlreadyTakenException implements Exception {
-  final String username;
-  UsernameAlreadyTakenException(this.username);
-  @override
-  String toString() => 'Username "$username" is already taken.';
-}
-
 /// Service class for managing user-related data in Firestore and Firebase Storage.
-class UserService {
+class UserProfileService {
   final FirebaseFirestore _db;
   final FirebaseStorage _storage;
 
-  static const String _usersCollection = 'users';
+  static const String _usersProfilesCollection = 'userProfiles';
   static const String _usernamesCollection = 'usernames';
   static const String _profilePicturesPath = 'profile_pictures';
 
-  UserService({FirebaseFirestore? db, FirebaseStorage? storage})
+  UserProfileService({FirebaseFirestore? db, FirebaseStorage? storage})
       : _db = db ?? FirebaseFirestore.instance,
         _storage = storage ?? FirebaseStorage.instance;
 
-  /// Returns a stream of the [UserProfile] for a given [uid].
+  /// Returns a stream of the [UserProfile] for a given [userId].
   ///
   /// Returns `null` if the profile does not exist or an error occurs.
-  Stream<UserProfile?> streamProfile(String uid) {
+  Stream<UserProfile?> streamProfile({required String userId}) {
     return _db
-        .collection(_usersCollection)
-        .doc(uid)
+        .collection(_usersProfilesCollection)
+        .doc(userId)
         .snapshots()
         .map((snapshot) {
       try {
         if (snapshot.exists && snapshot.data() != null) {
-          return UserProfile.fromMap(uid, snapshot.data()!);
+          return UserProfile.fromMap(userId, snapshot.data()!);
         }
       } catch (e) {
-        debugPrint('Error mapping UserProfile for $uid: $e');
+        debugPrint('Error mapping UserProfile for $userId: $e');
       }
       return null;
     });
-  }
-
-  /// Checks if a [username] is available for use.
-  ///
-  /// A username is available if it doesn't exist or if it already belongs to [currentUid].
-  Future<bool> isUsernameAvailable(String username, String currentUid) async {
-    try {
-      final doc = await _db
-          .collection(_usernamesCollection)
-          .doc(username.toLowerCase())
-          .get();
-      if (!doc.exists) return true;
-
-      // If it exists, it's available only if it belongs to the current user
-      return doc.data()?['uid'] == currentUid;
-    } catch (e) {
-      debugPrint('Error checking username availability: $e');
-      return false;
-    }
   }
 
   /// Saves a user's profile and ensures the username is unique using a Firestore transaction.
@@ -71,19 +45,21 @@ class UserService {
   /// mapping updates correctly.
   ///
   /// Throws a [UsernameAlreadyTakenException] if the new username is already in use by another user.
-  Future<void> saveProfileWithUsername(
-      UserProfile profile, String oldUsername) async {
+  Future<void> saveProfile(
+      {required UserProfile profile, required String oldUsername}) async {
     final newUsername = profile.username.toLowerCase();
     final normalizedOldUsername = oldUsername.toLowerCase();
 
-    final userRef = _db.collection(_usersCollection).doc(profile.uid);
+    final userRef =
+        _db.collection(_usersProfilesCollection).doc(profile.userId);
     final usernameRef = _db.collection(_usernamesCollection).doc(newUsername);
 
     try {
       await _db.runTransaction((transaction) async {
         // 1. Check if the new username is already taken by someone else
         final usernameDoc = await transaction.get(usernameRef);
-        if (usernameDoc.exists && usernameDoc.data()?['uid'] != profile.uid) {
+        if (usernameDoc.exists &&
+            usernameDoc.data()?['userId'] != profile.userId) {
           throw UsernameAlreadyTakenException(profile.username);
         }
 
@@ -96,7 +72,7 @@ class UserService {
             transaction.delete(oldUsernameRef);
           }
           // Create the new mapping
-          transaction.set(usernameRef, {'uid': profile.uid});
+          transaction.set(usernameRef, {'userId': profile.userId});
         }
 
         // 3. Update the user profile
@@ -113,13 +89,34 @@ class UserService {
     }
   }
 
+  /// Checks if a [username] is available for use.
+  ///
+  /// A username is available if it doesn't exist or if it already belongs to [currentUserId].
+  Future<bool> isUsernameAvailable(
+      {required String username, required String currentUserId}) async {
+    try {
+      final doc = await _db
+          .collection(_usernamesCollection)
+          .doc(username.toLowerCase())
+          .get();
+      if (!doc.exists) return true;
+
+      // If it exists, it's available only if it belongs to the current user
+      return doc.data()?['userId'] == currentUserId;
+    } catch (e) {
+      debugPrint('Error checking username availability: $e');
+      return false;
+    }
+  }
+
   /// Uploads a profile picture to Firebase Storage and returns the download URL.
   ///
-  /// The file is stored at `profile_pictures/{uid}` (no extension) to ensure
+  /// The file is stored at `profile_pictures/{userId}` (no extension) to ensure
   /// that a user only ever has one profile picture file.
-  Future<String> uploadProfilePicture(String uid, File image) async {
+  Future<String> uploadProfilePicture(
+      {required String userId, required File image}) async {
     try {
-      final ref = _storage.ref().child(_profilePicturesPath).child(uid);
+      final ref = _storage.ref().child(_profilePicturesPath).child(userId);
 
       // Detect the actual mime type of the file
       final mimeType = lookupMimeType(image.path) ?? 'image/jpeg';
