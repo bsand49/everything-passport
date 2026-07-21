@@ -1,0 +1,40 @@
+name: 'Report Code Coverage'
+description: 'Parses lcov.info, checks threshold, and posts a PR comment'
+inputs:
+  lcov-file:
+    description: 'Path to the lcov.info file'
+    required: true
+    default: 'coverage/lcov.info'
+  threshold:
+    description: 'Coverage percentage threshold'
+    required: true
+    default: '90'
+  header:
+    description: 'Unique header for the sticky comment'
+    required: true
+    default: 'flutter-coverage-report'
+  working-directory:
+    description: 'Directory where the lcov file is located'
+    required: true
+    default: 'mobile'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Parse and Report Coverage
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        LCOV_FILE: ${{ inputs.lcov-file }}
+        THRESHOLD: ${{ inputs.threshold }}
+      run: |
+        python3 ${{ github.action_path }}/parse_lcov.py "$LCOV_FILE" "$THRESHOLD"
+        echo "has_report=true" >> $GITHUB_OUTPUT
+      id: coverage_script
+
+    - name: Publish PR Comment
+      uses: marocchino/sticky-pull-request-comment@v3
+      if: always() && steps.coverage_script.outputs.has_report == 'true'
+      with:
+        header: ${{ inputs.header }}
+        path: ${{ inputs.working-directory }}/pr_comment.md

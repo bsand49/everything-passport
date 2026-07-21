@@ -1,0 +1,59 @@
+# Lefthook configuration for Everything Passport monorepo
+# Documentation: https://github.com/evilmartians/lefthook
+
+pre-commit:
+  parallel: true
+  commands:
+    format:
+      root: "mobile/"
+      glob: "*.dart"
+      run: "dart format {staged_files}"
+      stage_fixed: true
+    analyze:
+      root: "mobile/"
+      glob: "*.dart"
+      run: "flutter analyze"
+
+pre-push:
+  commands:
+    mobile-tests:
+      root: "mobile/"
+      run: |
+        echo "🚀 Running pre-push checks for 'mobile'..."
+        
+        # Run Tests
+        echo "🧪 Running unit tests..."
+        if ! flutter test --coverage; then
+          echo "❌ Tests failed. Push aborted."
+          exit 1
+        fi
+        
+        # Check Coverage
+        LCOV_FILE="coverage/lcov.info"
+        if [ ! -f "$LCOV_FILE" ]; then
+          echo "⚠️  Coverage file not found at $LCOV_FILE. Skipping coverage check."
+          exit 0
+        fi
+        
+        TOTAL_LF=$(grep 'LF:' "$LCOV_FILE" | cut -d: -f2 | awk '{s+=$1} END {print s}')
+        TOTAL_LH=$(grep 'LH:' "$LCOV_FILE" | cut -d: -f2 | awk '{s+=$1} END {print s}')
+        
+        if [ -z "$TOTAL_LF" ] || [ "$TOTAL_LF" -eq 0 ]; then
+          echo "⚠️  No lines found for coverage calculation. Skipping."
+          exit 0
+        fi
+        
+        PERCENTAGE=$(awk "BEGIN {printf \"%.2f\", ($TOTAL_LH / $TOTAL_LF) * 100}")
+        THRESHOLD=90
+        
+        echo "📊 Code Coverage: $PERCENTAGE% (Threshold: $THRESHOLD%)"
+        
+        IS_BELOW=$(awk "BEGIN {print ($PERCENTAGE < $THRESHOLD) ? 1 : 0}")
+        
+        if [ "$IS_BELOW" -eq 1 ]; then
+          echo "❌ Coverage is below the required threshold of $THRESHOLD%. Push aborted."
+          exit 1
+        fi
+        
+        echo "✅ All pre-push checks passed!"
+        exit 0

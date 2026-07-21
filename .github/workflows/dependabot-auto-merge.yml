@@ -1,0 +1,34 @@
+name: Dependabot Auto-Merge
+run-name: Auto-merge check for PR #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  dependabot-auto-merge:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && !github.event.pull_request.draft
+    steps:
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: "${{ github.token }}"
+
+      - name: Enable auto-merge for Dependabot PRs
+        if: |
+          contains(steps.metadata.outputs.group, 'npm-safe-updates') ||
+          contains(steps.metadata.outputs.group, 'pub-safe-updates') ||
+          contains(steps.metadata.outputs.group, 'action-updates')
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          if gh pr view "$PR_NUMBER" --json autoMergeRequest --jq '.autoMergeRequest.id // empty' | grep -q .; then
+            echo "Auto-merge is already enabled for PR #$PR_NUMBER."
+            exit 0
+          fi
+          gh pr merge "$PR_NUMBER" --auto --squash

@@ -1,0 +1,68 @@
+# Local OS & Tools
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.history
+.idea/
+.vscode/
+migrate_working_dir/
+
+# Flutter Core Build Artifacts
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.packages.generated
+.pub-preload-cache/
+.pub/
+build/
+coverage/
+flutter_*.png
+linked_*.ds
+unlinked.ds
+unlinked_spec.ds
+app.*.symbols
+app.*.map.json
+doc/api/
+
+# Generation and Testing
+*.mocks.dart
+
+# Platform Intermediates (Android)
+android/.gradle/
+android/captures/
+android/local.properties
+android/key.properties
+android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+android/app/debug/
+android/app/profile/
+android/app/release/
+*.jks
+*.keystore
+*.p12
+
+# Platform Intermediates (iOS / Desktop)
+ios/Pods/
+ios/.symlinks/
+ios/.generated/
+ios/Flutter/
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.*
+macos/Flutter/ephemeral/
+linux/flutter/ephemeral/
+windows/flutter/ephemeral/
+
+# Xcode User States
+*.moved-aside
+*.xcuserstate
+xcuserdata/
+DerivedData/
+
+# Secure Firebase & Credentials
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/firebase_options_dev.dart
+**/firebase_options_dev.dart
+**/firebase_options_prod.dart

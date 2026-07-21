@@ -1,0 +1,9 @@
+/.gradle/
+/captures/
+/.cxx/
+
+# Local safety fallbacks
+/local.properties
+/key.properties
+*.keystore
+*.jks
