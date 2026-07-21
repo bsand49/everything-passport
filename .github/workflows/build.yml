@@ -50,6 +50,9 @@ jobs:
           output-path: 'lib/firebase_options_dev.dart'
           working-directory: 'mobile'
 
+      - name: Generate mock files
+        run: dart run build_runner build --delete-conflicting-outputs
+
       - name: Run static analysis
         run: flutter analyze
 
