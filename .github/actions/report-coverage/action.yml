@@ -28,39 +28,8 @@ runs:
         LCOV_FILE: ${{ inputs.lcov-file }}
         THRESHOLD: ${{ inputs.threshold }}
       run: |
-        if [ -f "$LCOV_FILE" ]; then
-          TOTAL_LF=$(grep "LF:" "$LCOV_FILE" | cut -d: -f2 | awk '{s+=$1} END {print s}')
-          TOTAL_LH=$(grep "LH:" "$LCOV_FILE" | cut -d: -f2 | awk '{s+=$1} END {print s}')
-          if [ "$TOTAL_LF" -gt 0 ]; then
-            PERCENTAGE=$(awk "BEGIN {printf \"%.2f\", ($TOTAL_LH / $TOTAL_LF) * 100}")
-        
-            # Build the markdown content file
-            echo "### Flutter Coverage Report 📊" > pr_comment.md
-            echo "| Metric | Value |" >> pr_comment.md
-            echo "| --- | --- |" >> pr_comment.md
-            echo "| Lines Found | $TOTAL_LF |" >> pr_comment.md
-            echo "| Lines Hit | $TOTAL_LH |" >> pr_comment.md
-            
-            IS_BELOW=$(awk "BEGIN {print ($PERCENTAGE < $THRESHOLD) ? 1 : 0}")
-            if [ "$IS_BELOW" -eq 1 ]; then
-              echo "| **Coverage** | **❌ $PERCENTAGE%** (Required: $THRESHOLD%) |" >> pr_comment.md
-              cat pr_comment.md >> $GITHUB_STEP_SUMMARY
-              echo "::error::Code coverage ($PERCENTAGE%) is below the required threshold of $THRESHOLD%"
-              echo "has_report=true" >> $GITHUB_OUTPUT
-              exit 1
-            else
-              echo "| **Coverage** | **✅ $PERCENTAGE%** (Required: $THRESHOLD%) |" >> pr_comment.md
-              cat pr_comment.md >> $GITHUB_STEP_SUMMARY
-              echo "has_report=true" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "No lines found for coverage calculation."
-            exit 1
-          fi
-        else
-          echo "Coverage file $LCOV_FILE not found."
-          exit 1
-        fi
+        python3 ${{ github.action_path }}/parse_lcov.py "$LCOV_FILE" "$THRESHOLD"
+        echo "has_report=true" >> $GITHUB_OUTPUT
       id: coverage_script
 
     - name: Publish PR Comment
