@@ -45,8 +45,9 @@ runs:
       run: |
         if [ -z "$SERVICE_ACCOUNT_JSON" ]; then
           echo "Using dummy Firebase options for CI build."
-          printf "import 'package:firebase_core/firebase_core.dart';\n" > $OUT_PATH
-          printf "import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;\n\n" >> $OUT_PATH
+          printf "// coverage:ignore-file\n" > $OUT_PATH
+          printf "// ignore_for_file: type=lint\n" >> $OUT_PATH
+          printf "import 'package:firebase_core/firebase_core.dart';\n" >> $OUT_PATH
           printf "class DefaultFirebaseOptions {\n" >> $OUT_PATH
           printf "  static FirebaseOptions get currentPlatform {\n" >> $OUT_PATH
           printf "    return const FirebaseOptions(\n" >> $OUT_PATH

@@ -1,5 +1,5 @@
 name: Dependabot Auto-Merge
-run-name: Auto-merge check for PR #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
+run-name: "Auto-merge check for PR #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}"
 
 on: pull_request
 
