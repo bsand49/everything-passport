@@ -97,6 +97,12 @@ pre-commit:
     format:
       env:
         PATH: "/path/to/flutter/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:#{ENV['PATH']}"
+
+pre-push:
+  commands:
+    mobile-tests:
+      env:
+        PATH: "/path/to/flutter/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:#{ENV['PATH']}"
 ```
 
 #### Windows
