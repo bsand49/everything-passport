@@ -1,5 +1,5 @@
 name: Branch Name Check
-run-name: Branch check for PR #${{ github.event.pull_request.number }} (${{ github.head_ref }})
+run-name: "Branch check for PR #${{ github.event.pull_request.number }} (${{ github.head_ref }})"
 
 on:
   pull_request:
