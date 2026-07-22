@@ -43,8 +43,14 @@ runs:
         IOS_BUNDLE: ${{ inputs.ios-bundle-id }}
         OUT_PATH: ${{ inputs.output-path }}
       run: |
+        if [ -f "$OUT_PATH" ] && [ -s "$OUT_PATH" ]; then
+          echo "Firebase configuration already exists at $OUT_PATH. Skipping."
+          exit 0
+        fi
+
         if [ -z "$SERVICE_ACCOUNT_JSON" ]; then
           echo "Using dummy Firebase options for CI build."
+          mkdir -p $(dirname $OUT_PATH)
           printf "// coverage:ignore-file\n" > $OUT_PATH
           printf "// ignore_for_file: type=lint\n" >> $OUT_PATH
           printf "import 'package:firebase_core/firebase_core.dart';\n" >> $OUT_PATH
@@ -58,14 +64,41 @@ runs:
           printf "    );\n" >> $OUT_PATH
           printf "  }\n" >> $OUT_PATH
           printf "}\n" >> $OUT_PATH
+
+          # Create a dummy google-services.json to prevent build failures
+          mkdir -p android/app
+          if [ ! -f "android/app/google-services.json" ]; then
+            echo "Creating dummy google-services.json"
+            printf '{"project_info":{"project_number":"0","project_id":"dummy","storage_bucket":"dummy.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"dummy","android_client_info":{"package_name":"%s"}},"api_key":[{"current_key":"dummy"}],"services":{"appinvite_service":{"status":1}}}]}\n' "$ANDROID_PACKAGE" > android/app/google-services.json
+          fi
         else
           echo "$SERVICE_ACCOUNT_JSON" > service-account.json
           export GOOGLE_APPLICATION_CREDENTIALS=service-account.json
-          flutterfire configure \
-            --project=$PROJECT_ID \
-            --platforms=android,ios \
-            --android-package-name=$ANDROID_PACKAGE \
-            --ios-bundle-id=$IOS_BUNDLE \
-            --out=$OUT_PATH \
-            --yes
+          
+          # Retry loop for flutterfire configure as it can be flaky
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          SUCCESS=false
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            if flutterfire configure \
+              --project=$PROJECT_ID \
+              --platforms=android,ios \
+              --android-package-name=$ANDROID_PACKAGE \
+              --ios-bundle-id=$IOS_BUNDLE \
+              --out=$OUT_PATH \
+              --yes; then
+              SUCCESS=true
+              break
+            else
+              RETRY_COUNT=$((RETRY_COUNT+1))
+              echo "flutterfire configure failed (attempt $RETRY_COUNT of $MAX_RETRIES). Retrying in 5 seconds..."
+              sleep 5
+            fi
+          done
+          
+          if [ "$SUCCESS" = false ]; then
+            echo "Error: flutterfire configure failed after $MAX_RETRIES attempts."
+            exit 1
+          fi
         fi
