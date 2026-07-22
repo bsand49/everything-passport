@@ -66,6 +66,7 @@ jobs:
 
   smoke-test-mobile:
     name: Smoke Test (Android Emulator)
+    needs: build-and-test-mobile
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: dev
@@ -117,14 +118,27 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Cache AVD
+      - name: Cache Android SDK Components
         uses: actions/cache@v6
         id: avd-cache
         with:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-api-31-v1
+            /usr/local/lib/android/sdk/system-images/android-31/google_apis/x86_64/*
+          key: avd-api-31-system-image-v1
+
+      - name: Cache Gradle Build Outputs
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            mobile/android/.gradle
+            mobile/build
+          key: gradle-cache-${{ hashFiles('mobile/android/build.gradle*', 'mobile/android/app/build.gradle*', 'mobile/pubspec.yaml') }}
+          restore-keys: |
+            gradle-cache-
 
       - name: Run Integration Tests (Smoke Test)
         uses: reactivecircus/android-emulator-runner@v2
