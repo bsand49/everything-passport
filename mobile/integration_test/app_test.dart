@@ -9,18 +9,14 @@ void main() {
 
   group('App Boot Integration Test', () {
     testWidgets('Verify app boots and reaches Login Page', (tester) async {
-      // Start the app by calling the main() function from main.dart
-      // We wrap it in a try-catch because main() handles its own Firebase initialization
-      // which might fail in some test environments if native config is missing.
-      try {
-        app.main();
-      } catch (e) {
-        debugPrint('Error starting app: $e');
-      }
+      // Start the app and await the async initialization (Firebase, Google Sign In, etc.)
+      // This ensures we don't start asserting before runApp() is called.
+      await app.main();
 
+      // Wait for the app to settle and the first frame to render
       await tester.pumpAndSettle();
 
-      // Verify that we are on the LoginScreen (the expected starting point for a fresh boot)
+      // Verify that we are on the LoginScreen
       expect(find.byType(LoginScreen), findsOneWidget);
 
       // Verify some basic UI elements on the login page
@@ -29,13 +25,9 @@ void main() {
     });
 
     testWidgets('Verify environment variable processing', (tester) async {
-      // This test specifically checks if the main() logic handles different ENV values
-      // without crashing, even if we can't fully mock the static Firebase.initializeApp call here.
-
-      // In a real integration test, we might use --dart-define=ENV=prod when running
-      // but we can also verify the logic by inspecting the widget tree if it reflects the environment.
-
-      app.main();
+      // Since main() was already called in the first test and it initializes static services,
+      // calling it again is safe but we should still wait for it.
+      await app.main();
       await tester.pumpAndSettle();
 
       expect(find.byType(MaterialApp), findsOneWidget);
