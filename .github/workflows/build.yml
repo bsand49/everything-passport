@@ -1,5 +1,5 @@
 name: Build and Test
-run-name: "Build and Test for PR #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}"
+run-name: ${{ github.event_name == 'pull_request' && format('Build and Test for PR #{0} - {1}', github.event.pull_request.number, github.event.pull_request.title) || format('Build and Test on {0} - {1}', github.ref_name, github.event.head_commit.message) }}
 
 on:
   push:

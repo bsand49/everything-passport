@@ -107,10 +107,10 @@ Before running `flutter run`, you must have a target device (physical or virtual
 
 The application requires specific environment variables to be set at build time using the `--dart-define` flag.
 
-| Variable | Description | Allowed Values | Default |
-| :--- | :--- | :--- | :--- |
-| `ENV` | The target environment (affects Firebase initialization). | `dev`, `prod` | `dev` |
-| `SERVER_CLIENT_ID` | The Google Sign-In Web Client ID. | String from Firebase/GCP Console | (Required) |
+| Variable           | Description                                               | Allowed Values                   | Default    |
+|:-------------------|:----------------------------------------------------------|:---------------------------------|:-----------|
+| `ENV`              | The target environment (affects Firebase initialization). | `dev`, `prod`                    | `dev`      |
+| `SERVER_CLIENT_ID` | The Google Sign-In Web Client ID.                         | String from Firebase/GCP Console | (Required) |
 
 > [!NOTE]
 > You can find the `SERVER_CLIENT_ID` in the `google-services.json` file (as `client_id` under `oauth_client` with `client_type` 3) or in the Google Cloud Console under APIs & Services > Credentials.
