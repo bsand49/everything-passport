@@ -64,11 +64,9 @@ jobs:
         with:
           threshold: ${{ vars.MOBILE_COVERAGE_THRESHOLD || 90 }}
 
-      - name: Build debug APK
-        run: flutter build apk --debug --no-pub
-
   smoke-test-mobile:
     name: Smoke Test (Android Emulator)
+    needs: build-and-test-mobile
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: dev
@@ -81,11 +79,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android/sdk/ndk
+          sudo rm -rf /opt/ghc
+
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle'
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -113,14 +118,36 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Cache Android SDK Components
+        uses: actions/cache@v6
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+            /usr/local/lib/android/sdk/system-images/android-31/google_apis/x86_64/*
+          key: avd-api-31-system-image-v1
+
+      - name: Cache Gradle Build Outputs
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            mobile/android/.gradle
+            mobile/build
+          key: gradle-cache-${{ hashFiles('mobile/android/build.gradle*', 'mobile/android/app/build.gradle*', 'mobile/pubspec.yaml') }}
+          restore-keys: |
+            gradle-cache-
+
       - name: Run Integration Tests (Smoke Test)
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34
+          api-level: 31
           target: google_apis
           arch: x86_64
           force-avd-creation: false
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           working-directory: mobile
           script: flutter test --dart-define=SERVER_CLIENT_ID=${{ secrets.SERVER_CLIENT_ID }} integration_test/app_test.dart
