@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,6 +11,7 @@ import 'package:everything_passport/models/user_profile.dart';
 import 'package:everything_passport/services/auth_service.dart';
 import 'package:everything_passport/services/user_profile_service.dart';
 import 'package:everything_passport/services/metadata_service.dart';
+import 'package:everything_passport/widgets/profile_avatar.dart';
 import '../test_helper.dart';
 
 import 'home_screen_test.mocks.dart';
@@ -24,177 +24,159 @@ import 'home_screen_test.mocks.dart';
   MockSpec<MetadataService>(),
 ])
 void main() {
-  late MockUser mockUser;
-  late MockNavigatorObserver mockObserver;
-  late UserProfile mockProfile;
+  group('HomeScreen', () {
+    late MockUser mockUser;
+    late MockNavigatorObserver mockObserver;
+    late UserProfile mockProfile;
 
-  setUpAll(() {
-    // Provide a dummy Route for Mockito's 'any' / 'captureAny' null-safety verification
-    provideDummy<Route<dynamic>>(
-        MaterialPageRoute(builder: (_) => const SizedBox()));
-    HttpOverrides.global = MockHttpOverrides();
-  });
-
-  setUp(() {
-    mockUser = MockUser();
-    mockObserver = MockNavigatorObserver();
-    mockProfile = UserProfile(
-      userId: 'test_user',
-      username: 'traveler_john',
-      firstName: 'John',
-      lastName: 'Doe',
-      photoUrl: 'https://example.com/photo.jpg',
-    );
-
-    // Stub mock user properties required by HomeScreen
-    when(mockUser.uid).thenReturn('test_user');
-    when(mockUser.email).thenReturn('test@example.com');
-    when(mockUser.photoURL).thenReturn('https://example.com/photo.jpg');
-  });
-
-  // Helper to ensure uniform testing dimensions for modals and sheets
-  void setLargeViewport(WidgetTester tester) {
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 1.0;
-  }
-
-  group('HomeScreen - Rendering States', () {
-    testWidgets('displays "Not Logged In" when user is null',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestableWidget(
-        child: HomeScreen(),
-        user: null,
-      ));
-
-      expect(find.text('Not Logged In'), findsOneWidget);
+    setUpAll(() {
+      // Provide a dummy Route for Mockito's 'any' / 'captureAny' null-safety verification
+      provideDummy<Route<dynamic>>(
+          MaterialPageRoute(builder: (_) => const SizedBox()));
+      HttpOverrides.global = MockHttpOverrides();
     });
 
-    testWidgets('displays loader when userProfile is null',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestableWidget(
-        child: HomeScreen(),
-        user: mockUser,
-        userProfile: null,
-      ));
-
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    });
-
-    testWidgets('displays username and welcome message with correct name',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestableWidget(
-        child: HomeScreen(),
-        user: mockUser,
-        userProfile: mockProfile,
-      ));
-
-      expect(find.text('traveler_john'), findsOneWidget);
-      expect(
-          find.text('Welcome to Everything Passport, John!'), findsOneWidget);
-    });
-
-    testWidgets('displays default person icon when photoUrl is null',
-        (WidgetTester tester) async {
-      final profileNoPhoto = UserProfile(
+    setUp(() {
+      mockUser = MockUser();
+      mockObserver = MockNavigatorObserver();
+      mockProfile = UserProfile(
         userId: 'test_user',
         username: 'traveler_john',
         firstName: 'John',
         lastName: 'Doe',
-        photoUrl: null,
+        photoUrl: 'https://example.com/photo.jpg',
       );
 
-      await tester.pumpWidget(createTestableWidget(
-        child: HomeScreen(),
-        user: mockUser,
-        userProfile: profileNoPhoto,
-      ));
-
-      expect(find.byIcon(Icons.person), findsOneWidget);
+      // Stub mock user properties required by HomeScreen
+      when(mockUser.uid).thenReturn('test_user');
+      when(mockUser.email).thenReturn('test@example.com');
+      when(mockUser.photoURL).thenReturn('https://example.com/photo.jpg');
     });
 
-    testWidgets(
-        'displays CircleAvatar with CachedNetworkImage when photoUrl is present',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestableWidget(
-        child: HomeScreen(),
-        user: mockUser,
-        userProfile: mockProfile,
-      ));
+    // Helper to ensure uniform testing dimensions for modals and sheets
+    void setLargeViewport(WidgetTester tester) {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+    }
 
-      final circleAvatarFinder = find.byType(CircleAvatar);
-      expect(circleAvatarFinder, findsOneWidget);
+    group('Initialization', () {
+      testWidgets('displays "Not Logged In" when user is null',
+          (WidgetTester tester) async {
+        await tester.pumpWidget(createTestableWidget(
+          child: HomeScreen(),
+          user: null,
+        ));
 
-      final CircleAvatar avatar = tester.widget(circleAvatarFinder);
-      expect(avatar.backgroundImage, isA<CachedNetworkImageProvider>());
+        expect(find.text('Not Logged In'), findsOneWidget);
+      });
 
-      final provider = avatar.backgroundImage as CachedNetworkImageProvider;
-      expect(provider.url, 'https://example.com/photo.jpg');
-    });
-  });
+      testWidgets('displays loader when userProfile is null',
+          (WidgetTester tester) async {
+        await tester.pumpWidget(createTestableWidget(
+          child: HomeScreen(),
+          user: mockUser,
+          userProfile: null,
+        ));
 
-  group('HomeScreen - User Actions & Navigation', () {
-    testWidgets('opens bottom sheet and handles Add Trip tap',
-        (WidgetTester tester) async {
-      setLargeViewport(tester);
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      });
 
-      await tester.pumpWidget(createTestableWidget(
-        child: HomeScreen(),
-        user: mockUser,
-        userProfile: mockProfile,
-      ));
+      testWidgets('displays username and welcome message with correct name',
+          (WidgetTester tester) async {
+        await tester.pumpWidget(createTestableWidget(
+          child: HomeScreen(),
+          user: mockUser,
+          userProfile: mockProfile,
+        ));
 
-      await tester.tap(find.byIcon(Icons.add));
-      await tester.pumpAndSettle();
+        expect(find.text('traveler_john'), findsOneWidget);
+        expect(
+            find.text('Welcome to Everything Passport, John!'), findsOneWidget);
+      });
 
-      expect(find.text('Add New'), findsOneWidget);
+      testWidgets('displays ProfileAvatar with correct photoUrl',
+          (WidgetTester tester) async {
+        await tester.pumpWidget(createTestableWidget(
+          child: const HomeScreen(),
+          user: mockUser,
+          userProfile: mockProfile,
+        ));
 
-      await tester.tap(find.text('Add Trip'));
-      await tester.pumpAndSettle();
+        final profileAvatarFinder = find.byType(ProfileAvatar);
+        expect(profileAvatarFinder, findsOneWidget);
 
-      expect(find.text('Add New'), findsNothing); // Verify sheet popped
-    });
-
-    testWidgets('opens bottom sheet and handles Add Event tap',
-        (WidgetTester tester) async {
-      setLargeViewport(tester);
-
-      await tester.pumpWidget(createTestableWidget(
-        child: HomeScreen(),
-        user: mockUser,
-        userProfile: mockProfile,
-      ));
-
-      await tester.tap(find.byIcon(Icons.add));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Add Event'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Add New'), findsNothing); // Verify sheet popped
+        final ProfileAvatar avatar = tester.widget(profileAvatarFinder);
+        expect(avatar.photoUrl, mockProfile.photoUrl);
+        expect(avatar.radius, 60);
+      });
     });
 
-    testWidgets(
-        'navigates to SettingsScreen on settings button tap (isolated route test)',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestableWidget(
-        child: HomeScreen(),
-        user: mockUser,
-        userProfile: mockProfile,
-        observer: mockObserver,
-      ));
+    group('Interactions', () {
+      testWidgets('opens bottom sheet and handles Add Trip tap',
+          (WidgetTester tester) async {
+        setLargeViewport(tester);
 
-      await tester.tap(find.byIcon(Icons.settings));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(createTestableWidget(
+          child: HomeScreen(),
+          user: mockUser,
+          userProfile: mockProfile,
+        ));
 
-      // Capture and verify navigation occurred using Mockito's captureAny and called(2)
-      final verification = verify(mockObserver.didPush(captureAny, any))
-        ..called(2);
-      final Route<dynamic> route = verification.captured[1] as Route<dynamic>;
-      expect(route, isA<MaterialPageRoute>());
+        await tester.tap(find.byIcon(Icons.add));
+        await tester.pumpAndSettle();
 
-      final BuildContext context = tester.element(find.byType(Navigator));
-      final widget = (route as MaterialPageRoute).builder(context);
-      expect(widget, isA<SettingsScreen>());
+        expect(find.text('Add New'), findsOneWidget);
+
+        await tester.tap(find.text('Add Trip'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Add New'), findsNothing); // Verify sheet popped
+      });
+
+      testWidgets('opens bottom sheet and handles Add Event tap',
+          (WidgetTester tester) async {
+        setLargeViewport(tester);
+
+        await tester.pumpWidget(createTestableWidget(
+          child: HomeScreen(),
+          user: mockUser,
+          userProfile: mockProfile,
+        ));
+
+        await tester.tap(find.byIcon(Icons.add));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Add Event'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Add New'), findsNothing); // Verify sheet popped
+      });
+    });
+
+    group('Navigation', () {
+      testWidgets(
+          'navigates to SettingsScreen on settings button tap (isolated route test)',
+          (WidgetTester tester) async {
+        await tester.pumpWidget(createTestableWidget(
+          child: HomeScreen(),
+          user: mockUser,
+          userProfile: mockProfile,
+          observer: mockObserver,
+        ));
+
+        await tester.tap(find.byIcon(Icons.settings));
+        await tester.pumpAndSettle();
+
+        // Capture and verify navigation occurred using Mockito's captureAny and called(2)
+        final verification = verify(mockObserver.didPush(captureAny, any))
+          ..called(2);
+        final Route<dynamic> route = verification.captured[1] as Route<dynamic>;
+        expect(route, isA<MaterialPageRoute>());
+
+        final BuildContext context = tester.element(find.byType(Navigator));
+        final widget = (route as MaterialPageRoute).builder(context);
+        expect(widget, isA<SettingsScreen>());
+      });
     });
   });
 }

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
+import '../utils/validators.dart';
+import '../widgets/auth_text_field.dart';
+import '../widgets/loading_button.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -21,8 +24,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _confirmPasswordController = TextEditingController();
 
   bool _isLoading = false;
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
@@ -71,98 +72,40 @@ class _SignUpScreenState extends State<SignUpScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 40),
-              TextFormField(
-                key: SignUpScreen.emailFieldKey,
+              AuthTextField(
+                fieldKey: SignUpScreen.emailFieldKey,
                 controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email),
-                  border: OutlineInputBorder(),
-                ),
+                labelText: 'Email',
+                prefixIcon: Icons.email,
                 keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your email';
-                  }
-                  final emailRegex =
-                      RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                  if (!emailRegex.hasMatch(value)) {
-                    return 'Please enter a valid email';
-                  }
-                  return null;
-                },
+                validator: Validators.validateEmail,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                key: SignUpScreen.passwordFieldKey,
+              AuthTextField(
+                fieldKey: SignUpScreen.passwordFieldKey,
                 controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: const Icon(Icons.lock),
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: () =>
-                        setState(() => _obscurePassword = !_obscurePassword),
-                  ),
-                ),
-                obscureText: _obscurePassword,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a password';
-                  }
-                  if (value.length < 6) {
-                    return 'Password must be at least 6 characters';
-                  }
-                  return null;
-                },
+                labelText: 'Password',
+                prefixIcon: Icons.lock,
+                obscureText: true,
+                validator: Validators.validatePassword,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                key: SignUpScreen.confirmPasswordFieldKey,
+              AuthTextField(
+                fieldKey: SignUpScreen.confirmPasswordFieldKey,
                 controller: _confirmPasswordController,
-                decoration: InputDecoration(
-                  labelText: 'Confirm Password',
-                  prefixIcon: const Icon(Icons.lock_clock),
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureConfirmPassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: () => setState(() =>
-                        _obscureConfirmPassword = !_obscureConfirmPassword),
-                  ),
-                ),
-                obscureText: _obscureConfirmPassword,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please confirm your password';
-                  }
-                  if (value != _passwordController.text) {
-                    return 'Passwords do not match';
-                  }
-                  return null;
-                },
+                labelText: 'Confirm Password',
+                prefixIcon: Icons.lock_clock,
+                obscureText: true,
+                validator: (value) => Validators.validateConfirmPassword(
+                    value, _passwordController.text),
               ),
               const SizedBox(height: 24),
-              if (_isLoading)
-                const CircularProgressIndicator()
-              else
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    key: SignUpScreen.signUpButtonKey,
-                    onPressed: _signUp,
-                    child: const Text('Sign Up'),
-                  ),
-                ),
+              LoadingButton(
+                key: SignUpScreen.signUpButtonKey,
+                onPressed: _signUp,
+                isLoading: _isLoading,
+                child: const Text('Sign Up'),
+              ),
             ],
           ),
         ),

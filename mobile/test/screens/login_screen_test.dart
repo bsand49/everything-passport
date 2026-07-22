@@ -15,188 +15,192 @@ import 'login_screen_test.mocks.dart';
   MockSpec<AuthService>(),
 ])
 void main() {
-  late MockAuthService mockAuthService;
-  late MockNavigatorObserver mockObserver;
+  group('LoginScreen', () {
+    late MockAuthService mockAuthService;
+    late MockNavigatorObserver mockObserver;
 
-  setUpAll(() {
-    provideDummy<Route<dynamic>>(
-        MaterialPageRoute(builder: (_) => const SizedBox()));
-  });
+    setUpAll(() {
+      provideDummy<Route<dynamic>>(
+          MaterialPageRoute(builder: (_) => const SizedBox()));
+    });
 
-  setUp(() {
-    mockAuthService = MockAuthService();
-    mockObserver = MockNavigatorObserver();
-  });
+    setUp(() {
+      mockAuthService = MockAuthService();
+      mockObserver = MockNavigatorObserver();
+    });
 
-  testWidgets('LoginScreen displays email, password fields and buttons',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(createTestableWidget(
-      child: const LoginScreen(),
-      authService: mockAuthService,
-    ));
+    group('Initialization', () {
+      testWidgets(
+          'displays email, password fields and buttons with initial state',
+          (WidgetTester tester) async {
+        await tester.pumpWidget(createTestableWidget(
+          child: const LoginScreen(),
+          authService: mockAuthService,
+        ));
 
-    expect(find.byKey(const Key('emailField')), findsOneWidget);
-    expect(find.byKey(const Key('passwordField')), findsOneWidget);
-    expect(find.text('Email'), findsOneWidget);
-    expect(find.text('Password'), findsOneWidget);
-    expect(find.widgetWithText(ElevatedButton, 'Login'), findsOneWidget);
-    expect(find.text('Sign in with Google'), findsOneWidget);
-    expect(find.text('Don\'t have an account? Sign Up'), findsOneWidget);
-  });
+        expect(find.byKey(const Key('emailField')), findsOneWidget);
+        expect(find.byKey(const Key('passwordField')), findsOneWidget);
 
-  testWidgets('LoginScreen shows validation errors on empty submission',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(createTestableWidget(
-      child: const LoginScreen(),
-      authService: mockAuthService,
-    ));
+        final emailField = tester.widget<TextField>(find.descendant(
+            of: find.byKey(const Key('emailField')),
+            matching: find.byType(TextField)));
+        final passwordField = tester.widget<TextField>(find.descendant(
+            of: find.byKey(const Key('passwordField')),
+            matching: find.byType(TextField)));
 
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
-    await tester.pump();
+        expect(emailField.controller?.text, isEmpty);
+        expect(passwordField.controller?.text, isEmpty);
+        expect(passwordField.obscureText, isTrue);
 
-    expect(find.text('Please enter your email'), findsOneWidget);
-    expect(find.text('Please enter your password'), findsOneWidget);
-    verifyNever(mockAuthService.signInWithEmail(
-        email: anyNamed('email'), password: anyNamed('password')));
-  });
+        expect(find.text('Email'), findsOneWidget);
+        expect(find.text('Password'), findsOneWidget);
+        expect(find.widgetWithText(ElevatedButton, 'Login'), findsOneWidget);
+        expect(find.text('Sign in with Google'), findsOneWidget);
+        expect(find.text('Don\'t have an account? Sign Up'), findsOneWidget);
+      });
+    });
 
-  testWidgets('LoginScreen toggles password visibility',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(createTestableWidget(
-      child: const LoginScreen(),
-      authService: mockAuthService,
-    ));
+    group('Interactions', () {
+      group('Auth', () {
+        testWidgets('calls signInWithEmail on Login button tap',
+            (WidgetTester tester) async {
+          when(mockAuthService.signInWithEmail(
+                  email: anyNamed('email'), password: anyNamed('password')))
+              .thenAnswer((_) async => null);
 
-    final passwordFinder = find.byKey(const Key('passwordField'));
-    expect(
-        tester
-            .widget<TextField>(find.descendant(
-                of: passwordFinder, matching: find.byType(TextField)))
-            .obscureText,
-        isTrue);
+          await tester.pumpWidget(createTestableWidget(
+            child: const LoginScreen(),
+            authService: mockAuthService,
+          ));
 
-    await tester.tap(find.byIcon(Icons.visibility_off));
-    await tester.pump();
+          await tester.enterText(
+              find.byKey(const Key('emailField')), 'test@example.com');
+          await tester.enterText(
+              find.byKey(const Key('passwordField')), 'password123');
+          await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
+          await tester.pump();
 
-    expect(
-        tester
-            .widget<TextField>(find.descendant(
-                of: passwordFinder, matching: find.byType(TextField)))
-            .obscureText,
-        isFalse);
-  });
+          verify(mockAuthService.signInWithEmail(
+                  email: 'test@example.com', password: 'password123'))
+              .called(1);
+        });
 
-  testWidgets('LoginScreen calls signInWithEmail on Login button tap',
-      (WidgetTester tester) async {
-    when(mockAuthService.signInWithEmail(
-            email: anyNamed('email'), password: anyNamed('password')))
-        .thenAnswer((_) async => null);
+        testWidgets('calls signInWithGoogle on Google button tap',
+            (WidgetTester tester) async {
+          when(mockAuthService.signInWithGoogle())
+              .thenAnswer((_) async => null);
 
-    await tester.pumpWidget(createTestableWidget(
-      child: const LoginScreen(),
-      authService: mockAuthService,
-    ));
+          await tester.pumpWidget(createTestableWidget(
+            child: const LoginScreen(),
+            authService: mockAuthService,
+          ));
 
-    await tester.enterText(
-        find.byKey(const Key('emailField')), 'test@example.com');
-    await tester.enterText(
-        find.byKey(const Key('passwordField')), 'password123');
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
-    await tester.pump();
+          await tester.tap(find.text('Sign in with Google'));
+          await tester.pump();
 
-    verify(mockAuthService.signInWithEmail(
-            email: 'test@example.com', password: 'password123'))
-        .called(1);
-  });
+          verify(mockAuthService.signInWithGoogle()).called(1);
+        });
 
-  testWidgets('LoginScreen calls signInWithGoogle on Google button tap',
-      (WidgetTester tester) async {
-    when(mockAuthService.signInWithGoogle()).thenAnswer((_) async => null);
+        testWidgets('shows SnackBar on failed email login',
+            (WidgetTester tester) async {
+          when(mockAuthService.signInWithEmail(
+                  email: anyNamed('email'), password: anyNamed('password')))
+              .thenThrow(Exception('Invalid credentials'));
 
-    await tester.pumpWidget(createTestableWidget(
-      child: const LoginScreen(),
-      authService: mockAuthService,
-    ));
+          await tester.pumpWidget(createTestableWidget(
+            child: const LoginScreen(),
+            authService: mockAuthService,
+          ));
 
-    await tester.tap(find.text('Sign in with Google'));
-    await tester.pump();
+          await tester.enterText(
+              find.byKey(const Key('emailField')), 'test@example.com');
+          await tester.enterText(
+              find.byKey(const Key('passwordField')), 'wrong');
+          await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
+          await tester.pumpAndSettle();
 
-    verify(mockAuthService.signInWithGoogle()).called(1);
-  });
+          expect(
+              find.textContaining(
+                  'Login Failed: Exception: Invalid credentials'),
+              findsOneWidget);
+        });
 
-  testWidgets('LoginScreen shows SnackBar on failed email login',
-      (WidgetTester tester) async {
-    when(mockAuthService.signInWithEmail(
-            email: anyNamed('email'), password: anyNamed('password')))
-        .thenThrow(Exception('Invalid credentials'));
+        testWidgets('shows SnackBar on failed Google login',
+            (WidgetTester tester) async {
+          when(mockAuthService.signInWithGoogle())
+              .thenThrow(Exception('Account restricted'));
 
-    await tester.pumpWidget(createTestableWidget(
-      child: const LoginScreen(),
-      authService: mockAuthService,
-    ));
+          await tester.pumpWidget(createTestableWidget(
+            child: const LoginScreen(),
+            authService: mockAuthService,
+          ));
 
-    await tester.enterText(
-        find.byKey(const Key('emailField')), 'test@example.com');
-    await tester.enterText(find.byKey(const Key('passwordField')), 'wrong');
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
-    await tester.pumpAndSettle();
+          await tester.tap(find.text('Sign in with Google'));
+          await tester.pumpAndSettle();
 
-    expect(find.textContaining('Login Failed: Exception: Invalid credentials'),
-        findsOneWidget);
-  });
+          expect(
+              find.textContaining(
+                  'Google Login Failed: Exception: Account restricted'),
+              findsOneWidget);
+        });
 
-  testWidgets('LoginScreen shows SnackBar on failed Google login',
-      (WidgetTester tester) async {
-    when(mockAuthService.signInWithGoogle())
-        .thenThrow(Exception('Account restricted'));
+        testWidgets('shows loading indicator during request',
+            (WidgetTester tester) async {
+          final completer = Completer<UserCredential?>();
+          when(mockAuthService.signInWithGoogle())
+              .thenAnswer((_) => completer.future);
 
-    await tester.pumpWidget(createTestableWidget(
-      child: const LoginScreen(),
-      authService: mockAuthService,
-    ));
+          await tester.pumpWidget(createTestableWidget(
+            child: const LoginScreen(),
+            authService: mockAuthService,
+          ));
 
-    await tester.tap(find.text('Sign in with Google'));
-    await tester.pumpAndSettle();
+          await tester.tap(find.text('Sign in with Google'));
+          await tester.pump();
 
-    expect(
-        find.textContaining(
-            'Google Login Failed: Exception: Account restricted'),
-        findsOneWidget);
-  });
+          expect(
+              find.byType(CircularProgressIndicator), findsAtLeastNWidgets(1));
 
-  testWidgets('LoginScreen shows loading indicator during request',
-      (WidgetTester tester) async {
-    final completer = Completer<UserCredential?>();
-    when(mockAuthService.signInWithGoogle())
-        .thenAnswer((_) => completer.future);
+          completer.complete(null);
+          await tester.pump();
 
-    await tester.pumpWidget(createTestableWidget(
-      child: const LoginScreen(),
-      authService: mockAuthService,
-    ));
+          expect(find.byType(CircularProgressIndicator), findsNothing);
+        });
+      });
+    });
 
-    await tester.tap(find.text('Sign in with Google'));
-    await tester.pump();
+    group('Validation', () {
+      testWidgets('shows validation errors on empty submission',
+          (WidgetTester tester) async {
+        await tester.pumpWidget(createTestableWidget(
+          child: const LoginScreen(),
+          authService: mockAuthService,
+        ));
 
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
+        await tester.pump();
 
-    completer.complete(null);
-    await tester.pump();
+        expect(find.text('Please enter your email'), findsOneWidget);
+        expect(find.text('Please enter your password'), findsOneWidget);
+        verifyNever(mockAuthService.signInWithEmail(
+            email: anyNamed('email'), password: anyNamed('password')));
+      });
+    });
 
-    expect(find.byType(CircularProgressIndicator), findsNothing);
-  });
+    group('Navigation', () {
+      testWidgets('navigates to SignUpScreen on Sign Up tap',
+          (WidgetTester tester) async {
+        await tester.pumpWidget(createTestableWidget(
+          child: const LoginScreen(),
+          authService: mockAuthService,
+          observer: mockObserver,
+        ));
 
-  testWidgets('LoginScreen navigates to SignUpScreen on Sign Up tap',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(createTestableWidget(
-      child: const LoginScreen(),
-      authService: mockAuthService,
-      observer: mockObserver,
-    ));
+        await tester.tap(find.text('Don\'t have an account? Sign Up'));
+        await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Don\'t have an account? Sign Up'));
-    await tester.pumpAndSettle();
-
-    verify(mockObserver.didPush(any, any)).called(2);
+        verify(mockObserver.didPush(any, any)).called(2);
+      });
+    });
   });
 }

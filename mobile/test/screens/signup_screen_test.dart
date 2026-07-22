@@ -16,47 +16,69 @@ import 'signup_screen_test.mocks.dart';
   MockSpec<NavigatorObserver>(),
 ])
 void main() {
-  late MockAuthService mockAuthService;
+  group('SignUpScreen', () {
+    late MockAuthService mockAuthService;
+    late MockNavigatorObserver mockObserver;
 
-  setUpAll(() {
-    // Provide a dummy Route for Mockito's 'any' null-safety verification
-    provideDummy<Route<dynamic>>(
-        MaterialPageRoute(builder: (_) => const SizedBox()));
-  });
-
-  setUp(() {
-    mockAuthService = MockAuthService();
-  });
-
-  Future<void> fillFormAndSubmit(
-    WidgetTester tester, {
-    required String email,
-    required String password,
-    required String confirmPassword,
-  }) async {
-    await tester.enterText(find.byKey(SignUpScreen.emailFieldKey), email);
-    await tester.enterText(find.byKey(SignUpScreen.passwordFieldKey), password);
-    await tester.enterText(
-        find.byKey(SignUpScreen.confirmPasswordFieldKey), confirmPassword);
-    await tester.tap(find.byKey(SignUpScreen.signUpButtonKey));
-    await tester.pump();
-  }
-
-  group('SignUpScreen Widget Tests', () {
-    testWidgets('displays fields and sign up button',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestableWidget(
-        child: const SignUpScreen(),
-        authService: mockAuthService,
-      ));
-
-      expect(find.byKey(SignUpScreen.emailFieldKey), findsOneWidget);
-      expect(find.byKey(SignUpScreen.passwordFieldKey), findsOneWidget);
-      expect(find.byKey(SignUpScreen.confirmPasswordFieldKey), findsOneWidget);
-      expect(find.byKey(SignUpScreen.signUpButtonKey), findsOneWidget);
+    setUpAll(() {
+      // Provide a dummy Route for Mockito's 'any' null-safety verification
+      provideDummy<Route<dynamic>>(
+          MaterialPageRoute(builder: (_) => const SizedBox()));
     });
 
-    group('Form Validation Tests', () {
+    setUp(() {
+      mockAuthService = MockAuthService();
+      mockObserver = MockNavigatorObserver();
+    });
+
+    Future<void> fillFormAndSubmit(
+      WidgetTester tester, {
+      required String email,
+      required String password,
+      required String confirmPassword,
+    }) async {
+      await tester.enterText(find.byKey(SignUpScreen.emailFieldKey), email);
+      await tester.enterText(
+          find.byKey(SignUpScreen.passwordFieldKey), password);
+      await tester.enterText(
+          find.byKey(SignUpScreen.confirmPasswordFieldKey), confirmPassword);
+      await tester.tap(find.byKey(SignUpScreen.signUpButtonKey));
+      await tester.pump();
+    }
+
+    group('Initialization', () {
+      testWidgets('displays fields and sign up button with initial state',
+          (WidgetTester tester) async {
+        await tester.pumpWidget(createTestableWidget(
+          child: const SignUpScreen(),
+          authService: mockAuthService,
+        ));
+
+        expect(find.byKey(SignUpScreen.emailFieldKey), findsOneWidget);
+        expect(find.byKey(SignUpScreen.passwordFieldKey), findsOneWidget);
+        expect(
+            find.byKey(SignUpScreen.confirmPasswordFieldKey), findsOneWidget);
+        expect(find.byKey(SignUpScreen.signUpButtonKey), findsOneWidget);
+
+        final emailField = tester.widget<TextField>(find.descendant(
+            of: find.byKey(SignUpScreen.emailFieldKey),
+            matching: find.byType(TextField)));
+        final passwordField = tester.widget<TextField>(find.descendant(
+            of: find.byKey(SignUpScreen.passwordFieldKey),
+            matching: find.byType(TextField)));
+        final confirmPasswordField = tester.widget<TextField>(find.descendant(
+            of: find.byKey(SignUpScreen.confirmPasswordFieldKey),
+            matching: find.byType(TextField)));
+
+        expect(emailField.controller?.text, isEmpty);
+        expect(passwordField.controller?.text, isEmpty);
+        expect(confirmPasswordField.controller?.text, isEmpty);
+        expect(passwordField.obscureText, isTrue);
+        expect(confirmPasswordField.obscureText, isTrue);
+      });
+    });
+
+    group('Validation', () {
       testWidgets('shows errors on empty inputs', (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget(
           child: const SignUpScreen(),
@@ -130,153 +152,117 @@ void main() {
       });
     });
 
-    group('Auth Action Tests', () {
-      testWidgets('calls signUpWithEmail and pops navigation on valid input',
+    group('Interactions', () {
+      group('Auth', () {
+        testWidgets('calls signUpWithEmail and pops navigation on valid input',
+            (WidgetTester tester) async {
+          final mockUserCredential = MockUserCredential();
+
+          when(mockAuthService.signUpWithEmail(
+                  email: anyNamed('email'), password: anyNamed('password')))
+              .thenAnswer((_) async => mockUserCredential);
+
+          await tester.pumpWidget(createTestableWidget(
+            child: const SignUpScreen(),
+            authService: mockAuthService,
+            observer: mockObserver,
+          ));
+
+          await fillFormAndSubmit(
+            tester,
+            email: 'test@example.com',
+            password: 'password123',
+            confirmPassword: 'password123',
+          );
+
+          verify(mockAuthService.signUpWithEmail(
+                  email: 'test@example.com', password: 'password123'))
+              .called(1);
+          verify(mockObserver.didPop(any, any)).called(1);
+        });
+
+        testWidgets('shows SnackBar on error', (WidgetTester tester) async {
+          when(mockAuthService.signUpWithEmail(
+                  email: anyNamed('email'), password: anyNamed('password')))
+              .thenThrow(Exception('Network timeout'));
+
+          await tester.pumpWidget(createTestableWidget(
+            child: const SignUpScreen(),
+            authService: mockAuthService,
+          ));
+
+          await fillFormAndSubmit(
+            tester,
+            email: 'test@example.com',
+            password: 'password123',
+            confirmPassword: 'password123',
+          );
+
+          expect(
+              find.textContaining('Sign Up Failed: Exception: Network timeout'),
+              findsOneWidget);
+        });
+
+        testWidgets('shows loading indicator during request',
+            (WidgetTester tester) async {
+          final completer = Completer<UserCredential?>();
+
+          when(mockAuthService.signUpWithEmail(
+                  email: anyNamed('email'), password: anyNamed('password')))
+              .thenAnswer((_) => completer.future);
+
+          await tester.pumpWidget(createTestableWidget(
+            child: const SignUpScreen(),
+            authService: mockAuthService,
+          ));
+
+          await fillFormAndSubmit(
+            tester,
+            email: 'test@example.com',
+            password: 'password123',
+            confirmPassword: 'password123',
+          );
+
+          expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+          completer.complete(MockUserCredential());
+          await tester.pump();
+
+          expect(find.byType(CircularProgressIndicator), findsNothing);
+        });
+      });
+    });
+
+    group('Navigation', () {
+      testWidgets('navigates back on back button tap',
           (WidgetTester tester) async {
-        final mockObserver = MockNavigatorObserver();
-        final mockUserCredential = MockUserCredential();
-
-        when(mockAuthService.signUpWithEmail(
-                email: anyNamed('email'), password: anyNamed('password')))
-            .thenAnswer((_) async => mockUserCredential);
-
+        // Push SignUpScreen onto a parent route so that a back button appears
         await tester.pumpWidget(createTestableWidget(
-          child: const SignUpScreen(),
+          child: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SignUpScreen()),
+                ),
+                child: const Text('Push'),
+              ),
+            ),
+          ),
           authService: mockAuthService,
           observer: mockObserver,
         ));
 
-        await fillFormAndSubmit(
-          tester,
-          email: 'test@example.com',
-          password: 'password123',
-          confirmPassword: 'password123',
-        );
+        await tester.tap(find.text('Push'));
+        await tester.pumpAndSettle();
 
-        verify(mockAuthService.signUpWithEmail(
-                email: 'test@example.com', password: 'password123'))
-            .called(1);
+        // Tap the back button in the AppBar
+        await tester.tap(find.byIcon(Icons.arrow_back));
+        await tester.pumpAndSettle();
+
+        // Verify the screen was popped
         verify(mockObserver.didPop(any, any)).called(1);
-      });
-
-      testWidgets('shows SnackBar on error', (WidgetTester tester) async {
-        when(mockAuthService.signUpWithEmail(
-                email: anyNamed('email'), password: anyNamed('password')))
-            .thenThrow(Exception('Network timeout'));
-
-        await tester.pumpWidget(createTestableWidget(
-          child: const SignUpScreen(),
-          authService: mockAuthService,
-        ));
-
-        await fillFormAndSubmit(
-          tester,
-          email: 'test@example.com',
-          password: 'password123',
-          confirmPassword: 'password123',
-        );
-
-        expect(
-            find.textContaining('Sign Up Failed: Exception: Network timeout'),
-            findsOneWidget);
-      });
-
-      testWidgets('shows loading indicator during request',
-          (WidgetTester tester) async {
-        final completer = Completer<UserCredential?>();
-
-        when(mockAuthService.signUpWithEmail(
-                email: anyNamed('email'), password: anyNamed('password')))
-            .thenAnswer((_) => completer.future);
-
-        await tester.pumpWidget(createTestableWidget(
-          child: const SignUpScreen(),
-          authService: mockAuthService,
-        ));
-
-        await fillFormAndSubmit(
-          tester,
-          email: 'test@example.com',
-          password: 'password123',
-          confirmPassword: 'password123',
-        );
-
-        expect(find.byType(CircularProgressIndicator), findsOneWidget);
-
-        completer.complete(MockUserCredential());
-        await tester.pump();
-
-        expect(find.byType(CircularProgressIndicator), findsNothing);
-      });
-    });
-
-    group('Interactive UI State Tests', () {
-      testWidgets('toggles password visibility on suffix icon tap',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(createTestableWidget(
-          child: const SignUpScreen(),
-          authService: mockAuthService,
-        ));
-
-        // Find the internal TextField and check obscureText is true initially
-        final passwordTextField = tester.widget<TextField>(
-          find.descendant(
-            of: find.byKey(SignUpScreen.passwordFieldKey),
-            matching: find.byType(TextField),
-          ),
-        );
-        expect(passwordTextField.obscureText, isTrue);
-
-        // Tap suffix icon on Password field
-        final suffixIconFinder = find.descendant(
-          of: find.byKey(SignUpScreen.passwordFieldKey),
-          matching: find.byType(IconButton),
-        );
-        await tester.tap(suffixIconFinder);
-        await tester.pump();
-
-        // Verify state is toggled
-        final toggledTextField = tester.widget<TextField>(
-          find.descendant(
-            of: find.byKey(SignUpScreen.passwordFieldKey),
-            matching: find.byType(TextField),
-          ),
-        );
-        expect(toggledTextField.obscureText, isFalse);
-      });
-
-      testWidgets('toggles confirm password visibility on suffix icon tap',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(createTestableWidget(
-          child: const SignUpScreen(),
-          authService: mockAuthService,
-        ));
-
-        // Find the internal TextField and check obscureText is true initially
-        final confirmPasswordTextField = tester.widget<TextField>(
-          find.descendant(
-            of: find.byKey(SignUpScreen.confirmPasswordFieldKey),
-            matching: find.byType(TextField),
-          ),
-        );
-        expect(confirmPasswordTextField.obscureText, isTrue);
-
-        // Tap suffix icon on Confirm Password field
-        final suffixIconFinder = find.descendant(
-          of: find.byKey(SignUpScreen.confirmPasswordFieldKey),
-          matching: find.byType(IconButton),
-        );
-        await tester.tap(suffixIconFinder);
-        await tester.pump();
-
-        // Verify state is toggled
-        final toggledTextField = tester.widget<TextField>(
-          find.descendant(
-            of: find.byKey(SignUpScreen.confirmPasswordFieldKey),
-            matching: find.byType(TextField),
-          ),
-        );
-        expect(toggledTextField.obscureText, isFalse);
+        expect(find.byType(SignUpScreen), findsNothing);
       });
     });
   });

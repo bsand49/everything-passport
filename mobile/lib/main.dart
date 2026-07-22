@@ -31,9 +31,11 @@ Future<void> main() async {
     selectedOptions = dev.DefaultFirebaseOptions.currentPlatform;
   }
 
-  await Firebase.initializeApp(
-    options: selectedOptions,
-  );
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: selectedOptions,
+    );
+  }
   await GoogleSignIn.instance.initialize(
     serverClientId: serverClientId,
   );

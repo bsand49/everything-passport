@@ -21,11 +21,12 @@ void main() {
       metadataService = MetadataService(db: mockFirestore);
     });
 
-    group('initialization', () {
-      test('Constructor fallback defaults to FirebaseFirestore.instance', () {
+    group('Initialization', () {
+      test(
+          'throws exception when Firebase is not initialized (default constructor)',
+          () {
         // Since Firebase is not initialized in unit tests, creating MetadataService without a db
-        // will throw an exception when accessing FirebaseFirestore.instance. We assert that it throws
-        // to ensure the default fallback code path is executed and covered.
+        // will throw an exception when accessing FirebaseFirestore.instance.
         expect(() => MetadataService(), throwsA(anything));
       });
     });
@@ -153,7 +154,7 @@ void main() {
       });
 
       group('error handling and edge cases', () {
-        test('returns empty list if doc does not exist', () async {
+        test('returns empty list if document does not exist', () async {
           final countries = await metadataService.getCountries();
           expect(countries, isEmpty);
         });
@@ -218,7 +219,7 @@ void main() {
     });
 
     group('clearCache()', () {
-      test('clears memory cache', () async {
+      test('clears memory cache successfully', () async {
         await mockFirestore.collection('metadata').doc('countries').set({
           'options': [
             {'id': 'US', 'name': 'USA', 'searchKeywords': []}

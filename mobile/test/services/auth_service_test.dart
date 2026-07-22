@@ -25,7 +25,7 @@ import 'auth_service_test.mocks.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('AuthService Tests', () {
+  group('AuthService', () {
     late MockFirebaseAuth mockAuth;
     late MockGoogleSignIn mockGoogleSignIn;
     late AuthService authService;
@@ -36,19 +36,17 @@ void main() {
       authService = AuthService(auth: mockAuth, googleSignIn: mockGoogleSignIn);
     });
 
-    group('Constructor', () {
-      test(
-          'AuthService() throws FirebaseException when Firebase is not initialized',
-          () {
+    group('Initialization', () {
+      test('throws FirebaseException when Firebase is not initialized', () {
         expect(() => AuthService(), throwsA(isA<FirebaseException>()));
       });
 
-      test('AuthService(auth: mockAuth) initializes successfully', () {
+      test('initializes successfully with mockAuth', () {
         expect(() => AuthService(auth: mockAuth), returnsNormally);
       });
 
       test(
-          'AuthService(googleSignIn: mockGoogleSignIn) throws FirebaseException when Firebase is not initialized',
+          'throws FirebaseException when Firebase is not initialized (with googleSignIn)',
           () {
         expect(() => AuthService(googleSignIn: mockGoogleSignIn),
             throwsA(isA<FirebaseException>()));
@@ -68,7 +66,7 @@ void main() {
       });
     });
 
-    group('User Stream', () {
+    group('user stream', () {
       test('emits correct user state', () async {
         final streamExpectation = expectLater(
           authService.user,
@@ -87,8 +85,8 @@ void main() {
       });
     });
 
-    group('Email Auth', () {
-      test('Sign in with email and password success', () async {
+    group('signInWithEmail()', () {
+      test('signs in with email and password successfully', () async {
         await mockAuth.createUserWithEmailAndPassword(
             email: 'test@example.com', password: 'password123');
 
@@ -97,8 +95,7 @@ void main() {
         expect(result?.user?.email, 'test@example.com');
       });
 
-      test('Sign in with email and password FirebaseAuthException rethrows',
-          () async {
+      test('rethrows FirebaseAuthException on failure', () async {
         final failingAuth = MockAuth();
         when(failingAuth.signInWithEmailAndPassword(
                 email: anyNamed('email'), password: anyNamed('password')))
@@ -114,8 +111,7 @@ void main() {
         );
       });
 
-      test('Sign in with email and password generic Exception rethrows',
-          () async {
+      test('rethrows generic Exception on failure', () async {
         final failingAuth = MockAuth();
         when(failingAuth.signInWithEmailAndPassword(
                 email: anyNamed('email'), password: anyNamed('password')))
@@ -130,15 +126,16 @@ void main() {
           throwsException,
         );
       });
+    });
 
-      test('Sign up with email and password success', () async {
+    group('signUpWithEmail()', () {
+      test('signs up with email and password successfully', () async {
         final result = await authService.signUpWithEmail(
             email: 'new@example.com', password: 'password123');
         expect(result?.user?.email, 'new@example.com');
       });
 
-      test('Sign up with email and password FirebaseAuthException rethrows',
-          () async {
+      test('rethrows FirebaseAuthException on failure', () async {
         final failingAuth = MockAuth();
         when(failingAuth.createUserWithEmailAndPassword(
                 email: anyNamed('email'), password: anyNamed('password')))
@@ -154,8 +151,7 @@ void main() {
         );
       });
 
-      test('Sign up with email and password generic Exception rethrows',
-          () async {
+      test('rethrows generic Exception on failure', () async {
         final failingAuth = MockAuth();
         when(failingAuth.createUserWithEmailAndPassword(
                 email: anyNamed('email'), password: anyNamed('password')))
@@ -172,8 +168,8 @@ void main() {
       });
     });
 
-    group('Google Auth', () {
-      test('signInWithGoogle success path returns user credentials', () async {
+    group('signInWithGoogle()', () {
+      test('returns user credentials on success', () async {
         final mockGoogle = MockGoogleSignInMockito();
         final mockAccount = MockGoogleSignInAccountMockito();
         final mockAuthDetails = MockGoogleSignInAuthenticationMockito();
@@ -195,8 +191,7 @@ void main() {
         expect(service.currentUser, isNotNull);
       });
 
-      test(
-          'signInWithGoogle success path when authorizationForScopes returns null (calls authorizeScopes)',
+      test('calls authorizeScopes when authorizationForScopes returns null',
           () async {
         final mockGoogle = MockGoogleSignInMockito();
         final mockAccount = MockGoogleSignInAccountMockito();
@@ -224,8 +219,7 @@ void main() {
         verify(mockAuthClient.authorizeScopes(any)).called(1);
       });
 
-      test(
-          'signInWithGoogle returns null on user cancellation (GoogleSignInException)',
+      test('returns null on user cancellation (GoogleSignInException)',
           () async {
         final cancelledGoogle = MockGoogleSignInMockito();
         when(cancelledGoogle.authenticate()).thenThrow(
@@ -239,7 +233,7 @@ void main() {
         expect(result, isNull);
       });
 
-      test('signInWithGoogle catch generic Exception rethrows', () async {
+      test('rethrows generic Exception on failure', () async {
         final failingGoogle = MockGoogleSignInMockito();
         when(failingGoogle.authenticate()).thenThrow(Exception('test'));
 
@@ -253,13 +247,13 @@ void main() {
       });
     });
 
-    group('Password Reset', () {
-      test('sendPasswordResetEmail success', () async {
+    group('sendPasswordResetEmail()', () {
+      test('sends email successfully', () async {
         await authService.sendPasswordResetEmail(email: 'test@example.com');
         // Success if no exception thrown
       });
 
-      test('sendPasswordResetEmail FirebaseAuthException rethrows', () async {
+      test('rethrows FirebaseAuthException on failure', () async {
         final failingAuth = MockAuth();
         when(failingAuth.sendPasswordResetEmail(
                 email: anyNamed('email'),
@@ -275,7 +269,7 @@ void main() {
         );
       });
 
-      test('sendPasswordResetEmail generic Exception rethrows', () async {
+      test('rethrows generic Exception on failure', () async {
         final failingAuth = MockAuth();
         when(failingAuth.sendPasswordResetEmail(
                 email: anyNamed('email'),
@@ -292,8 +286,8 @@ void main() {
       });
     });
 
-    group('Account Management', () {
-      test('deleteAccount success', () async {
+    group('deleteAccount()', () {
+      test('deletes account successfully', () async {
         await mockAuth.createUserWithEmailAndPassword(
             email: 'test@example.com', password: 'password123');
         expect(authService.currentUser, isNotNull);
@@ -301,14 +295,13 @@ void main() {
         expect(authService.currentUser, isNull);
       });
 
-      test('deleteAccount does nothing and remains null if no user logged in',
-          () async {
+      test('does nothing if no user is logged in', () async {
         expect(authService.currentUser, isNull);
         await authService.deleteAccount();
         expect(authService.currentUser, isNull);
       });
 
-      test('deleteAccount FirebaseAuthException rethrows', () async {
+      test('rethrows FirebaseAuthException on failure', () async {
         final mockAuthFailing = MockAuth();
         final mockUser = MockUserMockito();
 
@@ -325,7 +318,7 @@ void main() {
         );
       });
 
-      test('deleteAccount generic Exception rethrows', () async {
+      test('rethrows generic Exception on failure', () async {
         final mockAuthFailing = MockAuth();
         final mockUser = MockUserMockito();
 
@@ -342,15 +335,15 @@ void main() {
       });
     });
 
-    group('Sign Out', () {
-      test('Sign out success', () async {
+    group('signOut()', () {
+      test('signs out successfully', () async {
         await mockAuth.createUserWithEmailAndPassword(
             email: 'test@example.com', password: 'password123');
         await authService.signOut();
         expect(mockAuth.currentUser, isNull);
       });
 
-      test('Sign out FirebaseAuthException rethrows', () async {
+      test('rethrows FirebaseAuthException on failure', () async {
         final failingAuth = MockAuth();
         when(failingAuth.signOut())
             .thenThrow(FirebaseAuthException(code: 'test', message: 'test'));
@@ -364,7 +357,7 @@ void main() {
         );
       });
 
-      test('Sign out generic Exception rethrows', () async {
+      test('rethrows generic Exception on failure', () async {
         final failingAuth = MockAuth();
         when(failingAuth.signOut()).thenThrow(Exception('Generic failure'));
 

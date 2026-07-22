@@ -127,10 +127,10 @@ flutter run --dart-define=ENV=dev --dart-define=SERVER_CLIENT_ID=your-client-id
 
 ## Testing
 
-This project includes unit tests for business logic and services.
+This project includes unit tests for business logic, services, and utilities, as well as integration tests for user flows.
 
 ### Code Generation for Mocks
-This project uses `mockito` for unit testing, which requires code generation. If you add or modify tests that use `@GenerateMocks`, you must generate the mock files before running your tests.
+This project uses `mockito` for unit testing, which requires code generation. If you add or modify tests that use `@GenerateNiceMocks`, you must generate the mock files before running your tests.
 
 Run the build runner command to generate the mocks:
 ```bash
@@ -141,9 +141,14 @@ dart run build_runner build --delete-conflicting-outputs
 
 
 ### Running Unit Tests
-To execute all unit tests from the root directory:
+To execute all unit tests from the `mobile` directory:
 ```bash
 flutter test
+```
+
+To run a specific test group (e.g., Utilities):
+```bash
+flutter test test/utils/
 ```
 
 To run a specific test file:
@@ -159,7 +164,7 @@ open coverage/html/index.html
 ```
 
 ### Running Integration Tests
-Integration tests run on real devices or emulators and cover end-to-end flows.
+Integration tests run on real devices or emulators and cover end-to-end flows like Login and Sign Up.
 
 **Prerequisites:**
 - A connected physical device or a running emulator/simulator.
@@ -170,15 +175,20 @@ To run all integration tests:
 flutter test integration_test/app_test.dart
 ```
 
-To run tests with a specific environment configuration (e.g., Production):
-```bash
-flutter test --dart-define=ENV=prod integration_test/app_test.dart
-```
+> [!TIP]
+> Integration tests use the `Validators` utility to verify error messages, ensuring consistency across all testing layers. If the app is already logged in on a device, the tests will automatically attempt to sign out to ensure a clean test state.
 
 ## Project Structure
-*   `lib/main.dart`: Entry point and authentication wrapper.
-*   `lib/services/`: Business logic and API clients (e.g., `AuthService`).
-*   `lib/screens/`: UI screens (Login, Sign Up, Home).
+
+*   `lib/main.dart`: Entry point, Firebase initialization, and authentication wrapper.
+*   `lib/services/`: Business logic and API clients (e.g., `AuthService`, `UserProfileService`).
+*   `lib/screens/`: Feature-level UI screens (Login, Profile, Home).
+*   `lib/widgets/`: Reusable UI components (Buttons, TextFields, Avatars).
+*   `lib/utils/`: Shared utility classes (e.g., `Validators`, `DateFormatter`, `ImageUtils`).
+*   `lib/models/`: Data entities and Firestore mapping logic.
+*   `lib/exceptions/`: Custom domain-specific exceptions.
+*   `test/`: Unit and widget tests mirroring the `lib/` structure.
+*   `integration_test/`: End-to-end integration tests.
 *   `lib/firebase_options_dev.dart`: Firebase configuration for the development environment.
 *   `lib/firebase_options_prod.dart`: (Optional) Firebase configuration for the production environment.
 

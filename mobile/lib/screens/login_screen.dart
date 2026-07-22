@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
+import '../utils/validators.dart';
+import '../widgets/auth_text_field.dart';
+import '../widgets/loading_button.dart';
+import '../widgets/social_auth_button.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -16,7 +20,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
 
   bool _isLoading = false;
-  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -78,82 +81,48 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 const FlutterLogo(size: 100),
                 const SizedBox(height: 40),
-                TextFormField(
-                  key: const Key('emailField'),
+                AuthTextField(
+                  fieldKey: const Key('emailField'),
                   controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email),
-                    border: OutlineInputBorder(),
-                  ),
+                  labelText: 'Email',
+                  prefixIcon: Icons.email,
                   keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    return null;
-                  },
+                  validator: Validators.validateEmail,
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  key: const Key('passwordField'),
+                AuthTextField(
+                  fieldKey: const Key('passwordField'),
                   controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock),
-                    border: const OutlineInputBorder(),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                  ),
-                  obscureText: _obscurePassword,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
+                  labelText: 'Password',
+                  prefixIcon: Icons.lock,
+                  obscureText: true,
+                  validator: (value) => Validators.validateRequired(value,
+                      message: 'Please enter your password'),
                 ),
                 const SizedBox(height: 24),
-                if (_isLoading)
-                  const CircularProgressIndicator()
-                else ...[
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _login,
-                      child: const Text('Login'),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: OutlinedButton.icon(
-                      onPressed: _loginWithGoogle,
-                      icon: const Icon(Icons.login),
-                      label: const Text('Sign in with Google'),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const SignUpScreen()),
-                      );
-                    },
-                    child: const Text('Don\'t have an account? Sign Up'),
-                  ),
-                ],
+                LoadingButton(
+                  onPressed: _login,
+                  isLoading: _isLoading,
+                  child: const Text('Login'),
+                ),
+                const SizedBox(height: 16),
+                SocialAuthButton(
+                  onPressed: _loginWithGoogle,
+                  isLoading: _isLoading,
+                  icon: const Icon(Icons.login),
+                  label: 'Sign in with Google',
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SignUpScreen()),
+                    );
+                  },
+                  child: const Text('Don\'t have an account? Sign Up'),
+                ),
               ],
             ),
           ),
