@@ -18,7 +18,7 @@ import 'screens/user_profile_screen.dart';
 import 'package:http/http.dart' as http;
 
 // coverage:ignore-start
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   const String env = String.fromEnvironment('ENV', defaultValue: 'dev');
