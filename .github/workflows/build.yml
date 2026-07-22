@@ -1,5 +1,5 @@
 name: Build and Test
-run-name: "${{ github.event_name == 'pull_request' && format('Build and Test for PR #{0} - {1}', github.event.pull_request.number, github.event.pull_request.title) || format('Build and Test on {0} - {1}', github.ref_name, github.event.head_commit.message) }}"
+run-name: "${{ github.event_name == 'pull_request' && format('Build and Test for PR #{0} - {1}', github.event.pull_request.number, github.event.pull_request.title) || format('Build and Test on {0}', github.ref_name) }}"
 
 on:
   push:
@@ -73,6 +73,15 @@ jobs:
           output-path: 'lib/firebase_options_dev.dart'
           working-directory: 'mobile'
 
+      - name: Upload Firebase Configuration
+        uses: actions/upload-artifact@v4
+        with:
+          name: firebase-config
+          path: |
+            mobile/lib/firebase_options_dev.dart
+            mobile/android/app/google-services.json
+          retention-days: 1
+
       - name: Generate mock files
         run: dart run build_runner build --delete-conflicting-outputs
 
@@ -125,6 +134,12 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Download Firebase Configuration
+        uses: actions/download-artifact@v4
+        with:
+          name: firebase-config
+          path: mobile
 
       - name: Configure Firebase
         uses: ./.github/actions/configure-firebase
