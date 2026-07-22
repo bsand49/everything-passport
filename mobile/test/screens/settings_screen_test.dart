@@ -15,7 +15,7 @@ import 'settings_screen_test.mocks.dart';
   MockSpec<NavigatorObserver>(),
 ])
 void main() {
-  group('SettingsScreen Tests', () {
+  group('SettingsScreen', () {
     late MockAuthService mockAuthService;
     late UserProfile mockProfile;
     late MockNavigatorObserver mockObserver;
@@ -66,84 +66,116 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('displays header and options correctly',
-        (WidgetTester tester) async {
-      await pumpSettingsScreen(tester);
+    group('Initialization', () {
+      testWidgets('displays header, options, and icons correctly',
+          (WidgetTester tester) async {
+        await pumpSettingsScreen(tester);
 
-      expect(find.text('Settings'), findsOneWidget);
-      expect(find.text('Edit Profile'), findsOneWidget);
-      expect(find.text('Logout'), findsOneWidget);
-      expect(find.text('Change your name, photo, and details'), findsOneWidget);
-      expect(find.text('App Version 1.0.0'), findsOneWidget);
+        expect(find.text('Settings'), findsOneWidget);
+        expect(find.text('Edit Profile'), findsOneWidget);
+        expect(find.text('Logout'), findsOneWidget);
+        expect(
+            find.text('Change your name, photo, and details'), findsOneWidget);
+        expect(find.text('App Version 1.0.0'), findsOneWidget);
+
+        expect(find.byIcon(Icons.person_outline), findsOneWidget);
+        expect(find.byIcon(Icons.logout), findsOneWidget);
+        expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+      });
     });
 
-    testWidgets('navigates to UserProfileScreen on Edit Profile tap',
-        (WidgetTester tester) async {
-      await pumpSettingsScreen(tester);
+    group('Interactions', () {
+      group('Logout', () {
+        testWidgets(
+            'shows logout confirmation dialog and handles successful sign out',
+            (WidgetTester tester) async {
+          when(mockAuthService.signOut()).thenAnswer((_) async {});
 
-      await tester.tap(find.text('Edit Profile'));
-      await tester.pumpAndSettle();
+          await pumpSettingsScreen(tester);
 
-      expect(find.byType(UserProfileScreen), findsOneWidget);
+          await tester.tap(find.text('Logout'));
+          await tester.pumpAndSettle();
+
+          // Ensure confirmation dialog is displayed
+          expect(
+              find.text('Are you sure you want to log out?'), findsOneWidget);
+
+          await tester.tap(find.widgetWithText(TextButton, 'Logout'));
+          await tester.pumpAndSettle();
+
+          // Verify page was popped, dialog dismissed, and signOut called
+          verify(mockObserver.didPop(any, any)).called(greaterThan(0));
+          verify(mockAuthService.signOut()).called(1);
+        });
+
+        testWidgets('shows logout dialog and dismisses on Cancel tap',
+            (WidgetTester tester) async {
+          await pumpSettingsScreen(tester);
+
+          await tester.tap(find.text('Logout'));
+          await tester.pumpAndSettle();
+
+          expect(
+              find.text('Are you sure you want to log out?'), findsOneWidget);
+
+          await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+          await tester.pumpAndSettle();
+
+          // Assert no sign out was made, and the dialog is dismissed
+          verifyNever(mockAuthService.signOut());
+          expect(find.byType(AlertDialog), findsNothing);
+        });
+
+        testWidgets(
+            'shows SnackBar error message when signOut throws an exception',
+            (WidgetTester tester) async {
+          when(mockAuthService.signOut()).thenThrow(Exception('Network error'));
+
+          await pumpSettingsScreen(tester);
+
+          // Trigger the logout flow
+          await tester.tap(find.text('Logout'));
+          await tester.pumpAndSettle();
+
+          await tester.tap(find.widgetWithText(TextButton, 'Logout'));
+          await tester.pumpAndSettle();
+
+          // Expect a SnackBar containing the error description
+          expect(find.byType(SnackBar), findsOneWidget);
+          expect(
+            find.text('Error signing out: Exception: Network error'),
+            findsOneWidget,
+          );
+        });
+      });
     });
 
-    testWidgets(
-        'shows logout confirmation dialog and handles successful sign out',
-        (WidgetTester tester) async {
-      when(mockAuthService.signOut()).thenAnswer((_) async {});
+    group('Navigation', () {
+      testWidgets('navigates to UserProfileScreen on Edit Profile tap',
+          (WidgetTester tester) async {
+        await pumpSettingsScreen(tester);
 
-      await pumpSettingsScreen(tester);
+        await tester.tap(find.text('Edit Profile'));
+        await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Logout'));
-      await tester.pumpAndSettle();
+        expect(find.byType(UserProfileScreen), findsOneWidget);
 
-      // Ensure confirmation dialog is displayed
-      expect(find.text('Are you sure you want to log out?'), findsOneWidget);
+        // Verify navigation occurred using observer
+        verify(mockObserver.didPush(any, any)).called(greaterThan(1));
+      });
 
-      await tester.tap(find.widgetWithText(TextButton, 'Logout'));
-      await tester.pumpAndSettle();
+      testWidgets('navigates back on back button tap',
+          (WidgetTester tester) async {
+        await pumpSettingsScreen(tester);
 
-      // Verify page was popped, dialog dismissed, and signOut called
-      verify(mockObserver.didPop(any, any)).called(greaterThan(0));
-      verify(mockAuthService.signOut()).called(1);
-    });
+        // Tap the back button in the AppBar
+        await tester.tap(find.byIcon(Icons.arrow_back));
+        await tester.pumpAndSettle();
 
-    testWidgets('shows logout dialog and dismisses on Cancel tap',
-        (WidgetTester tester) async {
-      await pumpSettingsScreen(tester);
-
-      await tester.tap(find.text('Logout'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Are you sure you want to log out?'), findsOneWidget);
-
-      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
-      await tester.pumpAndSettle();
-
-      // Assert no sign out was made, and the dialog is dismissed
-      verifyNever(mockAuthService.signOut());
-      expect(find.byType(AlertDialog), findsNothing);
-    });
-
-    testWidgets('shows SnackBar error message when signOut throws an exception',
-        (WidgetTester tester) async {
-      when(mockAuthService.signOut()).thenThrow(Exception('Network error'));
-
-      await pumpSettingsScreen(tester);
-
-      // Trigger the logout flow
-      await tester.tap(find.text('Logout'));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.widgetWithText(TextButton, 'Logout'));
-      await tester.pumpAndSettle();
-
-      // Expect a SnackBar containing the error description
-      expect(find.byType(SnackBar), findsOneWidget);
-      expect(
-        find.text('Error signing out: Exception: Network error'),
-        findsOneWidget,
-      );
+        // Verify the screen was popped
+        verify(mockObserver.didPop(any, any)).called(1);
+        expect(find.byType(SettingsScreen), findsNothing);
+      });
     });
   });
 }

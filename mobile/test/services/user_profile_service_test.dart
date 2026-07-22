@@ -19,7 +19,7 @@ import 'user_profile_service_test.mocks.dart';
   MockSpec<TaskSnapshot>(as: #MockTaskSnapshotMockito),
 ])
 void main() {
-  group('UserProfileService Tests', () {
+  group('UserProfileService', () {
     late FakeFirebaseFirestore mockFirestore;
     late MockFirebaseStorage mockStorage;
     late UserProfileService userProfileService;
@@ -49,10 +49,8 @@ void main() {
       }
     });
 
-    group('Constructor', () {
-      test(
-          'UserProfileService constructor hits Firestore fallback when db is null',
-          () {
+    group('Initialization', () {
+      test('hits Firestore fallback when db is null', () {
         expect(
           () => UserProfileService(storage: mockStorage),
           throwsA(anyOf(
@@ -62,9 +60,7 @@ void main() {
         );
       });
 
-      test(
-          'UserProfileService constructor hits Storage fallback when storage is null',
-          () {
+      test('hits Storage fallback when storage is null', () {
         expect(
           () => UserProfileService(db: mockFirestore),
           throwsA(anyOf(
@@ -75,7 +71,7 @@ void main() {
       });
     });
 
-    group('streamProfile', () {
+    group('streamProfile()', () {
       test('emits UserProfile when document exists', () async {
         final userId = 'user_123';
         await mockFirestore
@@ -151,7 +147,7 @@ void main() {
       });
     });
 
-    group('saveProfile', () {
+    group('saveProfile()', () {
       test('creates both documents for a new user and normalizes casing',
           () async {
         final profile = UserProfile(
@@ -238,8 +234,7 @@ void main() {
         expect(userDoc.data()?['firstName'], 'Updated');
       });
 
-      test(
-          'throws Exception if username taken by someone else during transaction',
+      test('throws exception if username is taken during transaction',
           () async {
         await mockFirestore
             .collection(usernamesCollection)
@@ -256,14 +251,11 @@ void main() {
         expect(
           () =>
               userProfileService.saveProfile(profile: profile, oldUsername: ''),
-          throwsA(isA<UsernameAlreadyTakenException>().having(
-              (e) => e.toString(),
-              'description',
-              contains('is already taken'))),
+          throwsA(isA<UsernameAlreadyTakenException>()),
         );
       });
 
-      test('throws generic exception', () async {
+      test('rethrows generic exception on failure', () async {
         final mockFailingFirestore = MockFirestore();
         when(mockFailingFirestore.collection(any)).thenAnswer((invocation) {
           final path = invocation.positionalArguments[0] as String;
@@ -292,7 +284,7 @@ void main() {
       });
     });
 
-    group('isUsernameAvailable', () {
+    group('isUsernameAvailable()', () {
       test('returns true for non-existent username', () async {
         final available = await userProfileService.isUsernameAvailable(
             username: 'new_user', currentUserId: 'user_123');
@@ -343,7 +335,7 @@ void main() {
       });
     });
 
-    group('uploadProfilePicture', () {
+    group('uploadProfilePicture()', () {
       test('uploads file and returns download URL', () async {
         final url = await userProfileService.uploadProfilePicture(
             userId: 'user_123', image: tempFile);

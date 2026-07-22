@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../models/user_profile.dart';
+import '../widgets/profile_avatar.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -57,20 +57,10 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    if (userProfile.photoUrl != null)
-                      CircleAvatar(
-                        radius: 60,
-                        backgroundImage: CachedNetworkImageProvider(
-                          userProfile.photoUrl!,
-                          maxWidth: 240,
-                          maxHeight: 240,
-                        ),
-                      )
-                    else
-                      const CircleAvatar(
-                        radius: 60,
-                        child: Icon(Icons.person, size: 60),
-                      ),
+                    ProfileAvatar(
+                      photoUrl: userProfile.photoUrl,
+                      radius: 60,
+                    ),
                     const SizedBox(height: 24),
                     Text(
                       'Welcome to Everything Passport, $name!',

@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 import 'dart:async';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 import '../models/user_profile.dart';
 import '../models/country.dart';
 import '../services/user_profile_service.dart';
 import '../services/metadata_service.dart';
+import '../utils/validators.dart';
+import '../utils/image_utils.dart';
+import '../widgets/auth_text_field.dart';
+import '../widgets/loading_button.dart';
+import '../widgets/profile_avatar.dart';
+import '../widgets/date_picker_field.dart';
+import '../widgets/country_autocomplete.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -90,29 +93,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     _lastNameController.dispose();
     _nationalityController.dispose();
     super.dispose();
-  }
-
-  String get _formattedDate {
-    if (_dateOfBirth == null) return '';
-    final Locale deviceLocale = Localizations.localeOf(context);
-    return DateFormat.yMd(deviceLocale.toString()).format(_dateOfBirth!);
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final Locale deviceLocale = Localizations.localeOf(context);
-
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _dateOfBirth ?? DateTime(2000),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-      locale: deviceLocale,
-    );
-    if (picked != null && picked != _dateOfBirth) {
-      setState(() {
-        _dateOfBirth = picked;
-      });
-    }
   }
 
   Future<void> _pickImage() async {
@@ -211,19 +191,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     setState(() => _isLoading = true);
     try {
       final client = Provider.of<http.Client>(context, listen: false);
-      final response = await client.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final tempDir = await getTemporaryDirectory();
-        final filePath = p.join(tempDir.path, 'google_profile_temp.jpg');
-        final file = File(filePath);
-        await file.writeAsBytes(response.bodyBytes);
+      final file = await ImageUtils.downloadAndSaveImage(url, client,
+          fileName: 'google_profile_temp.jpg');
 
-        if (mounted) {
-          setState(() {
-            _selectedImage = file;
-          });
-        }
-      } else {
+      if (file != null && mounted) {
+        setState(() {
+          _selectedImage = file;
+        });
+      } else if (file == null) {
         throw Exception('Failed to download image');
       }
     } catch (e) {
@@ -297,6 +272,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
     final isNewUser =
         context.select<UserProfile?, bool>((p) => p == null || p.isIncomplete);
+    final googlePhotoUrl = user.photoURL;
 
     return Scaffold(
       appBar: AppBar(
@@ -318,113 +294,76 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildProfilePicturePicker(),
+                  ProfileAvatar(
+                    photoUrl: _currentPhotoUrl ?? googlePhotoUrl,
+                    selectedImage: _selectedImage,
+                    onEditPressed: _pickImage,
+                  ),
                   const SizedBox(height: 24),
-                  _buildReadOnlyEmailField(user.email ?? ''),
+                  AuthTextField(
+                    labelText: 'Email',
+                    prefixIcon: Icons.email,
+                    readOnly: true,
+                    filled: true,
+                    fillColor: Colors.black12,
+                    controller: TextEditingController(text: user.email),
+                  ),
                   const SizedBox(height: 16),
-                  _buildUsernameField(),
+                  AuthTextField(
+                    controller: _usernameController,
+                    onChanged: _onUsernameChanged,
+                    labelText: 'Username *',
+                    prefixIcon: Icons.alternate_email,
+                    suffixIcon: _buildUsernameSuffix(),
+                    helperText: 'Must be unique and at least 3 characters',
+                    validator: (v) => Validators.validateUsername(v,
+                        isAvailable: _isUsernameAvailable),
+                  ),
                   const SizedBox(height: 16),
-                  _buildNameField(_firstNameController, 'First Name *'),
+                  AuthTextField(
+                    controller: _firstNameController,
+                    labelText: 'First Name *',
+                    validator: (v) =>
+                        Validators.validateRequired(v, fieldName: 'First Name'),
+                  ),
                   const SizedBox(height: 16),
-                  _buildNameField(_lastNameController, 'Last Name *'),
+                  AuthTextField(
+                    controller: _lastNameController,
+                    labelText: 'Last Name *',
+                    validator: (v) =>
+                        Validators.validateRequired(v, fieldName: 'Last Name'),
+                  ),
                   const SizedBox(height: 16),
-                  _buildDateOfBirthDatePicker(),
+                  DatePickerField(
+                    labelText: 'Date of Birth (Optional)',
+                    value: _dateOfBirth,
+                    onChanged: (date) => setState(() => _dateOfBirth = date),
+                    firstDate: DateTime(1900),
+                    lastDate: DateTime.now(),
+                    locale: Localizations.localeOf(context),
+                  ),
                   const SizedBox(height: 16),
-                  _buildNationalityAutocomplete(countries),
+                  CountryAutocomplete(
+                    countries: countries,
+                    initialValue: _nationality,
+                    onSelected: (selection) =>
+                        setState(() => _nationality = selection),
+                  ),
                   const SizedBox(height: 16),
                   _buildPublicToggle(),
                   const SizedBox(height: 32),
-                  if (_isLoading)
-                    const Center(child: CircularProgressIndicator())
-                  else
-                    ElevatedButton(
-                      onPressed: _submitProfile,
-                      child:
-                          Text(isNewUser ? 'Complete Profile' : 'Save Changes'),
-                    ),
+                  LoadingButton(
+                    onPressed: _submitProfile,
+                    isLoading: _isLoading,
+                    child:
+                        Text(isNewUser ? 'Complete Profile' : 'Save Changes'),
+                  ),
                 ],
               ),
             ),
           );
         },
       ),
-    );
-  }
-
-  Widget _buildProfilePicturePicker() {
-    final user = Provider.of<User?>(context, listen: false);
-    final googlePhotoUrl = user?.photoURL;
-
-    return Center(
-      child: Stack(
-        children: [
-          CircleAvatar(
-            radius: 60,
-            backgroundColor: Colors.grey[200],
-            backgroundImage: _selectedImage != null
-                ? FileImage(_selectedImage!)
-                : ((_currentPhotoUrl ?? googlePhotoUrl) != null
-                    ? CachedNetworkImageProvider(
-                        (_currentPhotoUrl ?? googlePhotoUrl)!,
-                        maxWidth: 200,
-                        maxHeight: 200,
-                      )
-                    : null) as ImageProvider?,
-            child: (_selectedImage == null &&
-                    _currentPhotoUrl == null &&
-                    googlePhotoUrl == null)
-                ? const Icon(Icons.person, size: 60, color: Colors.grey)
-                : null,
-          ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: CircleAvatar(
-              backgroundColor: Theme.of(context).primaryColor,
-              radius: 20,
-              child: IconButton(
-                icon:
-                    const Icon(Icons.camera_alt, size: 20, color: Colors.white),
-                onPressed: _pickImage,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReadOnlyEmailField(String email) {
-    return TextFormField(
-      initialValue: email,
-      decoration: const InputDecoration(
-        labelText: 'Email',
-        border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.email),
-        filled: true,
-        fillColor: Colors.black12,
-      ),
-      readOnly: true,
-    );
-  }
-
-  Widget _buildUsernameField() {
-    return TextFormField(
-      controller: _usernameController,
-      onChanged: _onUsernameChanged,
-      decoration: InputDecoration(
-        labelText: 'Username *',
-        border: const OutlineInputBorder(),
-        prefixIcon: const Icon(Icons.alternate_email),
-        suffixIcon: _buildUsernameSuffix(),
-        helperText: 'Must be unique and at least 3 characters',
-      ),
-      validator: (v) {
-        if (v == null || v.trim().isEmpty) return 'Username is required';
-        if (v.trim().length < 3) return 'Username too short';
-        if (_isUsernameAvailable == false) return 'Username already taken';
-        return null;
-      },
     );
   }
 
@@ -455,41 +394,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return const SizedBox.shrink();
   }
 
-  Widget _buildNameField(TextEditingController controller, String label) {
-    return TextFormField(
-      controller: controller,
-      decoration:
-          InputDecoration(labelText: label, border: const OutlineInputBorder()),
-      validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-    );
-  }
-
-  Widget _buildDateOfBirthDatePicker() {
-    return InkWell(
-      onTap: () => _selectDate(context),
-      child: InputDecorator(
-        isEmpty: _dateOfBirth == null,
-        decoration: InputDecoration(
-          labelText: 'Date of Birth (Optional)',
-          floatingLabelBehavior: FloatingLabelBehavior.auto,
-          border: const OutlineInputBorder(),
-          // Add a clear icon button if a date is selected
-          suffixIcon: _dateOfBirth != null
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    setState(() {
-                      _dateOfBirth = null;
-                    });
-                  },
-                )
-              : null,
-        ),
-        child: Text(_formattedDate),
-      ),
-    );
-  }
-
   Widget _buildPublicToggle() {
     return SwitchListTile(
       title: const Text('Public Profile'),
@@ -501,83 +405,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         setState(() {
           _isPublic = value;
         });
-      },
-    );
-  }
-
-  Widget _buildNationalityAutocomplete(List<Country> countries) {
-    return Autocomplete<Country>(
-      displayStringForOption: (Country option) => option.name,
-      initialValue: TextEditingValue(text: _nationality?.name ?? ''),
-      optionsBuilder: (TextEditingValue textEditingValue) {
-        final sortedCountries = List<Country>.from(countries)
-          ..sort((a, b) => a.name.compareTo(b.name));
-
-        if (textEditingValue.text.isEmpty) {
-          return sortedCountries;
-        }
-        return sortedCountries.where((Country country) {
-          final query = textEditingValue.text.toLowerCase();
-          return country.name.toLowerCase().contains(query) ||
-              country.searchKeywords
-                  .any((k) => k.toLowerCase().contains(query));
-        });
-      },
-      onSelected: (Country selection) {
-        setState(() => _nationality = selection);
-      },
-      optionsViewBuilder: (context, onSelected, options) {
-        return Align(
-          alignment: Alignment.topLeft,
-          child: Material(
-            elevation: 4.0,
-            child: SizedBox(
-              width: 300,
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                itemCount: options.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final Country option = options.elementAt(index);
-                  return InkWell(
-                    onTap: () => onSelected(option),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(option.name),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        );
-      },
-      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-        // Clear nationality state if user clears the text field
-        controller.addListener(() {
-          if (controller.text.isEmpty && _nationality != null) {
-            setState(() => _nationality = null);
-          }
-        });
-
-        return TextFormField(
-          controller: controller,
-          focusNode: focusNode,
-          decoration: InputDecoration(
-            labelText: 'Nationality (Optional)',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.flag),
-            suffixIcon: controller.text.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      controller.clear();
-                      setState(() => _nationality = null);
-                    },
-                  )
-                : null,
-          ),
-        );
       },
     );
   }
