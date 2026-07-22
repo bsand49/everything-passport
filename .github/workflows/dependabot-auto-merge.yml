@@ -1,7 +1,11 @@
 name: Dependabot Auto-Merge
 run-name: "Auto-merge check for PR #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}"
 
-on: pull_request
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  pull_request_review:
+    types: [submitted]
 
 permissions:
   contents: write
@@ -10,7 +14,11 @@ permissions:
 jobs:
   dependabot-auto-merge:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'dependabot[bot]' && !github.event.pull_request.draft
+    if: |
+      github.event.pull_request.user.login == 'dependabot[bot]' && 
+      !github.event.pull_request.draft &&
+      (github.event_name != 'pull_request_review' || github.event.review.state == 'approved')
+
     steps:
       - name: Dependabot metadata
         id: metadata
@@ -27,8 +35,4 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          if gh pr view "$PR_NUMBER" --json autoMergeRequest --jq '.autoMergeRequest.id // empty' | grep -q .; then
-            echo "Auto-merge is already enabled for PR #$PR_NUMBER."
-            exit 0
-          fi
-          gh pr merge "$PR_NUMBER" --auto --squash
+          gh pr merge "$PR_NUMBER" --auto --squash || echo "Auto-merge flag could not be set yet; will retry on next event."
