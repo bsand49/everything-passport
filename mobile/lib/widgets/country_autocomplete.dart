@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:country_flags/country_flags.dart';
 import '../models/country.dart';
 
 class CountryAutocomplete extends StatelessWidget {
@@ -56,7 +57,20 @@ class CountryAutocomplete extends StatelessWidget {
                     onTap: () => onSelectedOption(option),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: Text(option.name),
+                      child: Row(
+                        children: [
+                          CountryFlag.fromCountryCode(
+                            option.id,
+                            theme: const ImageTheme(
+                              width: 24,
+                              height: 24,
+                              shape: Circle(),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(child: Text(option.name)),
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -66,23 +80,46 @@ class CountryAutocomplete extends StatelessWidget {
         );
       },
       fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-        return TextFormField(
-          controller: controller,
-          focusNode: focusNode,
-          decoration: InputDecoration(
-            labelText: labelText,
-            border: const OutlineInputBorder(),
-            prefixIcon: Icon(prefixIcon),
-            suffixIcon: controller.text.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      controller.clear();
-                      onSelected(null);
-                    },
-                  )
-                : null,
-          ),
+        return ListenableBuilder(
+          listenable: controller,
+          builder: (context, child) {
+            final selectedCountry = countries
+                .where(
+                  (c) => c.name.toLowerCase() == controller.text.toLowerCase(),
+                )
+                .firstOrNull;
+
+            return TextFormField(
+              controller: controller,
+              focusNode: focusNode,
+              decoration: InputDecoration(
+                labelText: labelText,
+                border: const OutlineInputBorder(),
+                prefixIcon: selectedCountry != null
+                    ? Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: CountryFlag.fromCountryCode(
+                          selectedCountry.id,
+                          theme: const ImageTheme(
+                            width: 24,
+                            height: 24,
+                            shape: Circle(),
+                          ),
+                        ),
+                      )
+                    : Icon(prefixIcon),
+                suffixIcon: controller.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          controller.clear();
+                          onSelected(null);
+                        },
+                      )
+                    : null,
+              ),
+            );
+          },
         );
       },
     );

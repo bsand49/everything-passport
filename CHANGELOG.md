@@ -43,5 +43,9 @@ When adding to this file, please use the following headers to group changes:
     - Introduced a centralized utility layer (`Validators`, `DateFormatter`, `ImageUtils`) to reduce code duplication and improve testability.
     - Added comprehensive unit tests for all utility classes.
     - Refactored screens and widgets to utilize shared logic.
+- **Country Flags Integration**:
+    - Integrated `country_flags` package.
+    - Enhanced `CountryAutocomplete` widget with circular flags in dropdown and dynamic prefix icon.
+    - Added comprehensive unit tests for flag rendering and interactions.
 
 [Unreleased]: https://github.com/bsand49/everything-passport/compare/v0.0.0...HEAD
