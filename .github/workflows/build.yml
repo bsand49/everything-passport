@@ -74,7 +74,7 @@ jobs:
           working-directory: 'mobile'
 
       - name: Upload Firebase Configuration
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: firebase-config
           path: |
@@ -136,7 +136,7 @@ jobs:
         run: flutter pub get
 
       - name: Download Firebase Configuration
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: firebase-config
           path: mobile
@@ -158,7 +158,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Cache Android SDK Components
-        uses: actions/cache@v4 # Maintained v4 for path mapping stability
+        uses: actions/cache@v6 # Maintained v4 for path mapping stability
         id: avd-cache
         with:
           path: |
@@ -168,7 +168,7 @@ jobs:
           key: avd-api-31-system-image-${{ runner.os }}-v1
 
       - name: Cache Gradle Build Outputs
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
