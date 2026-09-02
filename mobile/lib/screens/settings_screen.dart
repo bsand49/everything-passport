@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../services/auth_service.dart';
 import 'user_profile_screen.dart';
 
@@ -51,9 +52,7 @@ class SettingsScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         children: [
           const SizedBox(height: 16),
@@ -74,10 +73,7 @@ class SettingsScreen extends StatelessWidget {
           const Divider(),
           ListTile(
             leading: Icon(Icons.logout, color: colorScheme.error),
-            title: Text(
-              'Logout',
-              style: TextStyle(color: colorScheme.error),
-            ),
+            title: Text('Logout', style: TextStyle(color: colorScheme.error)),
             onTap: () => _handleLogout(context),
           ),
           const Divider(),

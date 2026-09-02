@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
@@ -12,6 +13,7 @@ import 'package:everything_passport/services/auth_service.dart';
 import 'package:everything_passport/services/user_profile_service.dart';
 import 'package:everything_passport/services/metadata_service.dart';
 import 'package:everything_passport/widgets/profile_avatar.dart';
+
 import '../test_helper.dart';
 
 import 'home_screen_test.mocks.dart';
@@ -32,7 +34,8 @@ void main() {
     setUpAll(() {
       // Provide a dummy Route for Mockito's 'any' / 'captureAny' null-safety verification
       provideDummy<Route<dynamic>>(
-          MaterialPageRoute(builder: (_) => const SizedBox()));
+        MaterialPageRoute(builder: (_) => const SizedBox()),
+      );
       HttpOverrides.global = MockHttpOverrides();
     });
 
@@ -60,47 +63,58 @@ void main() {
     }
 
     group('Initialization', () {
-      testWidgets('displays "Not Logged In" when user is null',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(createTestableWidget(
-          child: HomeScreen(),
-          user: null,
-        ));
+      testWidgets('displays "Not Logged In" when user is null', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          createTestableWidget(child: HomeScreen(), user: null),
+        );
 
         expect(find.text('Not Logged In'), findsOneWidget);
       });
 
-      testWidgets('displays loader when userProfile is null',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(createTestableWidget(
-          child: HomeScreen(),
-          user: mockUser,
-          userProfile: null,
-        ));
+      testWidgets('displays loader when userProfile is null', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          createTestableWidget(
+            child: HomeScreen(),
+            user: mockUser,
+            userProfile: null,
+          ),
+        );
 
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
       });
 
-      testWidgets('displays username and welcome message with correct name',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(createTestableWidget(
-          child: HomeScreen(),
-          user: mockUser,
-          userProfile: mockProfile,
-        ));
+      testWidgets('displays username and welcome message with correct name', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          createTestableWidget(
+            child: HomeScreen(),
+            user: mockUser,
+            userProfile: mockProfile,
+          ),
+        );
 
         expect(find.text('traveler_john'), findsOneWidget);
         expect(
-            find.text('Welcome to Everything Passport, John!'), findsOneWidget);
+          find.text('Welcome to Everything Passport, John!'),
+          findsOneWidget,
+        );
       });
 
-      testWidgets('displays ProfileAvatar with correct photoUrl',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(createTestableWidget(
-          child: const HomeScreen(),
-          user: mockUser,
-          userProfile: mockProfile,
-        ));
+      testWidgets('displays ProfileAvatar with correct photoUrl', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          createTestableWidget(
+            child: const HomeScreen(),
+            user: mockUser,
+            userProfile: mockProfile,
+          ),
+        );
 
         final profileAvatarFinder = find.byType(ProfileAvatar);
         expect(profileAvatarFinder, findsOneWidget);
@@ -112,15 +126,18 @@ void main() {
     });
 
     group('Interactions', () {
-      testWidgets('opens bottom sheet and handles Add Trip tap',
-          (WidgetTester tester) async {
+      testWidgets('opens bottom sheet and handles Add Trip tap', (
+        WidgetTester tester,
+      ) async {
         setLargeViewport(tester);
 
-        await tester.pumpWidget(createTestableWidget(
-          child: HomeScreen(),
-          user: mockUser,
-          userProfile: mockProfile,
-        ));
+        await tester.pumpWidget(
+          createTestableWidget(
+            child: HomeScreen(),
+            user: mockUser,
+            userProfile: mockProfile,
+          ),
+        );
 
         await tester.tap(find.byIcon(Icons.add));
         await tester.pumpAndSettle();
@@ -133,15 +150,18 @@ void main() {
         expect(find.text('Add New'), findsNothing); // Verify sheet popped
       });
 
-      testWidgets('opens bottom sheet and handles Add Event tap',
-          (WidgetTester tester) async {
+      testWidgets('opens bottom sheet and handles Add Event tap', (
+        WidgetTester tester,
+      ) async {
         setLargeViewport(tester);
 
-        await tester.pumpWidget(createTestableWidget(
-          child: HomeScreen(),
-          user: mockUser,
-          userProfile: mockProfile,
-        ));
+        await tester.pumpWidget(
+          createTestableWidget(
+            child: HomeScreen(),
+            user: mockUser,
+            userProfile: mockProfile,
+          ),
+        );
 
         await tester.tap(find.byIcon(Icons.add));
         await tester.pumpAndSettle();
@@ -155,28 +175,32 @@ void main() {
 
     group('Navigation', () {
       testWidgets(
-          'navigates to SettingsScreen on settings button tap (isolated route test)',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(createTestableWidget(
-          child: HomeScreen(),
-          user: mockUser,
-          userProfile: mockProfile,
-          observer: mockObserver,
-        ));
+        'navigates to SettingsScreen on settings button tap (isolated route test)',
+        (WidgetTester tester) async {
+          await tester.pumpWidget(
+            createTestableWidget(
+              child: HomeScreen(),
+              user: mockUser,
+              userProfile: mockProfile,
+              observer: mockObserver,
+            ),
+          );
 
-        await tester.tap(find.byIcon(Icons.settings));
-        await tester.pumpAndSettle();
+          await tester.tap(find.byIcon(Icons.settings));
+          await tester.pumpAndSettle();
 
-        // Capture and verify navigation occurred using Mockito's captureAny and called(2)
-        final verification = verify(mockObserver.didPush(captureAny, any))
-          ..called(2);
-        final Route<dynamic> route = verification.captured[1] as Route<dynamic>;
-        expect(route, isA<MaterialPageRoute>());
+          // Capture and verify navigation occurred using Mockito's captureAny and called(2)
+          final verification = verify(mockObserver.didPush(captureAny, any))
+            ..called(2);
+          final Route<dynamic> route =
+              verification.captured[1] as Route<dynamic>;
+          expect(route, isA<MaterialPageRoute>());
 
-        final BuildContext context = tester.element(find.byType(Navigator));
-        final widget = (route as MaterialPageRoute).builder(context);
-        expect(widget, isA<SettingsScreen>());
-      });
+          final BuildContext context = tester.element(find.byType(Navigator));
+          final widget = (route as MaterialPageRoute).builder(context);
+          expect(widget, isA<SettingsScreen>());
+        },
+      );
     });
   });
 }
@@ -245,13 +269,21 @@ class MockHttpClientResponse extends Fake implements HttpClientResponse {
   HttpClientResponseCompressionState get compressionState =>
       HttpClientResponseCompressionState.notCompressed;
   @override
-  StreamSubscription<List<int>> listen(void Function(List<int> event)? onData,
-      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
+  StreamSubscription<List<int>> listen(
+    void Function(List<int> event)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) {
     final stream = Stream<List<int>>.fromIterable([
-      [1, 2, 3]
+      [1, 2, 3],
     ]);
-    return stream.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+    return stream.listen(
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    );
   }
 }
 

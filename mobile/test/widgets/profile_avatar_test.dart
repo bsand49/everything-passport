@@ -5,13 +5,12 @@ import 'package:everything_passport/widgets/profile_avatar.dart';
 void main() {
   group('ProfileAvatar', () {
     group('Initialization', () {
-      testWidgets('shows fallback icon when no image is provided',
-          (WidgetTester tester) async {
+      testWidgets('shows fallback icon when no image is provided', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(
           const MaterialApp(
-            home: Scaffold(
-              body: ProfileAvatar(fallbackIcon: Icons.person),
-            ),
+            home: Scaffold(body: ProfileAvatar(fallbackIcon: Icons.person)),
           ),
         );
 
@@ -20,15 +19,14 @@ void main() {
     });
 
     group('Interactions', () {
-      testWidgets('shows edit button when onEditPressed is provided',
-          (WidgetTester tester) async {
+      testWidgets('shows edit button when onEditPressed is provided', (
+        WidgetTester tester,
+      ) async {
         bool editPressed = false;
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: ProfileAvatar(
-                onEditPressed: () => editPressed = true,
-              ),
+              body: ProfileAvatar(onEditPressed: () => editPressed = true),
             ),
           ),
         );

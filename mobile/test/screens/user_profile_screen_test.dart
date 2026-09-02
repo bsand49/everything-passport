@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,6 +16,7 @@ import 'package:everything_passport/services/user_profile_service.dart';
 import 'package:everything_passport/services/metadata_service.dart';
 import 'package:everything_passport/models/user_profile.dart';
 import 'package:everything_passport/models/country.dart';
+
 import '../test_helper.dart';
 
 import 'user_profile_screen_test.mocks.dart';
@@ -50,7 +52,8 @@ void main() {
 
     setUpAll(() {
       provideDummy<Route<dynamic>>(
-          MaterialPageRoute(builder: (_) => const SizedBox()));
+        MaterialPageRoute(builder: (_) => const SizedBox()),
+      );
     });
 
     setUp(() {
@@ -75,13 +78,16 @@ void main() {
       when(mockUser.photoURL).thenReturn(null);
 
       // Default Metadata mock stubbing
-      when(mockMetadataService.getCountries(
-              forceRefresh: anyNamed('forceRefresh')))
-          .thenAnswer((_) async => [
-                Country(
-                    id: 'US', name: 'United States', searchKeywords: ['usa']),
-                Country(id: 'CA', name: 'Canada', searchKeywords: ['can']),
-              ]);
+      when(
+        mockMetadataService.getCountries(
+          forceRefresh: anyNamed('forceRefresh'),
+        ),
+      ).thenAnswer(
+        (_) async => [
+          Country(id: 'US', name: 'United States', searchKeywords: ['usa']),
+          Country(id: 'CA', name: 'Canada', searchKeywords: ['can']),
+        ],
+      );
 
       // Default HTTP mock stubbing
       when(mockHttpClient.get(any))
@@ -107,15 +113,18 @@ void main() {
     });
 
     group('Initialization', () {
-      testWidgets('shows "Not Logged In" when user is null',
-          (WidgetTester tester) async {
+      testWidgets('shows "Not Logged In" when user is null', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(
-            createTestableWidget(child: const UserProfileScreen(), user: null));
+          createTestableWidget(child: const UserProfileScreen(), user: null),
+        );
         expect(find.text('Not Logged In'), findsOneWidget);
       });
 
-      testWidgets('triggers Google photo sync on load',
-          (WidgetTester tester) async {
+      testWidgets('triggers Google photo sync on load', (
+        WidgetTester tester,
+      ) async {
         setViewport(tester);
         final userWithPhoto = MockUser();
         when(userWithPhoto.uid).thenReturn('test_user');
@@ -123,14 +132,16 @@ void main() {
         when(userWithPhoto.photoURL)
             .thenReturn('https://example.com/photo.jpg');
 
-        await tester.pumpWidget(createTestableWidget(
-          child: const UserProfileScreen(),
-          userProfileService: mockUserProfileService,
-          metadataService: mockMetadataService,
-          user: userWithPhoto,
-          userProfile: null,
-          httpClient: mockHttpClient,
-        ));
+        await tester.pumpWidget(
+          createTestableWidget(
+            child: const UserProfileScreen(),
+            userProfileService: mockUserProfileService,
+            metadataService: mockMetadataService,
+            user: userWithPhoto,
+            userProfile: null,
+            httpClient: mockHttpClient,
+          ),
+        );
 
         await tester.pump();
         // Verifies addPostFrameCallback trigger
@@ -138,22 +149,27 @@ void main() {
     });
 
     group('Interactions', () {
-      testWidgets('handles form entry and logic branches',
-          (WidgetTester tester) async {
+      testWidgets('handles form entry and logic branches', (
+        WidgetTester tester,
+      ) async {
         setViewport(tester);
 
-        when(mockUserProfileService.isUsernameAvailable(
-                username: anyNamed('username'),
-                currentUserId: anyNamed('currentUserId')))
-            .thenAnswer((_) async => true);
+        when(
+          mockUserProfileService.isUsernameAvailable(
+            username: anyNamed('username'),
+            currentUserId: anyNamed('currentUserId'),
+          ),
+        ).thenAnswer((_) async => true);
 
-        await tester.pumpWidget(createTestableWidget(
-          child: const UserProfileScreen(),
-          userProfileService: mockUserProfileService,
-          metadataService: mockMetadataService,
-          user: mockUser,
-          userProfile: mockProfile,
-        ));
+        await tester.pumpWidget(
+          createTestableWidget(
+            child: const UserProfileScreen(),
+            userProfileService: mockUserProfileService,
+            metadataService: mockMetadataService,
+            user: mockUser,
+            userProfile: mockProfile,
+          ),
+        );
 
         await tester.pumpAndSettle();
 
@@ -172,7 +188,9 @@ void main() {
         // 3. Nationality autocomplete
         final nationalityFinder = find.byType(Autocomplete<Country>);
         final nationalityField = find.descendant(
-            of: nationalityFinder, matching: find.byType(TextField));
+          of: nationalityFinder,
+          matching: find.byType(TextField),
+        );
         await tester.enterText(nationalityField, '');
         await tester.pumpAndSettle();
         expect(find.text('Canada'), findsOneWidget);
@@ -187,32 +205,39 @@ void main() {
         await tester.pumpAndSettle();
 
         // 5. Submit error
-        when(mockUserProfileService.saveProfile(
-                profile: anyNamed('profile'),
-                oldUsername: anyNamed('oldUsername')))
-            .thenThrow(Exception('Failed to save profile'));
+        when(
+          mockUserProfileService.saveProfile(
+            profile: anyNamed('profile'),
+            oldUsername: anyNamed('oldUsername'),
+          ),
+        ).thenThrow(Exception('Failed to save profile'));
 
         await tester.tap(find.text('Save Changes'));
         await tester.pumpAndSettle();
         expect(find.textContaining('Failed to save profile'), findsOneWidget);
       });
 
-      testWidgets('toggles public profile visibility',
-          (WidgetTester tester) async {
+      testWidgets('toggles public profile visibility', (
+        WidgetTester tester,
+      ) async {
         setViewport(tester);
 
-        await tester.pumpWidget(createTestableWidget(
-          child: const UserProfileScreen(),
-          userProfileService: mockUserProfileService,
-          metadataService: mockMetadataService,
-          user: mockUser,
-          userProfile: mockProfile,
-        ));
+        await tester.pumpWidget(
+          createTestableWidget(
+            child: const UserProfileScreen(),
+            userProfileService: mockUserProfileService,
+            metadataService: mockMetadataService,
+            user: mockUser,
+            userProfile: mockProfile,
+          ),
+        );
 
         await tester.pumpAndSettle();
 
-        final toggleFinder =
-            find.widgetWithText(SwitchListTile, 'Public Profile');
+        final toggleFinder = find.widgetWithText(
+          SwitchListTile,
+          'Public Profile',
+        );
         expect(find.byIcon(Icons.public), findsOneWidget);
 
         await tester.tap(toggleFinder);
@@ -225,22 +250,27 @@ void main() {
       });
 
       group('Submission', () {
-        testWidgets('shows loading state during submission',
-            (WidgetTester tester) async {
+        testWidgets('shows loading state during submission', (
+          WidgetTester tester,
+        ) async {
           setViewport(tester);
           final saveCompleter = Completer<void>();
-          when(mockUserProfileService.saveProfile(
-                  profile: anyNamed('profile'),
-                  oldUsername: anyNamed('oldUsername')))
-              .thenAnswer((_) => saveCompleter.future);
+          when(
+            mockUserProfileService.saveProfile(
+              profile: anyNamed('profile'),
+              oldUsername: anyNamed('oldUsername'),
+            ),
+          ).thenAnswer((_) => saveCompleter.future);
 
-          await tester.pumpWidget(createTestableWidget(
-            child: const UserProfileScreen(),
-            userProfileService: mockUserProfileService,
-            metadataService: mockMetadataService,
-            user: mockUser,
-            userProfile: mockProfile,
-          ));
+          await tester.pumpWidget(
+            createTestableWidget(
+              child: const UserProfileScreen(),
+              userProfileService: mockUserProfileService,
+              metadataService: mockMetadataService,
+              user: mockUser,
+              userProfile: mockProfile,
+            ),
+          );
 
           await tester.pumpAndSettle();
 
@@ -256,26 +286,33 @@ void main() {
           expect(find.byType(CircularProgressIndicator), findsNothing);
         });
 
-        testWidgets('successful save pops navigator',
-            (WidgetTester tester) async {
+        testWidgets('successful save pops navigator', (
+          WidgetTester tester,
+        ) async {
           setViewport(tester);
 
-          await tester.pumpWidget(createTestableWidget(
-            child: Builder(builder: (context) {
-              return ElevatedButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const UserProfileScreen()),
-                ),
-                child: const Text('Push'),
-              );
-            }),
-            userProfileService: mockUserProfileService,
-            metadataService: mockMetadataService,
-            user: mockUser,
-            userProfile: mockProfile,
-            observer: mockObserver,
-          ));
+          await tester.pumpWidget(
+            createTestableWidget(
+              child: Builder(
+                builder: (context) {
+                  return ElevatedButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const UserProfileScreen(),
+                      ),
+                    ),
+                    child: const Text('Push'),
+                  );
+                },
+              ),
+              userProfileService: mockUserProfileService,
+              metadataService: mockMetadataService,
+              user: mockUser,
+              userProfile: mockProfile,
+              observer: mockObserver,
+            ),
+          );
 
           await tester.tap(find.text('Push'));
           await tester.pumpAndSettle();
@@ -294,8 +331,9 @@ void main() {
       });
 
       group('Photo Selection', () {
-        testWidgets('handles Google Photo sync (Success, Failure, Exception)',
-            (WidgetTester tester) async {
+        testWidgets('handles Google Photo sync (Success, Failure, Exception)', (
+          WidgetTester tester,
+        ) async {
           setViewport(tester);
 
           final profileNoPhoto = UserProfile(
@@ -314,14 +352,16 @@ void main() {
           when(mockUserNoPhoto.email).thenReturn('test@example.com');
           when(mockUserNoPhoto.photoURL).thenReturn(null);
 
-          await tester.pumpWidget(createTestableWidget(
-            child: const UserProfileScreen(),
-            userProfileService: mockUserProfileService,
-            metadataService: mockMetadataService,
-            user: mockUserNoPhoto,
-            userProfile: profileNoPhoto,
-            httpClient: mockHttpClient,
-          ));
+          await tester.pumpWidget(
+            createTestableWidget(
+              child: const UserProfileScreen(),
+              userProfileService: mockUserProfileService,
+              metadataService: mockMetadataService,
+              user: mockUserNoPhoto,
+              userProfile: profileNoPhoto,
+              httpClient: mockHttpClient,
+            ),
+          );
           await tester.pumpAndSettle();
 
           final dynamic state = tester.state(find.byType(UserProfileScreen));
@@ -329,26 +369,33 @@ void main() {
           // Success path
           when(mockHttpClient.get(any))
               .thenAnswer((_) async => http.Response.bytes([1, 2, 3], 200));
-          await tester.runAsync(() async =>
-              await state.useGooglePhoto('https://example.com/photo.jpg'));
+          await tester.runAsync(
+            () async =>
+                await state.useGooglePhoto('https://example.com/photo.jpg'),
+          );
           await tester.pump();
 
           // Failure path
           when(mockHttpClient.get(any))
               .thenAnswer((_) async => http.Response('Not Found', 404));
-          await tester.runAsync(() async =>
-              await state.useGooglePhoto('https://example.com/photo.jpg'));
+          await tester.runAsync(
+            () async =>
+                await state.useGooglePhoto('https://example.com/photo.jpg'),
+          );
           await tester.pump();
 
           // Exception path
           when(mockHttpClient.get(any)).thenThrow(Exception('Network error'));
-          await tester.runAsync(() async =>
-              await state.useGooglePhoto('https://example.com/photo.jpg'));
+          await tester.runAsync(
+            () async =>
+                await state.useGooglePhoto('https://example.com/photo.jpg'),
+          );
           await tester.pump();
         });
 
-        testWidgets('uploads profile picture when image is selected',
-            (WidgetTester tester) async {
+        testWidgets('uploads profile picture when image is selected', (
+          WidgetTester tester,
+        ) async {
           setViewport(tester);
 
           final mockUserNoPhoto = MockUser();
@@ -356,76 +403,103 @@ void main() {
           when(mockUserNoPhoto.email).thenReturn('test@example.com');
           when(mockUserNoPhoto.photoURL).thenReturn(null);
 
-          when(mockUserProfileService.uploadProfilePicture(
-                  userId: anyNamed('userId'), image: anyNamed('image')))
-              .thenAnswer((_) async => 'https://example.com/photo.jpg');
+          when(
+            mockUserProfileService.uploadProfilePicture(
+              userId: anyNamed('userId'),
+              image: anyNamed('image'),
+            ),
+          ).thenAnswer((_) async => 'https://example.com/photo.jpg');
 
-          await tester.pumpWidget(createTestableWidget(
-            child: const UserProfileScreen(),
-            userProfileService: mockUserProfileService,
-            metadataService: mockMetadataService,
-            user: mockUserNoPhoto,
-            userProfile: mockProfile,
-            httpClient: mockHttpClient,
-          ));
+          await tester.pumpWidget(
+            createTestableWidget(
+              child: const UserProfileScreen(),
+              userProfileService: mockUserProfileService,
+              metadataService: mockMetadataService,
+              user: mockUserNoPhoto,
+              userProfile: mockProfile,
+              httpClient: mockHttpClient,
+            ),
+          );
 
           await tester.pumpAndSettle();
 
           final dynamic state = tester.state(find.byType(UserProfileScreen));
 
-          await tester.runAsync(() async =>
-              await state.useGooglePhoto('https://example.com/photo.jpg'));
+          await tester.runAsync(
+            () async =>
+                await state.useGooglePhoto('https://example.com/photo.jpg'),
+          );
 
           // Use a more robust wait than manual for loop
           await tester.runAsync(
-              () => Future.delayed(const Duration(milliseconds: 500)));
+            () => Future.delayed(const Duration(milliseconds: 500)),
+          );
           await tester.pump();
 
-          verifyNever(mockUserProfileService.uploadProfilePicture(
-              userId: anyNamed('userId'), image: anyNamed('image')));
+          verifyNever(
+            mockUserProfileService.uploadProfilePicture(
+              userId: anyNamed('userId'),
+              image: anyNamed('image'),
+            ),
+          );
 
           await tester.tap(find.text('Save Changes'));
 
           await tester.runAsync(
-              () => Future.delayed(const Duration(milliseconds: 500)));
+            () => Future.delayed(const Duration(milliseconds: 500)),
+          );
           await tester.pump();
 
-          verify(mockUserProfileService.uploadProfilePicture(
-                  userId: anyNamed('userId'), image: anyNamed('image')))
-              .called(1);
+          verify(
+            mockUserProfileService.uploadProfilePicture(
+              userId: anyNamed('userId'),
+              image: anyNamed('image'),
+            ),
+          ).called(1);
         });
 
-        testWidgets('picks and crops profile picture successfully',
-            (WidgetTester tester) async {
+        testWidgets('picks and crops profile picture successfully', (
+          WidgetTester tester,
+        ) async {
           setViewport(tester);
 
-          when(mockImagePickerPlatform.getImageFromSource(
-            source: anyNamed('source'),
-            options: anyNamed('options'),
-          )).thenAnswer((_) async => XFile('test/assets/test_image.jpg'));
+          when(
+            mockImagePickerPlatform.getImageFromSource(
+              source: anyNamed('source'),
+              options: anyNamed('options'),
+            ),
+          ).thenAnswer((_) async => XFile('test/assets/test_image.jpg'));
 
-          when(mockImageCropperPlatform.cropImage(
-            sourcePath: anyNamed('sourcePath'),
-            maxWidth: anyNamed('maxWidth'),
-            maxHeight: anyNamed('maxHeight'),
-            aspectRatio: anyNamed('aspectRatio'),
-            compressFormat: anyNamed('compressFormat'),
-            compressQuality: anyNamed('compressQuality'),
-            uiSettings: anyNamed('uiSettings'),
-          )).thenAnswer(
-              (_) async => CroppedFile('test/assets/cropped_image.jpg'));
+          when(
+            mockImageCropperPlatform.cropImage(
+              sourcePath: anyNamed('sourcePath'),
+              maxWidth: anyNamed('maxWidth'),
+              maxHeight: anyNamed('maxHeight'),
+              aspectRatio: anyNamed('aspectRatio'),
+              compressFormat: anyNamed('compressFormat'),
+              compressQuality: anyNamed('compressQuality'),
+              uiSettings: anyNamed('uiSettings'),
+            ),
+          ).thenAnswer(
+            (_) async => CroppedFile('test/assets/cropped_image.jpg'),
+          );
 
-          when(mockUserProfileService.uploadProfilePicture(
-                  userId: anyNamed('userId'), image: anyNamed('image')))
-              .thenAnswer((_) async => 'https://example.com/new_photo.jpg');
+          when(
+            mockUserProfileService.uploadProfilePicture(
+              userId: anyNamed('userId'),
+              image: anyNamed('image'),
+            ),
+          ).thenAnswer((_) async => 'https://example.com/new_photo.jpg');
 
-          await tester.pumpWidget(createTestableWidget(
-            child: const UserProfileScreen(),
-            userProfileService: mockUserProfileService,
-            metadataService: mockMetadataService,
-            user: mockUser,
-            userProfile: mockProfile,
-          ));
+          await tester.pumpWidget(
+            createTestableWidget(
+              child: const UserProfileScreen(),
+              userProfileService: mockUserProfileService,
+              metadataService: mockMetadataService,
+              user: mockUser,
+              userProfile: mockProfile,
+            ),
+          );
 
           await tester.pumpAndSettle();
 
@@ -437,27 +511,35 @@ void main() {
           await tester.tap(find.text('Save Changes'));
           await tester.pumpAndSettle();
 
-          verify(mockUserProfileService.uploadProfilePicture(
-                  userId: anyNamed('userId'), image: anyNamed('image')))
-              .called(1);
+          verify(
+            mockUserProfileService.uploadProfilePicture(
+              userId: anyNamed('userId'),
+              image: anyNamed('image'),
+            ),
+          ).called(1);
         });
 
-        testWidgets('cancels image picking gracefully',
-            (WidgetTester tester) async {
+        testWidgets('cancels image picking gracefully', (
+          WidgetTester tester,
+        ) async {
           setViewport(tester);
 
-          when(mockImagePickerPlatform.getImageFromSource(
-            source: anyNamed('source'),
-            options: anyNamed('options'),
-          )).thenAnswer((_) async => null);
+          when(
+            mockImagePickerPlatform.getImageFromSource(
+              source: anyNamed('source'),
+              options: anyNamed('options'),
+            ),
+          ).thenAnswer((_) async => null);
 
-          await tester.pumpWidget(createTestableWidget(
-            child: const UserProfileScreen(),
-            userProfileService: mockUserProfileService,
-            metadataService: mockMetadataService,
-            user: mockUser,
-            userProfile: mockProfile,
-          ));
+          await tester.pumpWidget(
+            createTestableWidget(
+              child: const UserProfileScreen(),
+              userProfileService: mockUserProfileService,
+              metadataService: mockMetadataService,
+              user: mockUser,
+              userProfile: mockProfile,
+            ),
+          );
 
           await tester.pumpAndSettle();
 
@@ -468,36 +550,47 @@ void main() {
           await tester.tap(find.text('Save Changes'));
           await tester.pumpAndSettle();
 
-          verifyNever(mockUserProfileService.uploadProfilePicture(
-              userId: anyNamed('userId'), image: anyNamed('image')));
+          verifyNever(
+            mockUserProfileService.uploadProfilePicture(
+              userId: anyNamed('userId'),
+              image: anyNamed('image'),
+            ),
+          );
         });
 
-        testWidgets('cancels image cropping gracefully',
-            (WidgetTester tester) async {
+        testWidgets('cancels image cropping gracefully', (
+          WidgetTester tester,
+        ) async {
           setViewport(tester);
 
-          when(mockImagePickerPlatform.getImageFromSource(
-            source: anyNamed('source'),
-            options: anyNamed('options'),
-          )).thenAnswer((_) async => XFile('test/assets/test_image.jpg'));
+          when(
+            mockImagePickerPlatform.getImageFromSource(
+              source: anyNamed('source'),
+              options: anyNamed('options'),
+            ),
+          ).thenAnswer((_) async => XFile('test/assets/test_image.jpg'));
 
-          when(mockImageCropperPlatform.cropImage(
-            sourcePath: anyNamed('sourcePath'),
-            maxWidth: anyNamed('maxWidth'),
-            maxHeight: anyNamed('maxHeight'),
-            aspectRatio: anyNamed('aspectRatio'),
-            compressFormat: anyNamed('compressFormat'),
-            compressQuality: anyNamed('compressQuality'),
-            uiSettings: anyNamed('uiSettings'),
-          )).thenAnswer((_) async => null);
+          when(
+            mockImageCropperPlatform.cropImage(
+              sourcePath: anyNamed('sourcePath'),
+              maxWidth: anyNamed('maxWidth'),
+              maxHeight: anyNamed('maxHeight'),
+              aspectRatio: anyNamed('aspectRatio'),
+              compressFormat: anyNamed('compressFormat'),
+              compressQuality: anyNamed('compressQuality'),
+              uiSettings: anyNamed('uiSettings'),
+            ),
+          ).thenAnswer((_) async => null);
 
-          await tester.pumpWidget(createTestableWidget(
-            child: const UserProfileScreen(),
-            userProfileService: mockUserProfileService,
-            metadataService: mockMetadataService,
-            user: mockUser,
-            userProfile: mockProfile,
-          ));
+          await tester.pumpWidget(
+            createTestableWidget(
+              child: const UserProfileScreen(),
+              userProfileService: mockUserProfileService,
+              metadataService: mockMetadataService,
+              user: mockUser,
+              userProfile: mockProfile,
+            ),
+          );
 
           await tester.pumpAndSettle();
 
@@ -508,48 +601,63 @@ void main() {
           await tester.tap(find.text('Save Changes'));
           await tester.pumpAndSettle();
 
-          verifyNever(mockUserProfileService.uploadProfilePicture(
-              userId: anyNamed('userId'), image: anyNamed('image')));
+          verifyNever(
+            mockUserProfileService.uploadProfilePicture(
+              userId: anyNamed('userId'),
+              image: anyNamed('image'),
+            ),
+          );
         });
       });
     });
 
     group('Validation', () {
-      testWidgets('falls back to default nationality if invalid',
-          (WidgetTester tester) async {
+      testWidgets('falls back to default nationality if invalid', (
+        WidgetTester tester,
+      ) async {
         final profile = UserProfile(
-            userId: 'u',
-            username: 'u',
-            firstName: 'A',
-            lastName: 'B',
-            nationality: 'BAD');
-        await tester.pumpWidget(createTestableWidget(
-          child: const UserProfileScreen(),
-          userProfileService: mockUserProfileService,
-          metadataService: mockMetadataService,
-          userProfile: profile,
-          user: mockUser,
-        ));
+          userId: 'u',
+          username: 'u',
+          firstName: 'A',
+          lastName: 'B',
+          nationality: 'BAD',
+        );
+        await tester.pumpWidget(
+          createTestableWidget(
+            child: const UserProfileScreen(),
+            userProfileService: mockUserProfileService,
+            metadataService: mockMetadataService,
+            userProfile: profile,
+            user: mockUser,
+          ),
+        );
         await tester.pumpAndSettle();
-        expect(find.widgetWithText(TextFormField, 'United States'),
-            findsOneWidget);
+        expect(
+          find.widgetWithText(TextFormField, 'United States'),
+          findsOneWidget,
+        );
       });
 
-      testWidgets('shows error when username is already taken',
-          (WidgetTester tester) async {
+      testWidgets('shows error when username is already taken', (
+        WidgetTester tester,
+      ) async {
         setViewport(tester);
-        when(mockUserProfileService.isUsernameAvailable(
-                username: anyNamed('username'),
-                currentUserId: anyNamed('currentUserId')))
-            .thenAnswer((_) async => false);
+        when(
+          mockUserProfileService.isUsernameAvailable(
+            username: anyNamed('username'),
+            currentUserId: anyNamed('currentUserId'),
+          ),
+        ).thenAnswer((_) async => false);
 
-        await tester.pumpWidget(createTestableWidget(
-          child: const UserProfileScreen(),
-          userProfileService: mockUserProfileService,
-          metadataService: mockMetadataService,
-          user: mockUser,
-          userProfile: mockProfile,
-        ));
+        await tester.pumpWidget(
+          createTestableWidget(
+            child: const UserProfileScreen(),
+            userProfileService: mockUserProfileService,
+            metadataService: mockMetadataService,
+            user: mockUser,
+            userProfile: mockProfile,
+          ),
+        );
 
         await tester.pumpAndSettle();
 
@@ -566,21 +674,26 @@ void main() {
         expect(find.text('Username already taken'), findsOneWidget);
       });
 
-      testWidgets('handles username field edge cases',
-          (WidgetTester tester) async {
+      testWidgets('handles username field edge cases', (
+        WidgetTester tester,
+      ) async {
         setViewport(tester);
-        when(mockUserProfileService.isUsernameAvailable(
-                username: anyNamed('username'),
-                currentUserId: anyNamed('currentUserId')))
-            .thenAnswer((_) async => true);
+        when(
+          mockUserProfileService.isUsernameAvailable(
+            username: anyNamed('username'),
+            currentUserId: anyNamed('currentUserId'),
+          ),
+        ).thenAnswer((_) async => true);
 
-        await tester.pumpWidget(createTestableWidget(
-          child: const UserProfileScreen(),
-          userProfileService: mockUserProfileService,
-          metadataService: mockMetadataService,
-          user: mockUser,
-          userProfile: mockProfile,
-        ));
+        await tester.pumpWidget(
+          createTestableWidget(
+            child: const UserProfileScreen(),
+            userProfileService: mockUserProfileService,
+            metadataService: mockMetadataService,
+            user: mockUser,
+            userProfile: mockProfile,
+          ),
+        );
 
         await tester.pumpAndSettle();
 
@@ -600,27 +713,32 @@ void main() {
     });
 
     group('Navigation', () {
-      testWidgets('navigates back on back button tap',
-          (WidgetTester tester) async {
+      testWidgets('navigates back on back button tap', (
+        WidgetTester tester,
+      ) async {
         // Push UserProfileScreen onto a parent route so that a back button appears
-        await tester.pumpWidget(createTestableWidget(
-          child: Scaffold(
-            body: Builder(
-              builder: (context) => ElevatedButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const UserProfileScreen()),
+        await tester.pumpWidget(
+          createTestableWidget(
+            child: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const UserProfileScreen(),
+                    ),
+                  ),
+                  child: const Text('Push'),
                 ),
-                child: const Text('Push'),
               ),
             ),
+            userProfileService: mockUserProfileService,
+            metadataService: mockMetadataService,
+            user: mockUser,
+            userProfile: mockProfile,
+            observer: mockObserver,
           ),
-          userProfileService: mockUserProfileService,
-          metadataService: mockMetadataService,
-          user: mockUser,
-          userProfile: mockProfile,
-          observer: mockObserver,
-        ));
+        );
 
         await tester.tap(find.text('Push'));
         await tester.pumpAndSettle();
@@ -691,9 +809,9 @@ class MockPathProviderPlatform extends PathProviderPlatform
   @override
   Future<List<String>?> getExternalCachePaths() async => [];
   @override
-  Future<List<String>?> getExternalStoragePaths(
-          {StorageDirectory? type}) async =>
-      [];
+  Future<List<String>?> getExternalStoragePaths({
+    StorageDirectory? type,
+  }) async => [];
   @override
   Future<String?> getDownloadsPath() async => '.';
 }

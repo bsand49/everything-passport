@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:country_flags/country_flags.dart';
+
 import '../models/country.dart';
 
 class CountryAutocomplete extends StatelessWidget {
@@ -33,8 +34,9 @@ class CountryAutocomplete extends StatelessWidget {
         return sortedCountries.where((Country country) {
           final query = textEditingValue.text.toLowerCase();
           return country.name.toLowerCase().contains(query) ||
-              country.searchKeywords
-                  .any((k) => k.toLowerCase().contains(query));
+              country.searchKeywords.any(
+                (k) => k.toLowerCase().contains(query),
+              );
         });
       },
       onSelected: (Country selection) {

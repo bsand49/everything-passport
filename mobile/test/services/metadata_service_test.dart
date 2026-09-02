@@ -8,9 +8,10 @@ import 'package:everything_passport/models/country.dart';
 
 import 'metadata_service_test.mocks.dart';
 
-@GenerateMocks([], customMocks: [
-  MockSpec<FirebaseFirestore>(as: #MockFirestore),
-])
+@GenerateMocks(
+  [],
+  customMocks: [MockSpec<FirebaseFirestore>(as: #MockFirestore)],
+)
 void main() {
   group('MetadataService', () {
     late FakeFirebaseFirestore mockFirestore;
@@ -22,9 +23,7 @@ void main() {
     });
 
     group('Initialization', () {
-      test(
-          'throws exception when Firebase is not initialized (default constructor)',
-          () {
+      test('throws exception when Firebase is not initialized (default constructor)', () {
         // Since Firebase is not initialized in unit tests, creating MetadataService without a db
         // will throw an exception when accessing FirebaseFirestore.instance.
         expect(() => MetadataService(), throwsA(anything));
@@ -39,14 +38,14 @@ void main() {
               {
                 'id': 'US',
                 'name': 'United States',
-                'searchKeywords': ['usa', 'america']
+                'searchKeywords': ['usa', 'america'],
               },
               {
                 'id': 'GB',
                 'name': 'United Kingdom',
-                'searchKeywords': ['uk']
+                'searchKeywords': ['uk'],
               },
-            ]
+            ],
           });
 
           final countries = await metadataService.getCountries();
@@ -62,34 +61,36 @@ void main() {
           expect(countries[1].searchKeywords, ['usa', 'america']);
         });
 
-        test('returns sorted list of countries alphabetically by name',
-            () async {
-          await mockFirestore.collection('metadata').doc('countries').set({
-            'options': [
-              {
-                'id': 'GB',
-                'name': 'United Kingdom',
-                'searchKeywords': ['uk']
-              },
-              {
-                'id': 'US',
-                'name': 'United States',
-                'searchKeywords': ['usa']
-              },
-              {
-                'id': 'CA',
-                'name': 'Canada',
-                'searchKeywords': ['ca']
-              },
-            ]
-          });
+        test(
+          'returns sorted list of countries alphabetically by name',
+          () async {
+            await mockFirestore.collection('metadata').doc('countries').set({
+              'options': [
+                {
+                  'id': 'GB',
+                  'name': 'United Kingdom',
+                  'searchKeywords': ['uk'],
+                },
+                {
+                  'id': 'US',
+                  'name': 'United States',
+                  'searchKeywords': ['usa'],
+                },
+                {
+                  'id': 'CA',
+                  'name': 'Canada',
+                  'searchKeywords': ['ca'],
+                },
+              ],
+            });
 
-          final countries = await metadataService.getCountries();
-          expect(countries, hasLength(3));
-          expect(countries[0].name, 'Canada');
-          expect(countries[1].name, 'United Kingdom');
-          expect(countries[2].name, 'United States');
-        });
+            final countries = await metadataService.getCountries();
+            expect(countries, hasLength(3));
+            expect(countries[0].name, 'Canada');
+            expect(countries[1].name, 'United Kingdom');
+            expect(countries[2].name, 'United States');
+          },
+        );
       });
 
       group('caching behavior', () {
@@ -99,9 +100,9 @@ void main() {
               {
                 'id': 'US',
                 'name': 'United States',
-                'searchKeywords': ['usa']
+                'searchKeywords': ['usa'],
               },
-            ]
+            ],
           });
 
           final countries1 = await metadataService.getCountries();
@@ -112,9 +113,9 @@ void main() {
               {
                 'id': 'GB',
                 'name': 'United Kingdom',
-                'searchKeywords': ['uk']
+                'searchKeywords': ['uk'],
               },
-            ]
+            ],
           });
 
           final countries2 = await metadataService.getCountries();
@@ -129,9 +130,9 @@ void main() {
               {
                 'id': 'US',
                 'name': 'United States',
-                'searchKeywords': ['usa']
+                'searchKeywords': ['usa'],
               },
-            ]
+            ],
           });
 
           await metadataService.getCountries();
@@ -141,13 +142,14 @@ void main() {
               {
                 'id': 'GB',
                 'name': 'United Kingdom',
-                'searchKeywords': ['uk']
+                'searchKeywords': ['uk'],
               },
-            ]
+            ],
           });
 
-          final countries2 =
-              await metadataService.getCountries(forceRefresh: true);
+          final countries2 = await metadataService.getCountries(
+            forceRefresh: true,
+          );
 
           expect(countries2[0].id, 'GB');
         });
@@ -160,10 +162,9 @@ void main() {
         });
 
         test('handles missing options field', () async {
-          await mockFirestore
-              .collection('metadata')
-              .doc('countries')
-              .set({'something_else': 'data'});
+          await mockFirestore.collection('metadata').doc('countries').set({
+            'something_else': 'data',
+          });
           final countries = await metadataService.getCountries();
           expect(countries, isEmpty);
         });
@@ -171,8 +172,8 @@ void main() {
         test('handles malformed options list structure gracefully', () async {
           await mockFirestore.collection('metadata').doc('countries').set({
             'options': [
-              'not_a_map_value'
-            ] // throws a TypeError inside _fromFirestore during casting
+              'not_a_map_value',
+            ], // throws a TypeError inside _fromFirestore during casting
           });
 
           final countries = await metadataService.getCountries();
@@ -184,8 +185,9 @@ void main() {
           when(mockFailingFirestore.collection(any))
               .thenThrow(Exception('Firestore Error'));
 
-          final failingMetadataService =
-              MetadataService(db: mockFailingFirestore);
+          final failingMetadataService = MetadataService(
+            db: mockFailingFirestore,
+          );
           final countries = await failingMetadataService.getCountries();
           expect(countries, isEmpty);
         });
@@ -193,8 +195,8 @@ void main() {
         test('returns cached data on Firestore error during refresh', () async {
           await mockFirestore.collection('metadata').doc('countries').set({
             'options': [
-              {'id': 'US', 'name': 'USA', 'searchKeywords': []}
-            ]
+              {'id': 'US', 'name': 'USA', 'searchKeywords': []},
+            ],
           });
 
           await metadataService.getCountries();
@@ -222,8 +224,8 @@ void main() {
       test('clears memory cache successfully', () async {
         await mockFirestore.collection('metadata').doc('countries').set({
           'options': [
-            {'id': 'US', 'name': 'USA', 'searchKeywords': []}
-          ]
+            {'id': 'US', 'name': 'USA', 'searchKeywords': []},
+          ],
         });
 
         final countries1 = await metadataService.getCountries();
@@ -231,10 +233,9 @@ void main() {
 
         metadataService.clearCache();
 
-        await mockFirestore
-            .collection('metadata')
-            .doc('countries')
-            .set({'options': []});
+        await mockFirestore.collection('metadata').doc('countries').set({
+          'options': [],
+        });
 
         final countries2 = await metadataService.getCountries();
         expect(countries2, isEmpty);
@@ -245,11 +246,16 @@ void main() {
       test('serializes list of countries correctly', () {
         final countries = <Country>[
           const Country(
-              id: 'US', name: 'United States', searchKeywords: ['usa'])
+            id: 'US',
+            name: 'United States',
+            searchKeywords: ['usa'],
+          ),
         ];
 
-        final data =
-            MetadataService.toFirestore(countries, SetOptions(merge: true));
+        final data = MetadataService.toFirestore(
+          countries,
+          SetOptions(merge: true),
+        );
 
         final options = data['options'] as List<dynamic>;
         expect(options, hasLength(1));

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../services/auth_service.dart';
 import '../utils/validators.dart';
 import '../widgets/auth_text_field.dart';
@@ -96,8 +97,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   labelText: 'Password',
                   prefixIcon: Icons.lock,
                   obscureText: true,
-                  validator: (value) => Validators.validateRequired(value,
-                      message: 'Please enter your password'),
+                  validator: (value) => Validators.validateRequired(
+                    value,
+                    message: 'Please enter your password',
+                  ),
                 ),
                 const SizedBox(height: 24),
                 LoadingButton(
@@ -118,7 +121,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const SignUpScreen()),
+                        builder: (context) => const SignUpScreen(),
+                      ),
                     );
                   },
                   child: const Text('Don\'t have an account? Sign Up'),

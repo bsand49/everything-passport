@@ -14,8 +14,9 @@ void main() {
   Future<void> ensureLoggedOut(WidgetTester tester) async {
     await tester.pumpAndSettle();
     if (find.byType(LoginScreen).evaluate().isEmpty) {
-      final Finder appFinder =
-          find.byElementPredicate((element) => element.widget is MaterialApp);
+      final Finder appFinder = find.byElementPredicate(
+        (element) => element.widget is MaterialApp,
+      );
       if (appFinder.evaluate().isNotEmpty) {
         final context = tester.element(appFinder);
         final authService = Provider.of<AuthService>(context, listen: false);
@@ -50,15 +51,21 @@ void main() {
         // Verify validation messages (consistent with Validators utility)
         expect(find.text(Validators.validateEmail(null)!), findsOneWidget);
         expect(
-            find.text(Validators.validateRequired(null,
-                message: 'Please enter your password')!),
-            findsOneWidget);
+          find.text(
+            Validators.validateRequired(
+              null,
+              message: 'Please enter your password',
+            )!,
+          ),
+          findsOneWidget,
+        );
       });
     });
 
     group('Navigation', () {
-      testWidgets('Verify navigation between Login and Sign Up',
-          (tester) async {
+      testWidgets('Verify navigation between Login and Sign Up', (
+        tester,
+      ) async {
         await app.main();
         await ensureLoggedOut(tester);
 

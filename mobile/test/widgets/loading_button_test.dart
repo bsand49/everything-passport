@@ -5,8 +5,9 @@ import 'package:everything_passport/widgets/loading_button.dart';
 void main() {
   group('LoadingButton', () {
     group('Initialization', () {
-      testWidgets('renders child when not loading',
-          (WidgetTester tester) async {
+      testWidgets('renders child when not loading', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -24,8 +25,9 @@ void main() {
     });
 
     group('Interactions', () {
-      testWidgets('renders spinner and disables button when loading',
-          (WidgetTester tester) async {
+      testWidgets('renders spinner and disables button when loading', (
+        WidgetTester tester,
+      ) async {
         bool pressed = false;
         await tester.pumpWidget(
           MaterialApp(

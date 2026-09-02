@@ -3,9 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
+
 import 'dart:io';
 import 'dart:async';
+
 import 'package:http/http.dart' as http;
+
 import '../models/user_profile.dart';
 import '../models/country.dart';
 import '../services/user_profile_service.dart';
@@ -48,8 +51,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _countriesFuture =
-        Provider.of<MetadataService>(context, listen: false).getCountries();
+    _countriesFuture = Provider.of<MetadataService>(
+      context,
+      listen: false,
+    ).getCountries();
 
     final profile = context.read<UserProfile?>();
     if (profile != null) {
@@ -119,18 +124,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             initAspectRatio: CropAspectRatioPreset.square,
             lockAspectRatio: true,
             cropStyle: CropStyle.circle,
-            aspectRatioPresets: [
-              CropAspectRatioPreset.square,
-            ],
+            aspectRatioPresets: [CropAspectRatioPreset.square],
           ),
           IOSUiSettings(
             title: 'Edit Profile Picture',
             cropStyle: CropStyle.circle,
             aspectRatioLockEnabled: true,
             resetAspectRatioEnabled: false,
-            aspectRatioPresets: [
-              CropAspectRatioPreset.square,
-            ],
+            aspectRatioPresets: [CropAspectRatioPreset.square],
           ),
         ],
       );
@@ -169,13 +170,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     _usernameDebounce = Timer(const Duration(milliseconds: 500), () async {
       setState(() => _isCheckingUsername = true);
 
-      final userProfileService =
-          Provider.of<UserProfileService>(context, listen: false);
+      final userProfileService = Provider.of<UserProfileService>(
+        context,
+        listen: false,
+      );
       final user = Provider.of<User?>(context, listen: false);
 
       if (user != null) {
         final isAvailable = await userProfileService.isUsernameAvailable(
-            username: trimmedValue, currentUserId: user.uid);
+          username: trimmedValue,
+          currentUserId: user.uid,
+        );
         if (mounted) {
           setState(() {
             _isUsernameAvailable = isAvailable;
@@ -191,8 +196,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     setState(() => _isLoading = true);
     try {
       final client = Provider.of<http.Client>(context, listen: false);
-      final file = await ImageUtils.downloadAndSaveImage(url, client,
-          fileName: 'google_profile_temp.jpg');
+      final file = await ImageUtils.downloadAndSaveImage(
+        url,
+        client,
+        fileName: 'google_profile_temp.jpg',
+      );
 
       if (file != null && mounted) {
         setState(() {
@@ -205,7 +213,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Failed to load Google photo: ${e.toString()}')),
+            content: Text('Failed to load Google photo: ${e.toString()}'),
+          ),
         );
       }
     } finally {
@@ -224,13 +233,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final userProfileService =
-          Provider.of<UserProfileService>(context, listen: false);
+      final userProfileService = Provider.of<UserProfileService>(
+        context,
+        listen: false,
+      );
 
       String? photoUrl = _currentPhotoUrl;
       if (_selectedImage != null) {
         photoUrl = await userProfileService.uploadProfilePicture(
-            userId: user.uid, image: _selectedImage!);
+          userId: user.uid,
+          image: _selectedImage!,
+        );
       }
 
       final profile = UserProfile(
@@ -246,7 +259,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       );
 
       await userProfileService.saveProfile(
-          profile: profile, oldUsername: currentProfile?.username ?? '');
+        profile: profile,
+        oldUsername: currentProfile?.username ?? '',
+      );
       if (mounted) {
         if (Navigator.canPop(context)) {
           Navigator.pop(context);
@@ -270,8 +285,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       return const Scaffold(body: Center(child: Text("Not Logged In")));
     }
 
-    final isNewUser =
-        context.select<UserProfile?, bool>((p) => p == null || p.isIncomplete);
+    final isNewUser = context.select<UserProfile?, bool>(
+      (p) => p == null || p.isIncomplete,
+    );
     final googlePhotoUrl = user.photoURL;
 
     return Scaffold(
@@ -316,8 +332,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     prefixIcon: Icons.alternate_email,
                     suffixIcon: _buildUsernameSuffix(),
                     helperText: 'Must be unique and at least 3 characters',
-                    validator: (v) => Validators.validateUsername(v,
-                        isAvailable: _isUsernameAvailable),
+                    validator: (v) => Validators.validateUsername(
+                      v,
+                      isAvailable: _isUsernameAvailable,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   AuthTextField(
@@ -355,8 +373,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   LoadingButton(
                     onPressed: _submitProfile,
                     isLoading: _isLoading,
-                    child:
-                        Text(isNewUser ? 'Complete Profile' : 'Save Changes'),
+                    child: Text(
+                      isNewUser ? 'Complete Profile' : 'Save Changes',
+                    ),
                   ),
                 ],
               ),
@@ -398,7 +417,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return SwitchListTile(
       title: const Text('Public Profile'),
       subtitle: const Text(
-          'Allow others to find you and add you as a friend. Your data will only be available to friends once you have accepted a friend request.'),
+        'Allow others to find you and add you as a friend. Your data will only be available to friends once you have accepted a friend request.',
+      ),
       secondary: Icon(_isPublic ? Icons.public : Icons.lock_outline),
       value: _isPublic,
       onChanged: (bool value) {
