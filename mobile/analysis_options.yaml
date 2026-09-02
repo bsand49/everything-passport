@@ -14,6 +14,9 @@ analyzer:
     - "**/*.mocks.dart"
     - "lib/firebase_options_dev.dart"
     - "lib/firebase_options_prod.dart"
+    - "build/**"
+    - "android/**"
+    - "ios/**"
 
 linter:
   # The lint rules applied to this project can be customized in the

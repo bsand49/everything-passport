@@ -3,49 +3,36 @@ import 'package:flutter/foundation.dart';
 
 /// Represents a user's profile information within the application.
 @immutable
-class UserProfile {
+class const UserProfile({
   /// The unique identifier for the user (usually from Firebase Auth).
-  final String userId;
+  required final String userId,
 
   /// The user's email address.
-  final String? email;
+  final String? email,
 
   /// The unique username chosen by the user.
-  final String username;
+  required final String username,
 
   /// The user's first name.
-  final String firstName;
+  required final String firstName,
 
   /// The user's last name.
-  final String lastName;
+  required final String lastName,
 
   /// Whether the user's profile is visible to other users.
-  final bool isPublic;
+  final bool isPublic = false,
 
   /// The user's date of birth.
-  final DateTime? dateOfBirth;
+  final DateTime? dateOfBirth,
 
   /// The user's nationality (e.g., ISO country code).
-  final String? nationality;
+  final String? nationality,
 
   /// URL to the user's profile picture.
-  final String? photoUrl;
-
-  /// Creates a [UserProfile] instance.
-  const UserProfile({
-    required this.userId,
-    this.email,
-    required this.username,
-    required this.firstName,
-    required this.lastName,
-    this.isPublic = false,
-    this.dateOfBirth,
-    this.nationality,
-    this.photoUrl,
-  });
-
+  final String? photoUrl,
+}) {
   /// Creates a [UserProfile] instance from a Firestore map.
-  factory UserProfile.fromMap(String userId, Map<String, dynamic> map) {
+  factory fromMap(String userId, Map<String, dynamic> map) {
     return UserProfile(
       userId: userId,
       email: map['email'] as String?,
@@ -69,8 +56,9 @@ class UserProfile {
       'firstName': firstName,
       'lastName': lastName,
       'isPublic': isPublic,
-      'dateOfBirth':
-          dateOfBirth != null ? Timestamp.fromDate(dateOfBirth!) : null,
+      'dateOfBirth': dateOfBirth != null
+          ? Timestamp.fromDate(dateOfBirth!)
+          : null,
       'nationality': nationality,
       'photoUrl': photoUrl,
     };
