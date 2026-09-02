@@ -15,15 +15,21 @@ void main() {
       });
 
       test('returns custom error message for empty or null email', () {
-        expect(Validators.validateEmail('', message: 'Custom error'),
-            'Custom error');
+        expect(
+          Validators.validateEmail('', message: 'Custom error'),
+          'Custom error',
+        );
       });
 
       test('returns error for invalid email format', () {
         expect(
-            Validators.validateEmail('invalid'), 'Please enter a valid email');
-        expect(Validators.validateEmail('@domain.com'),
-            'Please enter a valid email');
+          Validators.validateEmail('invalid'),
+          'Please enter a valid email',
+        );
+        expect(
+          Validators.validateEmail('@domain.com'),
+          'Please enter a valid email',
+        );
         expect(Validators.validateEmail('user@'), 'Please enter a valid email');
       });
     });
@@ -40,13 +46,17 @@ void main() {
       });
 
       test('returns custom error message for empty or null password', () {
-        expect(Validators.validatePassword('', message: 'Custom error'),
-            'Custom error');
+        expect(
+          Validators.validatePassword('', message: 'Custom error'),
+          'Custom error',
+        );
       });
 
       test('returns error for short password', () {
-        expect(Validators.validatePassword('12345'),
-            'Password must be at least 6 characters');
+        expect(
+          Validators.validatePassword('12345'),
+          'Password must be at least 6 characters',
+        );
       });
     });
 
@@ -56,15 +66,21 @@ void main() {
       });
 
       test('returns error when passwords do not match', () {
-        expect(Validators.validateConfirmPassword('other', 'pass'),
-            'Passwords do not match');
+        expect(
+          Validators.validateConfirmPassword('other', 'pass'),
+          'Passwords do not match',
+        );
       });
 
       test('returns error when empty', () {
-        expect(Validators.validateConfirmPassword('', 'pass'),
-            'Please confirm your password');
-        expect(Validators.validateConfirmPassword(null, 'pass'),
-            'Please confirm your password');
+        expect(
+          Validators.validateConfirmPassword('', 'pass'),
+          'Please confirm your password',
+        );
+        expect(
+          Validators.validateConfirmPassword(null, 'pass'),
+          'Please confirm your password',
+        );
       });
     });
 
@@ -84,8 +100,10 @@ void main() {
       });
 
       test('returns error when username is not available', () {
-        expect(Validators.validateUsername('taken', isAvailable: false),
-            'Username already taken');
+        expect(
+          Validators.validateUsername('taken', isAvailable: false),
+          'Username already taken',
+        );
       });
     });
 
@@ -100,8 +118,10 @@ void main() {
       });
 
       test('returns error message with field name', () {
-        expect(Validators.validateRequired('', fieldName: 'Email'),
-            'Email is required');
+        expect(
+          Validators.validateRequired('', fieldName: 'Email'),
+          'Email is required',
+        );
       });
 
       test('returns custom error message', () {

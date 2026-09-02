@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -44,16 +45,20 @@ class FakeAuthService extends Fake implements AuthService {
   }
 
   @override
-  Future<UserCredential?> signInWithEmail(
-      {required String email, required String password}) async {
+  Future<UserCredential?> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
     lastEmail = email;
     lastPassword = password;
     return _handleAuth(() => signInWithEmailCalls++);
   }
 
   @override
-  Future<UserCredential?> signUpWithEmail(
-      {required String email, required String password}) async {
+  Future<UserCredential?> signUpWithEmail({
+    required String email,
+    required String password,
+  }) async {
     lastEmail = email;
     lastPassword = password;
     return _handleAuth(() => signUpWithEmailCalls++);
@@ -100,15 +105,19 @@ class FakeUserProfileService extends Fake implements UserProfileService {
   void emitProfile(UserProfile? profile) => _profileSubject.add(profile);
 
   @override
-  Future<bool> isUsernameAvailable(
-      {required String username, required String currentUserId}) async {
+  Future<bool> isUsernameAvailable({
+    required String username,
+    required String currentUserId,
+  }) async {
     isUsernameAvailableCalls++;
     return isUsernameAvailableResponse;
   }
 
   @override
-  Future<void> saveProfile(
-      {required UserProfile profile, required String oldUsername}) async {
+  Future<void> saveProfile({
+    required UserProfile profile,
+    required String oldUsername,
+  }) async {
     if (saveCompleter != null) {
       await saveCompleter!.future;
     }
@@ -118,8 +127,10 @@ class FakeUserProfileService extends Fake implements UserProfileService {
   }
 
   @override
-  Future<String> uploadProfilePicture(
-      {required String userId, required dynamic image}) async {
+  Future<String> uploadProfilePicture({
+    required String userId,
+    required dynamic image,
+  }) async {
     uploadProfilePictureCalls++;
     return 'https://example.com/photo.jpg';
   }
@@ -158,9 +169,11 @@ Widget createTestableWidget({
       Provider<http.Client>.value(value: httpClient ?? http.Client()),
       Provider<AuthService>.value(value: authService ?? FakeAuthService()),
       Provider<UserProfileService>.value(
-          value: userProfileService ?? FakeUserProfileService()),
+        value: userProfileService ?? FakeUserProfileService(),
+      ),
       Provider<MetadataService>.value(
-          value: metadataService ?? FakeMetadataService()),
+        value: metadataService ?? FakeMetadataService(),
+      ),
       Provider<User?>.value(value: user),
       Provider<UserProfile?>.value(value: userProfile),
     ],

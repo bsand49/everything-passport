@@ -6,8 +6,9 @@ import 'package:intl/intl.dart';
 void main() {
   group('DatePickerField', () {
     group('Initialization', () {
-      testWidgets('displays label and formatted date',
-          (WidgetTester tester) async {
+      testWidgets('displays label and formatted date', (
+        WidgetTester tester,
+      ) async {
         final date = DateTime(2020, 5, 15);
         await tester.pumpWidget(
           MaterialApp(
@@ -50,8 +51,9 @@ void main() {
         expect(find.byType(CalendarDatePicker), findsOneWidget);
       });
 
-      testWidgets('clears date when clear icon is pressed',
-          (WidgetTester tester) async {
+      testWidgets('clears date when clear icon is pressed', (
+        WidgetTester tester,
+      ) async {
         DateTime? selectedDate = DateTime(2020, 5, 15);
         await tester.pumpWidget(
           MaterialApp(

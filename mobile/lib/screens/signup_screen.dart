@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../services/auth_service.dart';
 import '../utils/validators.dart';
 import '../widgets/auth_text_field.dart';
@@ -97,7 +98,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 prefixIcon: Icons.lock_clock,
                 obscureText: true,
                 validator: (value) => Validators.validateConfirmPassword(
-                    value, _passwordController.text),
+                  value,
+                  _passwordController.text,
+                ),
               ),
               const SizedBox(height: 24),
               LoadingButton(

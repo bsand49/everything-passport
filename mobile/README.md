@@ -7,7 +7,7 @@ A cross-platform travel companion app designed to help users gamify and track th
 Before you begin, ensure you have the following installed:
 
 *   **Flutter SDK**: Follow the [official installation guide](https://docs.flutter.dev/get-started/install) for your OS.
-*   **Java Development Kit (JDK)**: Version 17 is required for Android builds.
+*   **Java Development Kit (JDK)**: Version 21 is required for Android builds (to ensure compatibility with Android Gradle Plugin 9.x).
 *   **Android Studio**: For Android development and emulators.
 *   **Xcode** (macOS only): For iOS/macOS development and simulators.
 *   **Firebase CLI**: For managing Firebase configurations. Install via npm: `npm install -g firebase-tools`.

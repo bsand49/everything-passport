@@ -1,16 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+
 import '../models/country.dart';
 
-class MetadataService {
-  final FirebaseFirestore _db;
+class MetadataService({FirebaseFirestore? db}) {
+  final FirebaseFirestore _db = db ?? FirebaseFirestore.instance;
   List<Country>? _cachedCountries;
 
-  MetadataService({FirebaseFirestore? db})
-      : _db = db ?? FirebaseFirestore.instance;
-
   static List<Country> _fromFirestore(
-      DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? _) {
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+    SnapshotOptions? _,
+  ) {
     final data = snapshot.data();
     final List<dynamic> options = data?['options'] ?? [];
     return options
@@ -19,10 +19,10 @@ class MetadataService {
   }
 
   static Map<String, Object?> toFirestore(
-      List<Country> countries, SetOptions? _) {
-    return {
-      'options': countries.map((c) => c.toMap()).toList(),
-    };
+    List<Country> countries,
+    SetOptions? _,
+  ) {
+    return {'options': countries.map((c) => c.toMap()).toList()};
   }
 
   /// Fetches the list of countries from the metadata collection.
@@ -48,8 +48,8 @@ class MetadataService {
       // Sort countries by name alphabetically
       countries.sort((a, b) => a.name.compareTo(b.name));
 
-      _cachedCountries = countries;
-      return countries;
+      _cachedCountries = List.unmodifiableOf(countries);
+      return _cachedCountries!;
     } catch (e) {
       debugPrint('Error fetching countries: $e');
       // Return cached data if available, even if forceRefresh was true,

@@ -43,8 +43,11 @@ class Validators {
     return null;
   }
 
-  static String? validateRequired(String? value,
-      {String? fieldName, String? message}) {
+  static String? validateRequired(
+    String? value, {
+    String? fieldName,
+    String? message,
+  }) {
     if (value == null || value.trim().isEmpty) {
       return message ?? '${fieldName ?? 'Field'} is required';
     }

@@ -5,9 +5,9 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:rxdart/rxdart.dart';
+
 import 'firebase_options_dev.dart' as dev;
-import 'firebase_options_dev.dart'
-    as prod; // TODO: Amend to firebase_options_prod.dart once prod project is created
+import 'firebase_options_dev.dart' as prod; // TODO: Amend to firebase_options_prod.dart once prod project is created
 import 'services/auth_service.dart';
 import 'services/user_profile_service.dart';
 import 'services/metadata_service.dart';
@@ -15,6 +15,7 @@ import 'models/user_profile.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/user_profile_screen.dart';
+
 import 'package:http/http.dart' as http;
 
 // coverage:ignore-start
@@ -32,13 +33,9 @@ Future<void> main() async {
   }
 
   if (Firebase.apps.isEmpty) {
-    await Firebase.initializeApp(
-      options: selectedOptions,
-    );
+    await Firebase.initializeApp(options: selectedOptions);
   }
-  await GoogleSignIn.instance.initialize(
-    serverClientId: serverClientId,
-  );
+  await GoogleSignIn.instance.initialize(serverClientId: serverClientId);
   runApp(const MyApp());
 }
 // coverage:ignore-end
@@ -67,9 +64,7 @@ class MyApp extends StatelessWidget {
             if (httpClient == null) client.close();
           },
         ),
-        Provider<AuthService>(
-          create: (_) => authService ?? AuthService(),
-        ),
+        Provider<AuthService>(create: (_) => authService ?? AuthService()),
         Provider<UserProfileService>(
           create: (_) => userProfileService ?? UserProfileService(),
         ),
@@ -93,10 +88,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'Everything Passport',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          useMaterial3: true,
-        ),
+        theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
         home: const AuthWrapper(),
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
@@ -108,11 +100,7 @@ class MyApp extends StatelessWidget {
           Locale('en', 'US'), // Changes format to MM/dd/yyyy
         ],
         builder: (context, child) {
-          return SafeArea(
-            top: false,
-            bottom: true,
-            child: child!,
-          );
+          return SafeArea(top: false, bottom: true, child: child!);
         },
       ),
     );

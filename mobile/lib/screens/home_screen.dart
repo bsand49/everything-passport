@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import '../models/user_profile.dart';
 import '../widgets/profile_avatar.dart';
 import 'settings_screen.dart';
@@ -57,16 +58,11 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    ProfileAvatar(
-                      photoUrl: userProfile.photoUrl,
-                      radius: 60,
-                    ),
+                    ProfileAvatar(photoUrl: userProfile.photoUrl, radius: 60),
                     const SizedBox(height: 24),
                     Text(
                       'Welcome to Everything Passport, $name!',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
+                      style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),

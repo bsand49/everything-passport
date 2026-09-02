@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mime/mime.dart';
+
 import 'dart:io';
+
 import '../exceptions/username_already_taken_exception.dart';
 import '../models/user_profile.dart';
 
@@ -16,27 +18,25 @@ class UserProfileService {
   static const String _profilePicturesPath = 'profile_pictures';
 
   UserProfileService({FirebaseFirestore? db, FirebaseStorage? storage})
-      : _db = db ?? FirebaseFirestore.instance,
-        _storage = storage ?? FirebaseStorage.instance;
+    : _db = db ?? FirebaseFirestore.instance,
+      _storage = storage ?? FirebaseStorage.instance;
 
   /// Returns a stream of the [UserProfile] for a given [userId].
   ///
   /// Returns `null` if the profile does not exist or an error occurs.
   Stream<UserProfile?> streamProfile({required String userId}) {
-    return _db
-        .collection(_usersProfilesCollection)
-        .doc(userId)
-        .snapshots()
-        .map((snapshot) {
-      try {
-        if (snapshot.exists && snapshot.data() != null) {
-          return UserProfile.fromMap(userId, snapshot.data()!);
+    return _db.collection(_usersProfilesCollection).doc(userId).snapshots().map(
+      (snapshot) {
+        try {
+          if (snapshot.exists && snapshot.data() != null) {
+            return UserProfile.fromMap(userId, snapshot.data()!);
+          }
+        } catch (e) {
+          debugPrint('Error mapping UserProfile for $userId: $e');
         }
-      } catch (e) {
-        debugPrint('Error mapping UserProfile for $userId: $e');
-      }
-      return null;
-    });
+        return null;
+      },
+    );
   }
 
   /// Saves a user's profile and ensures the username is unique using a Firestore transaction.
@@ -45,13 +45,16 @@ class UserProfileService {
   /// mapping updates correctly.
   ///
   /// Throws a [UsernameAlreadyTakenException] if the new username is already in use by another user.
-  Future<void> saveProfile(
-      {required UserProfile profile, required String oldUsername}) async {
+  Future<void> saveProfile({
+    required UserProfile profile,
+    required String oldUsername,
+  }) async {
     final newUsername = profile.username.toLowerCase();
     final normalizedOldUsername = oldUsername.toLowerCase();
 
-    final userRef =
-        _db.collection(_usersProfilesCollection).doc(profile.userId);
+    final userRef = _db
+        .collection(_usersProfilesCollection)
+        .doc(profile.userId);
     final usernameRef = _db.collection(_usernamesCollection).doc(newUsername);
 
     try {
@@ -67,8 +70,9 @@ class UserProfileService {
         if (normalizedOldUsername != newUsername) {
           // If they are changing their username, remove the old mapping
           if (normalizedOldUsername.isNotEmpty) {
-            final oldUsernameRef =
-                _db.collection(_usernamesCollection).doc(normalizedOldUsername);
+            final oldUsernameRef = _db
+                .collection(_usernamesCollection)
+                .doc(normalizedOldUsername);
             transaction.delete(oldUsernameRef);
           }
           // Create the new mapping
@@ -92,8 +96,10 @@ class UserProfileService {
   /// Checks if a [username] is available for use.
   ///
   /// A username is available if it doesn't exist or if it already belongs to [currentUserId].
-  Future<bool> isUsernameAvailable(
-      {required String username, required String currentUserId}) async {
+  Future<bool> isUsernameAvailable({
+    required String username,
+    required String currentUserId,
+  }) async {
     try {
       final doc = await _db
           .collection(_usernamesCollection)
@@ -113,8 +119,10 @@ class UserProfileService {
   ///
   /// The file is stored at `profile_pictures/{userId}` (no extension) to ensure
   /// that a user only ever has one profile picture file.
-  Future<String> uploadProfilePicture(
-      {required String userId, required File image}) async {
+  Future<String> uploadProfilePicture({
+    required String userId,
+    required File image,
+  }) async {
     try {
       final ref = _storage.ref().child(_profilePicturesPath).child(userId);
 

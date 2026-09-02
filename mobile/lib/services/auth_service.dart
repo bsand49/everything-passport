@@ -2,16 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-class AuthService {
-  final FirebaseAuth _auth;
-  final GoogleSignIn _googleSignIn;
+class AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn}) {
+  final FirebaseAuth _auth = auth ?? FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = googleSignIn ?? GoogleSignIn.instance;
 
   // Google Sign-In Scopes
   static const List<String> _googleScopes = ['email', 'profile'];
-
-  AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn})
-      : _auth = auth ?? FirebaseAuth.instance,
-        _googleSignIn = googleSignIn ?? GoogleSignIn.instance;
 
   /// Current user getter for synchronous checks.
   User? get currentUser => _auth.currentUser;
@@ -20,8 +16,10 @@ class AuthService {
   Stream<User?> get user => _auth.authStateChanges();
 
   /// Sign in with Email and Password.
-  Future<UserCredential?> signInWithEmail(
-      {required String email, required String password}) async {
+  Future<UserCredential?> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
     try {
       return await _auth.signInWithEmailAndPassword(
         email: email,
@@ -37,8 +35,10 @@ class AuthService {
   }
 
   /// Register with Email and Password.
-  Future<UserCredential?> signUpWithEmail(
-      {required String email, required String password}) async {
+  Future<UserCredential?> signUpWithEmail({
+    required String email,
+    required String password,
+  }) async {
     try {
       return await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -62,8 +62,10 @@ class AuthService {
 
       final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
-      final clientAuth = await googleUser.authorizationClient
-              .authorizationForScopes(_googleScopes) ??
+      final clientAuth =
+          await googleUser.authorizationClient.authorizationForScopes(
+            _googleScopes,
+          ) ??
           await googleUser.authorizationClient.authorizeScopes(_googleScopes);
 
       final OAuthCredential credential = GoogleAuthProvider.credential(
@@ -106,7 +108,8 @@ class AuthService {
       }
     } on FirebaseAuthException catch (e) {
       debugPrint(
-          'AuthService: Account deletion error [${e.code}]: ${e.message}');
+        'AuthService: Account deletion error [${e.code}]: ${e.message}',
+      );
       rethrow;
     } catch (e) {
       debugPrint('AuthService: Unexpected account deletion error: $e');

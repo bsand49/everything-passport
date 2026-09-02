@@ -23,16 +23,14 @@ void main() {
     });
 
     group('Interactions', () {
-      testWidgets('updates controller when text is entered',
-          (WidgetTester tester) async {
+      testWidgets('updates controller when text is entered', (
+        WidgetTester tester,
+      ) async {
         final controller = TextEditingController();
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: AuthTextField(
-                labelText: 'Email',
-                controller: controller,
-              ),
+              body: AuthTextField(labelText: 'Email', controller: controller),
             ),
           ),
         );
@@ -45,10 +43,7 @@ void main() {
         await tester.pumpWidget(
           const MaterialApp(
             home: Scaffold(
-              body: AuthTextField(
-                labelText: 'Password',
-                obscureText: true,
-              ),
+              body: AuthTextField(labelText: 'Password', obscureText: true),
             ),
           ),
         );
@@ -59,8 +54,9 @@ void main() {
         await tester.tap(find.byIcon(Icons.visibility_off));
         await tester.pump();
 
-        final updatedTextField =
-            tester.widget<TextField>(find.byType(TextField));
+        final updatedTextField = tester.widget<TextField>(
+          find.byType(TextField),
+        );
         expect(updatedTextField.obscureText, isFalse);
         expect(find.byIcon(Icons.visibility), findsOneWidget);
       });

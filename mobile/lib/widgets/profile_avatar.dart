@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -56,8 +57,11 @@ class ProfileAvatar extends StatelessWidget {
               backgroundColor: Theme.of(context).primaryColor,
               radius: 20,
               child: IconButton(
-                icon:
-                    const Icon(Icons.camera_alt, size: 20, color: Colors.white),
+                icon: const Icon(
+                  Icons.camera_alt,
+                  size: 20,
+                  color: Colors.white,
+                ),
                 onPressed: onEditPressed,
               ),
             ),

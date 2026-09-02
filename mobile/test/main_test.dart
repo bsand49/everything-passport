@@ -11,6 +11,7 @@ import 'package:everything_passport/screens/user_profile_screen.dart';
 import 'package:everything_passport/models/user_profile.dart';
 import 'package:everything_passport/services/metadata_service.dart';
 import 'package:http/http.dart' as http;
+
 import 'test_helper.dart';
 
 void main() async {
@@ -33,81 +34,93 @@ void main() async {
 
   group('AuthWrapper', () {
     group('Initialization', () {
-      testWidgets('shows LoginScreen when user is null',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(createTestableWidget(
-          child: const AuthWrapper(),
-          user: null,
-        ));
+      testWidgets('shows LoginScreen when user is null', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          createTestableWidget(child: const AuthWrapper(), user: null),
+        );
 
         expect(find.byType(LoginScreen), findsOneWidget);
       });
 
       testWidgets(
-          'shows UserProfileScreen when user is logged in but profile is null',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(createTestableWidget(
-          child: const AuthWrapper(),
-          user: FakeUser(),
-          userProfile: null,
-        ));
+        'shows UserProfileScreen when user is logged in but profile is null',
+        (WidgetTester tester) async {
+          await tester.pumpWidget(
+            createTestableWidget(
+              child: const AuthWrapper(),
+              user: FakeUser(),
+              userProfile: null,
+            ),
+          );
 
-        expect(find.byType(UserProfileScreen), findsOneWidget);
-      });
-
-      testWidgets(
-          'shows UserProfileScreen when user is logged in but profile is incomplete',
-          (WidgetTester tester) async {
-        final incompleteProfile = UserProfile(
-          userId: 'test_uid',
-          username: '', // incomplete
-          firstName: 'Test',
-          lastName: 'User',
-        );
-
-        await tester.pumpWidget(createTestableWidget(
-          child: const AuthWrapper(),
-          user: FakeUser(),
-          userProfile: incompleteProfile,
-        ));
-
-        expect(find.byType(UserProfileScreen), findsOneWidget);
-      });
+          expect(find.byType(UserProfileScreen), findsOneWidget);
+        },
+      );
 
       testWidgets(
-          'shows HomeScreen when user is logged in and profile is complete',
-          (WidgetTester tester) async {
-        final completeProfile = const UserProfile(
-          userId: 'test_uid',
-          username: 'testuser',
-          firstName: 'Test',
-          lastName: 'User',
-        );
+        'shows UserProfileScreen when user is logged in but profile is incomplete',
+        (WidgetTester tester) async {
+          final incompleteProfile = UserProfile(
+            userId: 'test_uid',
+            username: '', // incomplete
+            firstName: 'Test',
+            lastName: 'User',
+          );
 
-        await tester.pumpWidget(createTestableWidget(
-          child: const AuthWrapper(),
-          user: FakeUser(),
-          userProfile: completeProfile,
-        ));
+          await tester.pumpWidget(
+            createTestableWidget(
+              child: const AuthWrapper(),
+              user: FakeUser(),
+              userProfile: incompleteProfile,
+            ),
+          );
 
-        expect(find.byType(HomeScreen), findsOneWidget);
-      });
+          expect(find.byType(UserProfileScreen), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'shows HomeScreen when user is logged in and profile is complete',
+        (WidgetTester tester) async {
+          final completeProfile = const UserProfile(
+            userId: 'test_uid',
+            username: 'testuser',
+            firstName: 'Test',
+            lastName: 'User',
+          );
+
+          await tester.pumpWidget(
+            createTestableWidget(
+              child: const AuthWrapper(),
+              user: FakeUser(),
+              userProfile: completeProfile,
+            ),
+          );
+
+          expect(find.byType(HomeScreen), findsOneWidget);
+        },
+      );
     });
   });
 
   group('MyApp', () {
     group('Initialization', () {
-      testWidgets('renders MaterialApp with correct title and setup',
-          (WidgetTester tester) async {
+      testWidgets('renders MaterialApp with correct title and setup', (
+        WidgetTester tester,
+      ) async {
         final fakeAuth = FakeAuthService();
         final fakeUser = FakeUserProfileService();
         final fakeMeta = FakeMetadataService();
 
-        await tester.pumpWidget(MyApp(
-          authService: fakeAuth,
-          userProfileService: fakeUser,
-          metadataService: fakeMeta,
-        ));
+        await tester.pumpWidget(
+          MyApp(
+            authService: fakeAuth,
+            userProfileService: fakeUser,
+            metadataService: fakeMeta,
+          ),
+        );
         await tester.pump();
 
         expect(find.byType(MaterialApp), findsOneWidget);
@@ -116,19 +129,22 @@ void main() async {
         expect(app.theme?.useMaterial3, true);
       });
 
-      testWidgets('handles default providers and disposal',
-          (WidgetTester tester) async {
+      testWidgets('handles default providers and disposal', (
+        WidgetTester tester,
+      ) async {
         final fakeAuth = FakeAuthService();
         final fakeUser = FakeUserProfileService();
 
         // Emit a user to hit line 84 (switchMap branch for streamProfile)
         fakeAuth.emitUser(FakeUser());
 
-        await tester.pumpWidget(MyApp(
-          authService: fakeAuth,
-          userProfileService: fakeUser,
-          // Leave metadataService and httpClient null to hit lines 61, 73
-        ));
+        await tester.pumpWidget(
+          MyApp(
+            authService: fakeAuth,
+            userProfileService: fakeUser,
+            // Leave metadataService and httpClient null to hit lines 61, 73
+          ),
+        );
         await tester.pump(); // Allow streams to propagate
 
         // Verify that providers are available

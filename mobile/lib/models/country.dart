@@ -2,51 +2,37 @@ import 'package:flutter/foundation.dart';
 
 /// Represents a country with its identification and metadata.
 @immutable
-class Country {
-  final String id;
-  final String name;
-  final List<String> searchKeywords;
-
-  /// Creates a [Country] instance.
-  const Country({
-    required this.id,
-    required this.name,
-    required this.searchKeywords,
-  });
-
+class const Country({
+  required final String id,
+  required final String name,
+  required final List<String> searchKeywords,
+}) {
   /// Creates a [Country] instance from a [Map].
-  factory Country.fromMap(Map<String, dynamic> map) {
-    return Country(
-      id: map['id'] as String? ?? '',
-      name: map['name'] as String? ?? '',
-      searchKeywords: (map['searchKeywords'] as List<dynamic>?)
+  factory fromMap(Map<String, dynamic> map) => Country(
+    id: map['id'] as String? ?? '',
+    name: map['name'] as String? ?? '',
+    searchKeywords: List.unmodifiableOf(
+      (map['searchKeywords'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],
-    );
-  }
+    ),
+  );
 
   /// Converts the [Country] instance to a [Map].
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'searchKeywords': searchKeywords,
-    };
-  }
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'name': name,
+    'searchKeywords': searchKeywords,
+  };
 
   /// Creates a copy of this [Country] but with the given fields replaced with the new values.
-  Country copyWith({
-    String? id,
-    String? name,
-    List<String>? searchKeywords,
-  }) {
-    return Country(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      searchKeywords: searchKeywords ?? this.searchKeywords,
-    );
-  }
+  Country copyWith({String? id, String? name, List<String>? searchKeywords}) =>
+      Country(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        searchKeywords: searchKeywords ?? this.searchKeywords,
+      );
 
   @override
   String toString() => name;

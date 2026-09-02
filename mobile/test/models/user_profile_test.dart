@@ -112,15 +112,27 @@ void main() {
 
       test('handles empty names', () {
         const profile1 = UserProfile(
-            userId: '1', username: 'u', firstName: 'John', lastName: '');
+          userId: '1',
+          username: 'u',
+          firstName: 'John',
+          lastName: '',
+        );
         expect(profile1.fullName, 'John');
 
         const profile2 = UserProfile(
-            userId: '1', username: 'u', firstName: '', lastName: 'Doe');
+          userId: '1',
+          username: 'u',
+          firstName: '',
+          lastName: 'Doe',
+        );
         expect(profile2.fullName, 'Doe');
 
         const profile3 = UserProfile(
-            userId: '1', username: 'u', firstName: '', lastName: '');
+          userId: '1',
+          username: 'u',
+          firstName: '',
+          lastName: '',
+        );
         expect(profile3.fullName, '');
       });
     });
@@ -128,25 +140,41 @@ void main() {
     group('isIncomplete', () {
       test('returns true if username is empty', () {
         const profile = UserProfile(
-            userId: '1', username: '', firstName: 'A', lastName: 'B');
+          userId: '1',
+          username: '',
+          firstName: 'A',
+          lastName: 'B',
+        );
         expect(profile.isIncomplete, isTrue);
       });
 
       test('returns true if firstName is empty', () {
         const profile = UserProfile(
-            userId: '1', username: 'U', firstName: '', lastName: 'B');
+          userId: '1',
+          username: 'U',
+          firstName: '',
+          lastName: 'B',
+        );
         expect(profile.isIncomplete, isTrue);
       });
 
       test('returns true if lastName is empty', () {
         const profile = UserProfile(
-            userId: '1', username: 'U', firstName: 'A', lastName: '');
+          userId: '1',
+          username: 'U',
+          firstName: 'A',
+          lastName: '',
+        );
         expect(profile.isIncomplete, isTrue);
       });
 
       test('returns false if all required fields are present', () {
         const profile = UserProfile(
-            userId: '1', username: 'U', firstName: 'A', lastName: 'B');
+          userId: '1',
+          username: 'U',
+          firstName: 'A',
+          lastName: 'B',
+        );
         expect(profile.isIncomplete, isFalse);
       });
     });
@@ -171,7 +199,11 @@ void main() {
 
       test('returns same instance values when no arguments provided', () {
         const profile = UserProfile(
-            userId: '1', username: 'u', firstName: 'A', lastName: 'B');
+          userId: '1',
+          username: 'u',
+          firstName: 'A',
+          lastName: 'B',
+        );
         final updated = profile.copyWith();
         expect(updated, equals(profile));
       });
@@ -221,8 +253,10 @@ void main() {
           firstName: 'John',
           lastName: 'Doe',
         );
-        expect(profile.toString(),
-            'UserProfile(userId: 123, email: null, username: jdoe, firstName: John, lastName: Doe, isPublic: false, dateOfBirth: null, nationality: null, photoUrl: null)');
+        expect(
+          profile.toString(),
+          'UserProfile(userId: 123, email: null, username: jdoe, firstName: John, lastName: Doe, isPublic: false, dateOfBirth: null, nationality: null, photoUrl: null)',
+        );
       });
     });
   });

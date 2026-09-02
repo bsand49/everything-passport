@@ -39,11 +39,7 @@ void main() {
       });
 
       test('fromMap handles null values by using defaults', () {
-        final map = {
-          'id': null,
-          'name': null,
-          'searchKeywords': null,
-        };
+        final map = {'id': null, 'name': null, 'searchKeywords': null};
         final country = Country.fromMap(map);
         expect(country.id, '');
         expect(country.name, '');
@@ -84,8 +80,11 @@ void main() {
       });
 
       test('returns same values when no arguments provided', () {
-        const country =
-            Country(id: 'DE', name: 'Germany', searchKeywords: ['germany']);
+        const country = Country(
+          id: 'DE',
+          name: 'Germany',
+          searchKeywords: ['germany'],
+        );
         final updated = country.copyWith();
         expect(updated, equals(country));
       });

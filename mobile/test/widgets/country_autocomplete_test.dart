@@ -7,7 +7,10 @@ import 'package:everything_passport/models/country.dart';
 void main() {
   final countries = [
     Country(
-        id: 'GB', name: 'United Kingdom', searchKeywords: ['uk', 'britain']),
+      id: 'GB',
+      name: 'United Kingdom',
+      searchKeywords: ['uk', 'britain'],
+    ),
     Country(id: 'US', name: 'United States', searchKeywords: ['usa']),
     Country(id: 'FR', name: 'France', searchKeywords: ['fr']),
   ];
@@ -44,17 +47,19 @@ void main() {
         );
 
         expect(
-            find.descendant(
-              of: find.byType(TextFormField),
-              matching: find.byType(CountryFlag),
-            ),
-            findsOneWidget);
+          find.descendant(
+            of: find.byType(TextFormField),
+            matching: find.byType(CountryFlag),
+          ),
+          findsOneWidget,
+        );
       });
     });
 
     group('Interactions', () {
-      testWidgets('filters options based on input',
-          (WidgetTester tester) async {
+      testWidgets('filters options based on input', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -93,8 +98,9 @@ void main() {
         expect(find.byType(CountryFlag), findsNWidgets(3));
       });
 
-      testWidgets('calls onSelected when an option is picked',
-          (WidgetTester tester) async {
+      testWidgets('calls onSelected when an option is picked', (
+        WidgetTester tester,
+      ) async {
         Country? selectedCountry;
         await tester.pumpWidget(
           MaterialApp(
@@ -116,8 +122,9 @@ void main() {
         expect(selectedCountry?.id, 'FR');
       });
 
-      testWidgets('updates prefix icon to flag when an option is picked',
-          (WidgetTester tester) async {
+      testWidgets('updates prefix icon to flag when an option is picked', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -132,11 +139,12 @@ void main() {
         // Before selection, should show the default prefix icon (Icons.flag)
         expect(find.byIcon(Icons.flag), findsOneWidget);
         expect(
-            find.descendant(
-              of: find.byType(TextFormField),
-              matching: find.byType(CountryFlag),
-            ),
-            findsNothing);
+          find.descendant(
+            of: find.byType(TextFormField),
+            matching: find.byType(CountryFlag),
+          ),
+          findsNothing,
+        );
 
         await tester.enterText(find.byType(TextFormField), 'France');
         await tester.pumpAndSettle();
@@ -146,16 +154,18 @@ void main() {
 
         // After selection, TextFormField should have CountryFlag as prefix
         expect(
-            find.descendant(
-              of: find.byType(TextFormField),
-              matching: find.byType(CountryFlag),
-            ),
-            findsOneWidget);
+          find.descendant(
+            of: find.byType(TextFormField),
+            matching: find.byType(CountryFlag),
+          ),
+          findsOneWidget,
+        );
         expect(find.byIcon(Icons.flag), findsNothing);
       });
 
-      testWidgets('updates prefix icon to flag when valid name is typed',
-          (WidgetTester tester) async {
+      testWidgets('updates prefix icon to flag when valid name is typed', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -172,15 +182,17 @@ void main() {
 
         // Typing exactly a country name should show the flag in the field
         expect(
-            find.descendant(
-              of: find.byType(TextFormField),
-              matching: find.byType(CountryFlag),
-            ),
-            findsOneWidget);
+          find.descendant(
+            of: find.byType(TextFormField),
+            matching: find.byType(CountryFlag),
+          ),
+          findsOneWidget,
+        );
       });
 
-      testWidgets('clears selection when clear icon is pressed',
-          (WidgetTester tester) async {
+      testWidgets('clears selection when clear icon is pressed', (
+        WidgetTester tester,
+      ) async {
         Country? selectedCountry = countries.first;
         await tester.pumpWidget(
           MaterialApp(
@@ -204,8 +216,9 @@ void main() {
         expect(selectedCountry, isNull);
       });
 
-      testWidgets('reverts to default icon when field is cleared',
-          (WidgetTester tester) async {
+      testWidgets('reverts to default icon when field is cleared', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -220,11 +233,12 @@ void main() {
 
         // Should start with France's flag
         expect(
-            find.descendant(
-              of: find.byType(TextFormField),
-              matching: find.byType(CountryFlag),
-            ),
-            findsOneWidget);
+          find.descendant(
+            of: find.byType(TextFormField),
+            matching: find.byType(CountryFlag),
+          ),
+          findsOneWidget,
+        );
 
         // Tap the clear icon
         await tester.tap(find.byIcon(Icons.clear));
@@ -233,11 +247,12 @@ void main() {
         // Should revert to default flag icon
         expect(find.byIcon(Icons.flag), findsOneWidget);
         expect(
-            find.descendant(
-              of: find.byType(TextFormField),
-              matching: find.byType(CountryFlag),
-            ),
-            findsNothing);
+          find.descendant(
+            of: find.byType(TextFormField),
+            matching: find.byType(CountryFlag),
+          ),
+          findsNothing,
+        );
       });
     });
   });
