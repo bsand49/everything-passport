@@ -28,9 +28,9 @@ jobs:
 
       - name: Enable auto-merge for Dependabot PRs
         if: |
-          contains(steps.metadata.outputs.group, 'npm-safe-updates') ||
-          contains(steps.metadata.outputs.group, 'pub-safe-updates') ||
-          contains(steps.metadata.outputs.group, 'action-updates')
+          contains(steps.metadata.outputs.dependency-group, 'npm-safe-updates') ||
+          contains(steps.metadata.outputs.dependency-group, 'pub-safe-updates') ||
+          contains(steps.metadata.outputs.dependency-group, 'action-updates')
         env:
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
