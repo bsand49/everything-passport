@@ -11,6 +11,7 @@ migrate_working_dir/
 
 # Flutter Core Build Artifacts
 .dart_tool/
+.widget_preview/
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
