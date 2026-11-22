@@ -29,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `integration_test` smoke suite for app boot, auth navigation, and shared
     validation behavior.
   - `build_runner` mock generation.
+  - `tests/rules/` Firebase emulator suite covering Firestore and Storage
+    security rules (owner/admin access, field validation, and secure
+    defaults), run in CI by `rules-tests.yml`.
 - Repository management:
   - `CODEOWNERS` for review assignment.
   - Dependabot configuration for GitHub Actions, npm, and pub updates.
@@ -36,7 +39,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Firebase `firestore.rules` and `storage.rules` with a root `firebase.json`
     deploy config; rules preserve the existing username/profile/trip validation
     and enforce owner-only user access plus admin access via the `admins`
-    collection.
+    collection. Admin access additionally requires a verified email, and
+    username mappings can only be created alongside a matching profile write,
+    preventing username squatting.
   - Lefthook pre-commit formatting/analysis and pre-push test/coverage checks,
     including local GUI-client overrides.
   - Pull request template and branch-name enforcement workflow.

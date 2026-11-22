@@ -15,14 +15,15 @@ inside `mobile/`.
   contains only `.gitkeep`.
 - `.github/actions/` — composite actions for Firebase configuration and LCOV
   coverage reporting.
-- `.github/workflows/` — build/test, branch-name, Dependabot, and auto-merge
-  automation.
+- `.github/workflows/` — build/test, Firebase rules tests, branch-name,
+  Dependabot, and auto-merge automation.
 - `package.json` / `package-lock.json` — root npm manifest used only to install
   Lefthook; this is not a JavaScript application.
 - `lefthook.yml` — Git hook commands for formatting, analysis, tests, and
   coverage.
 - `firebase.json`, `firestore.rules`, `storage.rules` — Firebase CLI deploy
   config and owner/admin security rules.
+- `tests/rules/` — Firebase emulator tests for the security rules.
 - `CHANGELOG.md`, `README.md`, `RELEASING.md`, `AGENTS.md` — repository
   documentation.
 
@@ -138,12 +139,12 @@ independently for mobile builds.
   the threshold with `MOBILE_COVERAGE_THRESHOLD`.
 - **Firebase rules**: when adding Firestore collections/subcollections or
   Firebase Storage prefixes, update `firestore.rules`/`storage.rules` in the
-  same change. Prefer owner-scoped paths containing the user's UID and keep
-  the admin-only secure default for anything not explicitly scoped. CI does
-  not exercise rules — validate changes with
-  `firebase deploy --dry-run --only firestore:rules,storage --project
-  everything-passport-dev`; emulator-based rules tests are a known gap to
-  pick up later.
+  same change and extend the emulator tests in `tests/rules/`. Prefer
+  owner-scoped paths containing the user's UID and keep the admin-only secure
+  default for anything not explicitly scoped. Run the rules tests with
+  `firebase emulators:exec --only firestore,storage --project
+  demo-everything-passport 'npm --prefix tests/rules test'` and validate
+  deployability with `firebase deploy --dry-run`.
 - **Changelog**: record notable user-facing or structural changes in
   `CHANGELOG.md` under `[Unreleased]` as part of the same change. Update
   `README.md` when documented behavior, setup, or project structure changes.
