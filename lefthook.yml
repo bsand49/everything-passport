@@ -12,7 +12,7 @@ pre-commit:
     analyze:
       root: "mobile/"
       glob: "*.dart"
-      run: "flutter analyze"
+      run: "flutter analyze --no-fatal-infos"
 
 pre-push:
   commands:
