@@ -5,7 +5,7 @@ import 'package:everything_passport/screens/login_screen.dart';
 import 'package:everything_passport/screens/signup_screen.dart';
 import 'package:everything_passport/services/auth_service.dart';
 import 'package:everything_passport/utils/validators.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 void main() {

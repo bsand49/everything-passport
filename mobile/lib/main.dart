@@ -1,6 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -90,11 +89,7 @@ class MyApp extends StatelessWidget {
         title: 'Everything Passport',
         theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
         home: const AuthWrapper(),
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
         supportedLocales: const [
           Locale('en', 'GB'), // Changes format to dd/MM/yyyy
           Locale('en', 'US'), // Changes format to MM/dd/yyyy
