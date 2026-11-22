@@ -61,7 +61,7 @@ rules have their own emulator suite in `tests/rules/`:
 
 ```bash
 npm --prefix tests/rules install
-firebase emulators:exec --only firestore,storage \
+npx firebase emulators:exec --only firestore,storage \
   --project demo-everything-passport 'npm --prefix tests/rules test'
 ```
 
@@ -155,7 +155,7 @@ access model:
 Deploy rules to the dev project with:
 
 ```bash
-firebase deploy --only firestore:rules,storage --project everything-passport-dev
+npx firebase deploy --only firestore:rules,storage --project everything-passport-dev
 ```
 
 ### Bootstrapping an admin
