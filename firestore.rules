@@ -60,6 +60,7 @@ service cloud.firestore {
         && isValidUserProfile(request.resource.data)
         && getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.userId == userId
         && (!exists(/databases/$(database)/documents/userProfiles/$(userId))
+          || !('username' in resource.data)
           || request.resource.data.username == resource.data.username
           || !existsAfter(/databases/$(database)/documents/usernames/$(resource.data.username)));
       allow delete: if isAdmin();

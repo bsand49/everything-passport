@@ -87,6 +87,10 @@ test.before(async () => {
       username: 'henry',
     });
     await setDoc(doc(fs, 'usernames', 'henry'), { userId: 'user-5' });
+    // Profile without a username field (e.g. written by an admin repair).
+    await setDoc(doc(fs, 'userProfiles', 'user-6'), {
+      email: 'six@example.com',
+    });
   });
 });
 
@@ -136,9 +140,18 @@ test('usernames: cannot overwrite an existing mapping or claim another uid', asy
 });
 
 test('usernames: users can delete only their own mapping; admins can delete any', async () => {
+  // carol -> user-2 and henry -> user-5 exist at this point.
+  await assertFails(deleteDoc(doc(userDb(), 'usernames', 'carol')));
+  await assertFails(deleteDoc(doc(userDb(), 'usernames', 'henry')));
   await assertSucceeds(deleteDoc(doc(userDb('user-2'), 'usernames', 'carol')));
-  await assertFails(deleteDoc(doc(userDb(), 'usernames', 'bob')));
-  await assertSucceeds(deleteDoc(doc(adminDb(), 'usernames', 'bob')));
+  await assertSucceeds(
+    setDoc(doc(adminDb(), 'usernames', 'temp-admin-delete'), {
+      userId: 'user-9',
+    }),
+  );
+  await assertSucceeds(
+    deleteDoc(doc(adminDb(), 'usernames', 'temp-admin-delete')),
+  );
 });
 
 // --- userProfiles ---
@@ -198,6 +211,18 @@ test('userProfiles: username changes must release the old mapping', async () => 
     { merge: true },
   );
   await assertSucceeds(released.commit());
+});
+
+test('userProfiles: filling in a missing username on an existing profile', async () => {
+  const fs = userDb('user-6');
+  const batch = writeBatch(fs);
+  batch.set(doc(fs, 'usernames', 'river'), { userId: 'user-6' });
+  batch.set(
+    doc(fs, 'userProfiles', 'user-6'),
+    { ...VALID_PROFILE, email: 'six@example.com', username: 'river' },
+    { merge: true },
+  );
+  await assertSucceeds(batch.commit());
 });
 
 test('userProfiles: admins bypass field validation', async () => {
