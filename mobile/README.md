@@ -10,7 +10,12 @@ Firebase Authentication, Cloud Firestore, and Firebase Storage.
 ## Features
 
 - Email/password sign-up and sign-in, Google sign-in, and sign-out.
-- `AuthService` support for password reset and account deletion.
+- `AuthService` support for password reset, account deletion, and email
+  verification (`sendEmailVerification`, `reloadCurrentUser`).
+- Automatic verification email on email/password sign-up, plus a persistent
+  in-app banner on authenticated screens where unverified password users can
+  resend the email or refresh their verification status. Email verification
+  is required for admin access.
 - Profile onboarding/editing for username, name, date of birth, nationality,
   public-profile preference, and photo.
 - Transactional username uniqueness using the Firestore `usernames`

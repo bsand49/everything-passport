@@ -237,6 +237,10 @@ void main() {
               ),
             ).called(1);
             verify(mockObserver.didPop(any, any)).called(1);
+            expect(
+              find.textContaining('Verification email sent'),
+              findsOneWidget,
+            );
           },
         );
 

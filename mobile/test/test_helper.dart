@@ -22,6 +22,8 @@ class FakeAuthService extends Fake implements AuthService {
   int signInWithGoogleCalls = 0;
   int signUpWithEmailCalls = 0;
   int signOutCalls = 0;
+  int sendEmailVerificationCalls = 0;
+  int reloadCurrentUserCalls = 0;
 
   bool throwError = false;
   String errorMessage = 'Test Error';
@@ -71,6 +73,24 @@ class FakeAuthService extends Fake implements AuthService {
 
   @override
   Future<void> sendPasswordResetEmail({required String email}) async {
+    if (throwError) throw Exception(errorMessage);
+  }
+
+  @override
+  bool requiresEmailVerificationFor(User? user) {
+    if (user == null || user.emailVerified) return false;
+    return user.providerData.any((info) => info.providerId == 'password');
+  }
+
+  @override
+  Future<void> sendEmailVerification() async {
+    sendEmailVerificationCalls++;
+    if (throwError) throw Exception(errorMessage);
+  }
+
+  @override
+  Future<void> reloadCurrentUser() async {
+    reloadCurrentUserCalls++;
     if (throwError) throw Exception(errorMessage);
   }
 
@@ -145,13 +165,27 @@ class FakeMetadataService extends Fake implements MetadataService {
       countries;
 }
 
+class FakeUserInfo extends Fake implements UserInfo {
+  FakeUserInfo(this.providerId);
+
+  @override
+  final String providerId;
+}
+
 class FakeUser extends Fake implements User {
+  FakeUser({this.emailVerified = true, List<UserInfo>? providerData})
+    : providerData = providerData ?? [];
+
   @override
   String get uid => 'test_user';
   @override
   String? get email => 'test@example.com';
   @override
   String? get photoURL => 'https://example.com/photo.jpg';
+  @override
+  bool emailVerified;
+  @override
+  final List<UserInfo> providerData;
 }
 
 Widget createTestableWidget({

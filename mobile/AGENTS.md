@@ -91,12 +91,19 @@ need matching rule updates in the same change.
   use Mockito/generated mocks where the existing suite already does.
 - `*.mocks.dart` files are generated and gitignored. After changing
   `@GenerateNiceMocks` or mock-dependent tests, run
-  `dart run build_runner build --delete-conflicting-outputs`.
+  `dart run build_runner build --delete-conflicting-outputs` (the
+  `--delete-conflicting-outputs` flag is currently ignored by the installed
+  build_runner version but is kept for older toolchains).
 - Integration tests require a device/emulator, native Firebase config files,
   and `SERVER_CLIENT_ID`; they sign out first when needed to keep a clean
   auth state.
 - CI coverage excludes tests, generated mocks, generated Firebase options,
-  and build output. Keep line coverage at or above `90%`.
+  and build output. The enforced threshold is 90% line coverage; aim for
+  100% on new/changed code.
+- Coverage counts executed lines: `const` widget constructors are
+  canonicalized at compile time and register as uncovered even when the
+  widget is used. Instantiate the widget non-`const` in tests when targeting
+  full coverage.
 
 ## Platform notes
 

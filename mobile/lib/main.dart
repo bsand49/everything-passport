@@ -14,6 +14,7 @@ import 'models/user_profile.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/user_profile_screen.dart';
+import 'widgets/email_verification_banner.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -115,9 +116,9 @@ class AuthWrapper extends StatelessWidget {
     }
 
     if (profile == null || profile.isIncomplete) {
-      return const UserProfileScreen();
+      return const EmailVerificationBannerHost(child: UserProfileScreen());
     }
 
-    return const HomeScreen();
+    return const EmailVerificationBannerHost(child: HomeScreen());
   }
 }

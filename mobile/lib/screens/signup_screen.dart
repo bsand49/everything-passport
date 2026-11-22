@@ -48,6 +48,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
             .text, // Don't trim passwords as spaces can be intentional
       );
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Account created. Verification email sent — check your inbox.',
+            ),
+          ),
+        );
         Navigator.pop(context); // Go back to login or let wrapper handle it
       }
     } catch (e) {

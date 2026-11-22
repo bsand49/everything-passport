@@ -102,6 +102,62 @@ void main() async {
           expect(find.byType(HomeScreen), findsOneWidget);
         },
       );
+
+      testWidgets('shows verification banner for unverified password user', (
+        WidgetTester tester,
+      ) async {
+        final completeProfile = const UserProfile(
+          userId: 'test_uid',
+          username: 'testuser',
+          firstName: 'Test',
+          lastName: 'User',
+        );
+
+        await tester.pumpWidget(
+          createTestableWidget(
+            child: const AuthWrapper(),
+            user: FakeUser(
+              emailVerified: false,
+              providerData: [FakeUserInfo('password')],
+            ),
+            userProfile: completeProfile,
+          ),
+        );
+
+        expect(find.byType(HomeScreen), findsOneWidget);
+        expect(
+          find.text('Verify your email to unlock admin features'),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('hides verification banner for unverified Google user', (
+        WidgetTester tester,
+      ) async {
+        final completeProfile = const UserProfile(
+          userId: 'test_uid',
+          username: 'testuser',
+          firstName: 'Test',
+          lastName: 'User',
+        );
+
+        await tester.pumpWidget(
+          createTestableWidget(
+            child: const AuthWrapper(),
+            user: FakeUser(
+              emailVerified: false,
+              providerData: [FakeUserInfo('google.com')],
+            ),
+            userProfile: completeProfile,
+          ),
+        );
+
+        expect(find.byType(HomeScreen), findsOneWidget);
+        expect(
+          find.text('Verify your email to unlock admin features'),
+          findsNothing,
+        );
+      });
     });
   });
 

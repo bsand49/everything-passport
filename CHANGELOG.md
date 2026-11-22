@@ -67,6 +67,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `package:material_ui/material_ui.dart`, clearing the Flutter 3.47+
     deprecation diagnostics; localization delegates now come from
     `GlobalMaterialLocalizations.delegates`.
+- Email verification for password accounts:
+  - A verification email is sent automatically after email/password sign-up;
+    sign-up still succeeds if the send fails.
+  - `AuthService` exposes `sendEmailVerification()` and
+    `reloadCurrentUser()`, and detects unverified password accounts via
+    `requiresEmailVerificationFor` (Google sign-in accounts are already
+    verified).
+  - A persistent in-app banner on the home, profile, and settings screens
+    prompts unverified password users to verify, with resend and
+    refresh-status actions. Email verification is required for admin access.
 
 ### Security
 
