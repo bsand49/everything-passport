@@ -140,7 +140,9 @@ test('usernames: cannot overwrite an existing mapping or claim another uid', asy
 });
 
 test('usernames: users can delete only their own mapping; admins can delete any', async () => {
-  // carol -> user-2 and henry -> user-5 exist at this point.
+  // Seed the mapping under test so this test does not depend on earlier ones.
+  await setDoc(doc(adminDb(), 'usernames', 'carol'), { userId: 'user-2' });
+  // henry -> user-5 exists from the seed data.
   await assertFails(deleteDoc(doc(userDb(), 'usernames', 'carol')));
   await assertFails(deleteDoc(doc(userDb(), 'usernames', 'henry')));
   await assertSucceeds(deleteDoc(doc(userDb('user-2'), 'usernames', 'carol')));
