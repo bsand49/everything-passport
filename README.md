@@ -21,7 +21,8 @@ feature list.
 
 ## Prerequisites
 
-- **Node.js/npm** for the repository-level Lefthook install
+- **Node.js/npm** for the repository-level Lefthook install and the
+  `tests/rules` Firebase emulator suite
 - **Firebase CLI** and **FlutterFire CLI** for Firebase configuration:
 
   ```bash
@@ -49,8 +50,15 @@ IDE run configs), and running the app are covered in
 
 ## Testing & Coverage
 
-The only test suite currently is the Flutter app's — see
-[mobile/README.md](./mobile/README.md#testing--coverage) for commands.
+The Flutter app's test suite is documented in
+[mobile/README.md](./mobile/README.md#testing--coverage). Firebase security
+rules have their own emulator suite in `tests/rules/`:
+
+```bash
+npm --prefix tests/rules install
+firebase emulators:exec --only firestore,storage \
+  --project demo-everything-passport 'npm --prefix tests/rules test'
+```
 
 CI runs `flutter test --coverage` plus an Android emulator integration smoke
 test when `mobile/` changes. The `report-coverage` composite action parses
@@ -83,6 +91,7 @@ web/                     Reserved placeholder for a future web frontend
 firebase.json            Firebase CLI deploy config for security rules
 firestore.rules          Firestore owner/admin access rules
 storage.rules            Firebase Storage owner/admin access rules
+tests/rules/             Firebase emulator tests for the security rules
 package.json             Root Lefthook dependency only
 package-lock.json        Root npm lockfile
 lefthook.yml             Git hook configuration
@@ -99,6 +108,7 @@ All automation lives in [`.github/`](.github/):
 | Workflow                    | Trigger                                | Purpose                                                        |
 | --------------------------- | -------------------------------------- | -------------------------------------------------------------- |
 | `build.yml`                 | PRs and pushes to `main`/`master`      | Detects `mobile/` changes, then formats, analyzes, tests, and smoke-tests the Flutter app |
+| `rules-tests.yml`           | PRs touching rules or `tests/rules/` | Runs the Firebase emulator suite for Firestore/Storage security rules |
 | `branch-name-check.yml`     | PRs                                    | Enforces `<prefix>/(<issue-id>-)<description>` branch names    |
 | `dependabot-auto-merge.yml` | Dependabot PR lifecycle/reviews        | Auto-merges approved safe dependency-update groups             |
 

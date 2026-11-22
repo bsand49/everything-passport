@@ -33,16 +33,16 @@ service cloud.firestore {
       allow get: if isSignedIn();
       allow list: if isAdmin();
 
-      // Users may only create a mapping that does not already exist and points
-      // to their own UID. Username changes are performed as delete + create in
-      // a transaction, so regular users cannot update mappings in place.
-      // Known limitation: a user can reserve usernames their profile never
-      // uses. A future tightening can require the post-write profile's
-      // username to match via getAfter() on userProfiles/{uid}.
+      // Users may only create a mapping that does not already exist, points
+      // to their own UID, and is backed by a profile write that sets
+      // userProfiles/{uid}.username to this username. Username changes are
+      // performed as delete + create in a transaction, so regular users
+      // cannot update mappings in place or reserve unused usernames.
       allow create: if isAdmin()
         || (isSignedIn()
           && !exists(/databases/$(database)/documents/usernames/$(username))
-          && request.resource.data.userId == request.auth.uid);
+          && request.resource.data.userId == request.auth.uid
+          && getAfter(/databases/$(database)/documents/userProfiles/$(request.auth.uid)).data.username == username);
       allow update: if isAdmin();
       allow delete: if isAdmin()
         || (isSignedIn() && resource.data.userId == request.auth.uid);
@@ -52,11 +52,17 @@ service cloud.firestore {
       allow read: if isOwner(userId) || isAdmin();
 
       // Profile writes must pass field validation and leave a username mapping
-      // that points back to this user. Deletes are admin-only so username
-      // mappings can be cleaned up consistently.
+      // that points back to this user. When the username changes, the previous
+      // mapping must be released in the same transaction so old usernames do
+      // not stay reserved. Deletes are admin-only so username mappings can be
+      // cleaned up consistently.
       allow create, update: if (isOwner(userId) || isAdmin())
         && isValidUserProfile(request.resource.data)
-        && getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.userId == userId;
+        && getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.userId == userId
+        && (!exists(/databases/$(database)/documents/userProfiles/$(userId))
+          || !('username' in resource.data)
+          || request.resource.data.username == resource.data.username
+          || !existsAfter(/databases/$(database)/documents/usernames/$(resource.data.username)));
       allow delete: if isAdmin();
 
       match /trips/{tripId} {
