@@ -20,8 +20,8 @@ Please delete options that are not relevant.
 
 Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration
 
-- [ ] Unit Tests
-- [ ] Integration Tests
+- [ ] Unit Tests (`flutter test` / `flutter test --coverage`)
+- [ ] Integration Tests (`flutter test --dart-define=ENV=dev --dart-define=SERVER_CLIENT_ID=<id> integration_test/app_test.dart` on a device/emulator)
 - [ ] Manual Testing (please specify)
 
 ## Checklist:
@@ -33,7 +33,8 @@ Please describe the tests that you ran to verify your changes. Provide instructi
 - [ ] I have made corresponding changes to the documentation
 - [ ] My changes generate no new warnings
 - [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
+- [ ] New and existing unit tests pass locally with my changes (`flutter test --coverage`)
+- [ ] `dart format --output=none --set-exit-if-changed .` and `flutter analyze` pass locally with my changes
 - [ ] Any dependent changes have been merged and published in downstream modules
 
 ## Screenshots (if applicable)

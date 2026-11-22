@@ -1,208 +1,290 @@
-# Everything Passport - Mobile Client
+# mobile
 
-A cross-platform travel companion app designed to help users gamify and track their life experiences. Built with Flutter and Firebase.
+Flutter application for Everything Passport on Android and iOS, backed by
+Firebase Authentication, Cloud Firestore, and Firebase Storage.
+
+> **Status:** Unreleased (`1.x`). See the root [README.md](../README.md),
+> [CHANGELOG.md](../CHANGELOG.md), and [RELEASING.md](../RELEASING.md) for
+> repository-level documentation.
+
+## Features
+
+- Email/password sign-up and sign-in, Google sign-in, and sign-out.
+- `AuthService` support for password reset and account deletion.
+- Profile onboarding/editing for username, name, date of birth, nationality,
+  public-profile preference, and photo.
+- Transactional username uniqueness using the Firestore `usernames`
+  collection.
+- Profile photo upload to Firebase Storage at `profile_pictures/{userId}`.
+- Country metadata from `metadata/countries` with an in-memory cache.
+- Material 3 UI and English (UK/US) localization delegates.
+- Home/settings scaffolding; Add Trip and Add Event actions are placeholders
+  for future travel-tracking features.
+
+## Tech Stack
+
+| Layer     | Technology                                                        |
+| --------- | ----------------------------------------------------------------- |
+| Framework | Flutter, Dart                                                     |
+| Platforms | Android, iOS                                                     |
+| State     | Provider, `StreamProvider`, Firebase auth/profile streams         |
+| Backend   | Firebase Auth, Cloud Firestore, Firebase Storage, Google Sign-In  |
+| Images    | `image_picker`, `image_cropper`, `cached_network_image`           |
+| Testing   | `flutter_test`, `integration_test`, Mockito, `build_runner`, fakes |
+| Quality   | `dart format`, `flutter analyze`, `flutter_lints`, Lefthook       |
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed:
+- **Flutter SDK** `>=3.47.0` and **Dart SDK** `>=3.13.0`
+- **JDK 21** for Android builds; CI uses Temurin 21 and Android Gradle Plugin
+  `9.3.0`
+- **Android Studio** for Android development and emulators
+- **Xcode** on macOS for iOS development and simulators
+- **Node.js/npm** at the repository root for Lefthook installation
+- **Firebase CLI** and **FlutterFire CLI**:
 
-*   **Flutter SDK**: Follow the [official installation guide](https://docs.flutter.dev/get-started/install) for your OS.
-*   **Java Development Kit (JDK)**: Version 21 is required for Android builds (to ensure compatibility with Android Gradle Plugin 9.x).
-*   **Android Studio**: For Android development and emulators.
-*   **Xcode** (macOS only): For iOS/macOS development and simulators.
-*   **Firebase CLI**: For managing Firebase configurations. Install via npm: `npm install -g firebase-tools`.
+  ```bash
+  npm install -g firebase-tools
+  dart pub global activate flutterfire_cli
+  ```
 
 ## Getting Started
 
-### 1. Clone the repository
+### 1. Install dependencies
+
+From the repository root, install the Git hook tooling:
+
 ```bash
-git clone https://github.com/[your-repo]/everything-passport.git
-cd everything-passport/mobile
+npm install
 ```
 
-### 2. Install dependencies
+Then install Flutter dependencies:
+
 ```bash
+cd mobile
 flutter pub get
 ```
 
-### 3. Platform-Specific Setup
+### 2. Configure Firebase
 
-#### macOS (iOS)
-Install CocoaPods dependencies:
+Firebase configuration files are gitignored and are not committed to the
+repository:
+
+- `android/app/google-services.json`
+- `ios/Runner/GoogleService-Info.plist`
+- `lib/firebase_options_dev.dart`
+- `lib/firebase_options_prod.dart`
+
+Firestore and Firebase Storage access is enforced by the repository-root
+`firestore.rules` and `storage.rules`: regular users can only access their own
+data, while admins listed in the `admins` collection can access everything.
+See the root [README.md](../README.md#firebase-security-rules) for the deploy
+command and access model.
+
+Generate the development configuration with FlutterFire:
+
+```bash
+flutterfire configure \
+  --project=everything-passport-dev \
+  --platforms=android,ios \
+  --android-package-name=com.bsand49.everything_passport \
+  --ios-bundle-id=com.bsand49.everythingPassport \
+  --out=lib/firebase_options_dev.dart \
+  --yes
+```
+
+For a production configuration, repeat the command with the production
+Firebase project and `--out=lib/firebase_options_prod.dart`. Note that
+`lib/main.dart` currently aliases `ENV=prod` to the dev options until the
+production file is generated and the TODO is resolved.
+
+### 3. Platform-specific setup
+
+#### Android
+
+Google Sign-In on Android requires the app's SHA-1 fingerprint to be
+registered in Firebase:
+
+```bash
+cd android
+./gradlew signingReport
+cd ..
+```
+
+Add the `debug` variant SHA-1 in the Firebase console, then download the
+updated `google-services.json` into `android/app/`.
+
+This project uses a modified `android/gradlew` to work around
+`ANDROID_PREFS_ROOT` environment conflicts. Use `./gradlew` from `android/`
+or let Flutter invoke the wrapper; do not rely on a global Gradle binary.
+
+#### iOS/macOS
+
+If `ios/Podfile` is missing from a fresh checkout, regenerate the platform
+scaffolding first:
+
+```bash
+flutter create .
+```
+
+Then install CocoaPods dependencies:
+
 ```bash
 cd ios
 pod install
 cd ..
 ```
-*Note: If you are on an Apple Silicon (M1/M2/M3) Mac, you may need to run `arch -x86_64 pod install` if you encounter compatibility issues.*
 
-### 4. Firebase Configuration
-The Firebase configuration files (`google-services.json`, `GoogleService-Info.plist`, and `firebase_options.dart`) are **not** included in the repository for security reasons.
+On Apple Silicon Macs, use `arch -x86_64 pod install` if CocoaPods reports
+compatibility issues.
 
-To set up Firebase locally:
-1.  **Install FlutterFire CLI**:
-    ```bash
-    dart pub global activate flutterfire_cli
-    ```
-2.  **Login to Firebase**:
-    ```bash
-    firebase login
-    ```
-3.  **Configure the project**:
-    - **Development**:
-      ```bash
-      flutterfire configure --out=lib/firebase_options_dev.dart
-      ```
-    - **Production (Optional)**:
-      ```bash
-      flutterfire configure --out=lib/firebase_options_prod.dart
-      ```
-    Follow the prompts to select/create your Firebase project and platforms. This will generate the necessary configuration files (including the environment-specific Dart options expected by the app).
+### 4. Run the app
 
-### 5. Google Sign-In Setup (Android)
-To use Google Sign-In on the Android emulator or a physical device:
-1.  **Generate SHA-1 Fingerprint**:
-    ```bash
-    cd android && ./gradlew signingReport
-    ```
-2.  **Register Fingerprint**: Add the `SHA1` from the `debug` variant to your project in the [Firebase Console](https://console.firebase.google.com/).
-3.  **Update Config**: Download the updated `google-services.json` and replace the one in `android/app/`.
+The app requires compile-time `--dart-define` values:
 
-## Development Environment Notes
+| Variable           | Description                              | Allowed values | Default |
+| ------------------ | ---------------------------------------- | -------------- | ------- |
+| `ENV`              | Firebase environment selection           | `dev`, `prod`  | `dev`   |
+| `SERVER_CLIENT_ID` | Google Sign-In web client ID             | String         | Required |
 
-### Android Gradle Wrapper
-This project uses a modified `gradlew` script to resolve environment variable conflicts (`ANDROID_PREFS_ROOT`). Always use `./gradlew` from the `android/` directory (or let Flutter handle it) rather than calling a global Gradle binary.
+`SERVER_CLIENT_ID` can be found in `google-services.json` under the OAuth
+client with `client_type` 3, or in Google Cloud Console under APIs & Services
+> Credentials.
 
-### IDE Setup (Android Studio / IntelliJ)
-If you see the error **"Entrypoint isn't within the current project"**:
-1.  Run `flutter pub get`.
-2.  Click **File > Sync Project with Gradle Files**.
-3.  Ensure the **Flutter** and **Dart** plugins are installed and configured.
-
-## Starting Emulators and Simulators
-
-Before running `flutter run`, you must have a target device (physical or virtual) active.
-
-### Android Emulator
-*   **Via Android Studio**: Open **Tools > Device Manager**, select a virtual device, and click the **Play** button.
-*   **Via Command Line**:
-    ```bash
-    # List available emulators
-    flutter emulators
-    
-    # Launch a specific emulator (replace <id> with your emulator id)
-    flutter emulators --launch <id>
-    ```
-
-### iOS Simulator (macOS only)
-*   **Via Xcode**: Open **Xcode > Open Developer Tool > Simulator**.
-*   **Via Command Line**:
-    ```bash
-    open -a Simulator
-    ```
-
-## Running the Application
-
-### Environment Configuration
-
-The application requires specific environment variables to be set at build time using the `--dart-define` flag.
-
-| Variable           | Description                                               | Allowed Values                   | Default    |
-|:-------------------|:----------------------------------------------------------|:---------------------------------|:-----------|
-| `ENV`              | The target environment (affects Firebase initialization). | `dev`, `prod`                    | `dev`      |
-| `SERVER_CLIENT_ID` | The Google Sign-In Web Client ID.                         | String from Firebase/GCP Console | (Required) |
-
-> [!NOTE]
-> You can find the `SERVER_CLIENT_ID` in the `google-services.json` file (as `client_id` under `oauth_client` with `client_type` 3) or in the Google Cloud Console under APIs & Services > Credentials.
-
-### From the Command Line
-To run on a connected device or emulator with the required environment variables:
 ```bash
-flutter run --dart-define=ENV=dev --dart-define=SERVER_CLIENT_ID=your-client-id
+flutter run \
+  --dart-define=ENV=dev \
+  --dart-define=SERVER_CLIENT_ID=your-web-client-id
 ```
 
-### From an IDE
-*   **Android Studio / IntelliJ**: Select your device in the toolbar and press the **Run** icon (or `Shift + F10` / `Control + R`).
-*   **VS Code**: Press `F5` or use the "Run and Debug" panel.
+For IDE runs, configure the same `--dart-define` arguments in the launch
+configuration. In VS Code, add them under `args` in `.vscode/launch.json`;
+in Android Studio/IntelliJ, add them to the Flutter run configuration's
+additional args field.
 
-## Testing
+## Testing & Coverage
 
-This project includes unit tests for business logic, services, and utilities, as well as integration tests for user flows.
+### Mock generation
 
-### Code Generation for Mocks
-This project uses `mockito` for unit testing, which requires code generation. If you add or modify tests that use `@GenerateNiceMocks`, you must generate the mock files before running your tests.
+Tests that use `@GenerateNiceMocks` require generated `*.mocks.dart` files.
+After adding or changing mocked tests, run:
 
-Run the build runner command to generate the mocks:
 ```bash
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-*Note: You can add `--watch` to the command to continuously regenerate mocks as you edit test files.*
+Use `--watch` while actively editing mock-dependent tests if needed.
+Generated mocks are gitignored.
 
+### Unit and widget tests
 
-### Running Unit Tests
-To execute all unit tests from the `mobile` directory:
 ```bash
+# All unit/widget tests
 flutter test
-```
 
-To run a specific test group (e.g., Utilities):
-```bash
+# A directory or specific file
 flutter test test/utils/
-```
-
-To run a specific test file:
-```bash
 flutter test test/services/auth_service_test.dart
+
+# Coverage report
+flutter test --coverage
 ```
 
-To view test coverage (requires `lcov`):
+If `lcov` is installed, generate an HTML report:
+
 ```bash
-flutter test --coverage
 genhtml coverage/lcov.info -o coverage/html
 open coverage/html/index.html
 ```
 
-### Running Integration Tests
-Integration tests run on real devices or emulators and cover end-to-end flows like Login and Sign Up.
+### Integration tests
 
-**Prerequisites:**
-- A connected physical device or a running emulator/simulator.
-- Native configuration files (`google-services.json` or `GoogleService-Info.plist`) correctly placed in the native directories.
+Integration tests run on a physical device or emulator/simulator and cover
+app boot, login/sign-up navigation, and shared validation behavior.
 
-To run all integration tests:
+Prerequisites:
+
+- A connected device or running emulator/simulator.
+- `android/app/google-services.json` or `ios/Runner/GoogleService-Info.plist`.
+- `SERVER_CLIENT_ID` supplied as a `--dart-define`.
+
 ```bash
-flutter test integration_test/app_test.dart
+flutter test \
+  --dart-define=ENV=dev \
+  --dart-define=SERVER_CLIENT_ID=your-web-client-id \
+  integration_test/app_test.dart
 ```
 
-> [!TIP]
-> Integration tests use the `Validators` utility to verify error messages, ensuring consistency across all testing layers. If the app is already logged in on a device, the tests will automatically attempt to sign out to ensure a clean test state.
+If the app is already signed in on the device, the test attempts to sign out
+first to establish a clean state.
+
+## Linting & Formatting
+
+```bash
+dart format --output=none --set-exit-if-changed .
+flutter analyze
+```
+
+Repository hooks run `dart format` and `flutter analyze --no-fatal-infos` on
+staged Dart files before commit, and `flutter test --coverage` with a `90%`
+LCOV threshold before push. See the root [AGENTS.md](../AGENTS.md) for GUI Git
+client setup.
 
 ## Project Structure
 
-*   `lib/main.dart`: Entry point, Firebase initialization, and authentication wrapper.
-*   `lib/services/`: Business logic and API clients (e.g., `AuthService`, `UserProfileService`).
-*   `lib/screens/`: Feature-level UI screens (Login, Profile, Home).
-*   `lib/widgets/`: Reusable UI components (Buttons, TextFields, Avatars).
-*   `lib/utils/`: Shared utility classes (e.g., `Validators`, `DateFormatter`, `ImageUtils`).
-*   `lib/models/`: Data entities and Firestore mapping logic.
-*   `lib/exceptions/`: Custom domain-specific exceptions.
-*   `test/`: Unit and widget tests mirroring the `lib/` structure.
-*   `integration_test/`: End-to-end integration tests.
-*   `lib/firebase_options_dev.dart`: Firebase configuration for the development environment.
-*   `lib/firebase_options_prod.dart`: (Optional) Firebase configuration for the production environment.
+```text
+lib/
+  exceptions/       Domain exceptions
+  models/           Firestore/auth data models
+  screens/          Login, sign-up, profile, home, and settings screens
+  services/         Auth, profile, and metadata services
+  utils/            Validators, date formatting, and image utilities
+  widgets/          Reusable UI components
+  main.dart         Firebase init, Provider graph, and auth routing
+  firebase_options_dev.dart  Generated dev Firebase config (gitignored)
+test/               Unit/widget tests mirroring lib/
+integration_test/   Device/emulator integration tests
+android/            Android Gradle project
+ios/                Xcode project
+AGENTS.md           Flutter-specific repository conventions
+```
+
+## CI
+
+`.github/workflows/build.yml` detects changes under `mobile/**`,
+`.github/workflows/build.yml`, and `.github/actions/**`, then runs:
+
+1. `dart format --output=none --set-exit-if-changed .`
+2. Firebase configuration via `.github/actions/configure-firebase`
+3. `dart run build_runner build --delete-conflicting-outputs`
+4. `flutter analyze`
+5. `flutter test --coverage`
+6. LCOV coverage reporting via `.github/actions/report-coverage`
+7. Android emulator integration smoke test on API 31
+
+Coverage fails below `MOBILE_COVERAGE_THRESHOLD`, which defaults to `90%`.
 
 ## Troubleshooting
 
-### Android Build Issues
-If you encounter Gradle errors, try cleaning the build:
+### Android build issues
+
 ```bash
 flutter clean
 flutter pub get
 ```
 
-### iOS CocoaPods Issues
-If `pod install` fails, try:
+If Gradle still fails, check that JDK 21 is active and that the project is
+using the repository's `android/gradlew` wrapper.
+
+### IDE reports "Entrypoint isn't within the current project"
+
+1. Run `flutter pub get`.
+2. In Android Studio/IntelliJ, choose **File > Sync Project with Gradle
+   Files**.
+3. Confirm the Flutter and Dart plugins are installed and enabled.
+
+### iOS CocoaPods issues
+
 ```bash
 rm -rf ios/Pods
 rm ios/Podfile.lock
@@ -212,5 +294,8 @@ pod install
 cd ..
 ```
 
----
-For more help, visit the [Flutter Documentation](https://docs.flutter.dev/).
+### Missing Firebase configuration
+
+Regenerate the FlutterFire files with the commands above. Do not commit
+`google-services.json`, `GoogleService-Info.plist`, or
+`firebase_options_*.dart`; they are intentionally gitignored.
