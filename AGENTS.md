@@ -145,6 +145,10 @@ independently for mobile builds.
   `firebase emulators:exec --only firestore,storage --project
   demo-everything-passport 'npm --prefix tests/rules test'` and validate
   deployability with `firebase deploy --dry-run`.
+- **Follow-ups**: work deferred during review or implementation must be
+  recorded in the PR description's follow-ups section (and promoted to a
+  tracking issue or `CHANGELOG.md` note if it outlives the PR) — don't let it
+  live only in review threads.
 - **Changelog**: record notable user-facing or structural changes in
   `CHANGELOG.md` under `[Unreleased]` as part of the same change. Update
   `README.md` when documented behavior, setup, or project structure changes.
