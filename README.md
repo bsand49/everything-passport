@@ -157,8 +157,10 @@ email address. To grant admin access to an existing user:
    exists.
 
 Client apps cannot create `admins` documents, so this step must be done through
-the Firebase console or the Admin SDK. If a user's email changes, the
-`admins/{email}` document must be updated to match.
+the Firebase console or the Admin SDK. The admin account's email must be
+verified — the rules require `email_verified`, which Google sign-in satisfies
+automatically while email/password users must complete verification. If a
+user's email changes, the `admins/{email}` document must be updated to match.
 
 ## Changelog
 

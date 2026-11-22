@@ -9,6 +9,7 @@ service firebase.storage {
     function isAdmin() {
       return isSignedIn()
         && request.auth.token.email is string
+        && request.auth.token.email_verified == true
         && firestore.exists(/databases/(default)/documents/admins/$(request.auth.token.email));
     }
 
@@ -24,13 +25,6 @@ service firebase.storage {
     // The app stores a single profile picture per user at
     // profile_pictures/{userId} (no file extension).
     match /profile_pictures/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow create, update: if (isOwner(userId) || isAdmin()) && isImageUpload();
-      allow delete: if isOwner(userId) || isAdmin();
-    }
-
-    // Reserved for any nested files under a user's profile picture prefix.
-    match /profile_pictures/{userId}/{fileName=**} {
       allow read: if isOwner(userId) || isAdmin();
       allow create, update: if (isOwner(userId) || isAdmin()) && isImageUpload();
       allow delete: if isOwner(userId) || isAdmin();

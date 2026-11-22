@@ -107,6 +107,11 @@ the `admins` allowlist is correct:
 firebase deploy --only firestore:rules,storage --project <firebase-project-id>
 ```
 
+Note that `ENV=prod` currently resolves to the development Firebase options
+until `mobile/lib/firebase_options_prod.dart` is generated and the TODO in
+`mobile/lib/main.dart` is resolved, so this smoke test exercises the dev
+project for now.
+
 The integration test requires a connected device or emulator with the native
 Firebase config files and `SERVER_CLIENT_ID` supplied. Unit-test coverage
 must remain at or above `90%` unless `MOBILE_COVERAGE_THRESHOLD` is changed.

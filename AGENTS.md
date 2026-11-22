@@ -115,7 +115,7 @@ independently for mobile builds.
   profile images are stored at `profile_pictures/{userId}` in Firebase Storage.
 - `firestore.rules` and `storage.rules` enforce owner-only access for regular
   users and full access for admins listed in the `admins` collection (doc IDs
-  are admin email addresses). Profile/trip writes must pass the field
+  are admin email addresses, and the account's email must be verified). Profile/trip writes must pass the field
   validation functions in `firestore.rules`; storage uploads must be images
   under 5 MB. Any unscoped collection or storage prefix is admin-only by
   default.
