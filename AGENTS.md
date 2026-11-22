@@ -145,6 +145,12 @@ independently for mobile builds.
   `firebase emulators:exec --only firestore,storage --project
   demo-everything-passport 'npm --prefix tests/rules test'` and validate
   deployability with `firebase deploy --dry-run`.
+- **npm overrides**: the root and `tests/rules` `package.json` files use npm
+  `overrides` to force patched transitive dependencies (`uuid`, `glob`,
+  `@opentelemetry/core`, `@grpc/grpc-js`) past `firebase-tools`/`firebase`
+  version constraints. When bumping those packages, re-run `npm audit` in
+  both directories and remove any override that upstream has made
+  unnecessary.
 - **Follow-ups**: work deferred during review or implementation must be
   recorded in the PR description's follow-ups section (and promoted to a
   tracking issue or `CHANGELOG.md` note if it outlives the PR) — don't let it
