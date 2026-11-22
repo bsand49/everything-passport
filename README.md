@@ -65,10 +65,11 @@ npx firebase emulators:exec --only firestore,storage \
   --project demo-everything-passport 'npm --prefix tests/rules test'
 ```
 
-CI runs `flutter test --coverage` plus an Android emulator integration smoke
-test when `mobile/` changes. The `report-coverage` composite action parses
-`mobile/coverage/lcov.info`, posts a sticky PR comment, writes to the job
-summary, and fails below `MOBILE_COVERAGE_THRESHOLD` (default `90%`).
+CI runs `flutter test --coverage` plus Android emulator and iOS simulator
+integration smoke tests when `mobile/` changes. The `report-coverage`
+composite action parses `mobile/coverage/lcov.info`, posts a sticky PR
+comment, writes to the job summary, and fails below
+`MOBILE_COVERAGE_THRESHOLD` (default `90%`).
 
 ## Git Hooks
 
@@ -112,8 +113,8 @@ All automation lives in [`.github/`](.github/):
 
 | Workflow                    | Trigger                                | Purpose                                                        |
 | --------------------------- | -------------------------------------- | -------------------------------------------------------------- |
-| `build.yml`                 | PRs and pushes to `main`/`master`      | Detects `mobile/` changes, then formats, analyzes, tests, and smoke-tests the Flutter app |
-| `rules-tests.yml`           | PRs touching rules or `tests/rules/` | Runs the Firebase emulator suite for Firestore/Storage security rules |
+| `build-and-test-mobile.yml` | PRs and pushes to `main` touching `mobile/`, the workflow, or `.github/actions/` | Formats, analyzes, tests, and smoke-tests the Flutter app on Android emulator and iOS simulator |
+| `rules-tests.yml`           | PRs and pushes to `main`                       | Runs the Firebase emulator suite for Firestore/Storage security rules |
 | `branch-name-check.yml`     | PRs                                    | Enforces `<prefix>/(<issue-id>-)<description>` branch names    |
 | `dependabot-auto-merge.yml` | Dependabot PR lifecycle/reviews        | Auto-merges approved safe dependency-update groups             |
 

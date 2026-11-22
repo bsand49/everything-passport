@@ -172,5 +172,10 @@ independently for mobile builds.
 - **Action versions**: follow the existing workflow style — GitHub-owned
   actions use major version tags, and third-party workflow actions that are
   already SHA-pinned should remain pinned.
+- **Path-filtered workflows and required checks**: a workflow skipped by
+  `paths`/`branches` filters reports no check run, so its jobs cannot be
+  required status checks (they'd stay Pending and block merges). Only
+  always-run workflows — or jobs that always execute and self-skip — may be
+  listed in the Main Branch Protection ruleset.
 - **Code ownership**: `.github/CODEOWNERS` assigns `@bsand49` as the owner of
   all files.
