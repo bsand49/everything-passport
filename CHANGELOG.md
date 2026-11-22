@@ -61,6 +61,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `country_flags` package support.
   - Circular flags and dynamic prefix icons in `CountryAutocomplete`.
   - Unit tests for flag rendering and interactions.
+- Flutter 3.50 toolchain migration:
+  - Minimum Flutter SDK raised to `>=3.50.0`.
+  - All `package:flutter/material.dart` imports migrated to
+    `package:material_ui/material_ui.dart`, clearing the Flutter 3.47+
+    deprecation diagnostics; localization delegates now come from
+    `GlobalMaterialLocalizations.delegates`.
 
 ### Security
 

@@ -35,7 +35,7 @@ Firebase Authentication, Cloud Firestore, and Firebase Storage.
 
 ## Prerequisites
 
-- **Flutter SDK** `>=3.47.0` and **Dart SDK** `>=3.13.0`
+- **Flutter SDK** `>=3.50.0` and **Dart SDK** `>=3.13.0`
 - **JDK 21** for Android builds; CI uses Temurin 21 and Android Gradle Plugin
   `9.3.0`
 - **Android Studio** for Android development and emulators

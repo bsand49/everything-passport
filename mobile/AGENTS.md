@@ -52,6 +52,9 @@ flutter build ipa --release --dart-define=ENV=prod --dart-define=SERVER_CLIENT_I
 
 ## State and data conventions
 
+- Use `package:material_ui/material_ui.dart` for Material widgets and themes;
+  `package:flutter/material.dart` is deprecated on Flutter >=3.47 and must not
+  be reintroduced.
 - Use Provider/`StreamProvider` for app state; screens should read services
   from context rather than constructing Firebase clients directly.
 - Keep Firebase/Firestore/Storage access in `lib/services/` so screens and
