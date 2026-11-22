@@ -2,50 +2,60 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### Standard Change Categories
-When adding to this file, please use the following headers to group changes:
-- `Added`: For new features.
-- `Changed`: For changes in existing functionality.
-- `Deprecated`: For soon-to-be removed features.
-- `Removed`: For now removed features.
-- `Fixed`: For any bug fixes.
-- `Security`: In case of vulnerabilities.
+> **Note:** This application is unreleased. No `v*` tags or GitHub Releases
+> have been published yet; the first tagged release will establish the public
+> version baseline.
 
 ## [Unreleased]
 
 ### Added
-- **Initial Project Infrastructure**: Established monorepo structure with `mobile`, `backend`, `web`, and `docs` directories.
-- **Flutter Mobile Application**:
-    - Core app structure and navigation.
-    - **Firebase Integration**: Authentication, Cloud Firestore, and Firebase Storage. Includes idempotent initialization for robust testing.
-    - **Authentication**: Email/Password and Google Sign-In providers.
-    - **Image Handling**: Integration with `image_picker` and `image_cropper`.
-    - **UI/UX**: Material Design 3 components, `cached_network_image` for remote assets.
-- **Testing Infrastructure**:
-    - Unit testing framework using `flutter_test` and `mockito`.
-    - Integration testing suite for end-to-end verification, featuring automatic session cleanup and utility-linked validation.
-    - Automated mock generation with `build_runner`.
-- **Repository Management**:
-    - `CODEOWNERS` file for automated review assignments.
-    - `dependabot.yml` for automated dependency updates.
-    - `dependabot-auto-merge.yml` for auto merging PRs raised by dependabot, with refined logic for draft PRs and merge status.
-    - **Git Hooks**: Integrated `Lefthook` for automated pre-commit quality checks and 90% coverage enforcement, with support for local environment overrides.
-    - Pull Request template and branch naming conventions.
-- **Documentation**:
-    - Added `CHANGELOG.md` (this file) to track changes.
-    - Added `RELEASING.md` to document the release process.
-    - Added local environment setup guide for GUI Git clients (macOS, Linux, Windows).
-    - Comprehensive `README.md` with detailed project structure and testing guides.
-- **Utility Layer**:
-    - Introduced a centralized utility layer (`Validators`, `DateFormatter`, `ImageUtils`) to reduce code duplication and improve testability.
-    - Added comprehensive unit tests for all utility classes.
-    - Refactored screens and widgets to utilize shared logic.
-- **Country Flags Integration**:
-    - Integrated `country_flags` package.
-    - Enhanced `CountryAutocomplete` widget with circular flags in dropdown and dynamic prefix icon.
-    - Added comprehensive unit tests for flag rendering and interactions.
 
-[Unreleased]: https://github.com/bsand49/everything-passport/compare/v0.0.0...HEAD
+- Initial project infrastructure for the Flutter mobile app, repository docs,
+  Git hooks, CI automation, and a reserved `web/` placeholder.
+- Flutter mobile application foundation:
+  - Core app structure, navigation, Material 3 UI, and en-GB/en-US
+    localization.
+  - Firebase Authentication with email/password, Google Sign-In, and sign-out;
+    the auth service also supports password reset and account deletion.
+  - Cloud Firestore profile storage, transactional username uniqueness, and
+    country metadata loading.
+  - Firebase Storage profile-picture uploads.
+  - Image picking/cropping and cached remote images.
+- Testing infrastructure:
+  - `flutter_test` unit/widget suite with Mockito and generated mocks.
+  - `integration_test` smoke suite for app boot, auth navigation, and shared
+    validation behavior.
+  - `build_runner` mock generation.
+- Repository management:
+  - `CODEOWNERS` for review assignment.
+  - Dependabot configuration for GitHub Actions, npm, and pub updates.
+  - Dependabot auto-merge workflow for approved safe update groups.
+  - Firebase `firestore.rules` and `storage.rules` with a root `firebase.json`
+    deploy config; rules preserve the existing username/profile/trip validation
+    and enforce owner-only user access plus admin access via the `admins`
+    collection.
+  - Lefthook pre-commit formatting/analysis and pre-push test/coverage checks,
+    including local GUI-client overrides.
+  - Pull request template and branch-name enforcement workflow.
+- Documentation:
+  - `CHANGELOG.md` for release history.
+  - Root `RELEASING.md` for the release process.
+  - Root and `mobile/` `AGENTS.md` files for repository and Flutter-specific
+    conventions.
+  - Detailed root and mobile READMEs covering setup, testing, CI, Firebase
+    configuration, and troubleshooting.
+- Utility layer:
+  - Shared `Validators`, `DateFormatter`, and `ImageUtils` utilities.
+  - Unit tests for utilities and refactored screens/widgets to use shared
+    logic.
+- Country flags integration:
+  - `country_flags` package support.
+  - Circular flags and dynamic prefix icons in `CountryAutocomplete`.
+  - Unit tests for flag rendering and interactions.
+
+<!-- Link references for version headings above -->
+
+[Unreleased]: https://github.com/bsand49/everything-passport/compare/main...HEAD

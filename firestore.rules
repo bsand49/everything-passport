@@ -1,0 +1,98 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && request.auth.token.email is string
+        && exists(/databases/$(database)/documents/admins/$(request.auth.token.email));
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Admin allowlist. Document IDs are admin email addresses. Bootstrap the
+    // first admin through the Firebase console or Admin SDK; client writes
+    // cannot escalate membership.
+    match /admins/{adminEmail} {
+      allow get: if isAdmin()
+        || (isSignedIn() && request.auth.token.email == adminEmail);
+      allow list: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /usernames/{username} {
+      // Username lookups are allowed for signed-in users so the app can check
+      // availability, but the collection cannot be listed by regular users.
+      allow get: if isSignedIn();
+      allow list: if isAdmin();
+
+      // Users may only create a mapping that does not already exist and points
+      // to their own UID. Username changes are performed as delete + create in
+      // a transaction, so regular users cannot update mappings in place.
+      allow create: if isAdmin()
+        || (isSignedIn()
+          && !exists(/databases/$(database)/documents/usernames/$(username))
+          && request.resource.data.userId == request.auth.uid);
+      allow update: if isAdmin();
+      allow delete: if isAdmin()
+        || (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    match /userProfiles/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Profile writes must pass field validation and leave a username mapping
+      // that points back to this user. Deletes are admin-only so username
+      // mappings can be cleaned up consistently.
+      allow create, update: if (isOwner(userId) || isAdmin())
+        && isValidUserProfile(request.resource.data)
+        && getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.userId == userId;
+      allow delete: if isAdmin();
+
+      match /trips/{tripId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, update: if (isOwner(userId) || isAdmin())
+          && isValidTrip(request.resource.data);
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    // Shared metadata (e.g. metadata/countries) is readable by signed-in users
+    // and writable by admins.
+    match /metadata/{document=**} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Secure default: admins can access any collection not explicitly scoped
+    // above; regular users get no access unless a rule grants it.
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+
+  // User validation
+  function isValidUserProfile(data) {
+    return data.username is string && data.username.size() > 0
+        && (data.email == null || data.email is string)
+        && data.firstName is string && data.firstName.size() > 0
+        && data.lastName is string && data.lastName.size() > 0
+        && (data.dateOfBirth == null || data.dateOfBirth is timestamp)
+        && (data.nationality == null || (data.nationality is string && data.nationality.matches('^[A-Z]{2}(-[A-Z]{3})?$')))
+        && data.isPublic is bool
+        && (data.photoUrl == null || data.photoUrl is string);
+  }
+
+  // Trip validation
+  function isValidTrip(data) {
+    return data.countryId is string && data.countryId.matches('^[A-Z]{2}(-[A-Z]{3})?$')
+        && data.startDate is timestamp
+        && data.endDate is timestamp;
+  }
+}
