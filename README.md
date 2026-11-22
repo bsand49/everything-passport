@@ -122,7 +122,8 @@ access model:
 
 - Regular users can only read/write their own `userProfiles/{uid}` document
   and `userProfiles/{uid}/trips/{tripId}` subcollection. Profile writes must
-  pass field validation and keep a consistent `usernames/{username}` mapping.
+  pass field validation and keep a consistent `usernames/{username}` mapping
+  (admins bypass the validators so they can repair data).
 - `usernames` mappings may only be created for the authenticated user's UID,
   cannot overwrite an existing username, and cannot be listed by regular users.
 - `metadata` (e.g. `metadata/countries`) is readable by signed-in users and

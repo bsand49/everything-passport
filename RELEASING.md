@@ -55,21 +55,18 @@ A single tag versions the whole repository.
    is pushed.
 3. Bump `"version"` in the root `package.json` and the semantic portion of
    `version` in `mobile/pubspec.yaml` to `X.Y.Z`.
-4. Commit the release prep as `chore: release vX.Y.Z` and merge it to `main`.
+4. Commit the release prep as `chore: release vX.Y.Z` on a
+   `chore/release-vX.Y.Z` branch and merge it to `main` via pull request —
+   version/config changes require a PR per `AGENTS.md`.
 
 ## Cutting a Release
 
-There is no automated release workflow yet, so releases are prepared locally
-and published manually:
+There is no automated release workflow yet, so tags are created manually
+after the release PR merges:
 
 ```bash
 git checkout main
 git pull
-
-# After updating CHANGELOG.md and version files
-git add CHANGELOG.md package.json mobile/pubspec.yaml
-git commit -m "chore: release vX.Y.Z"
-git push origin main
 
 git tag -a vX.Y.Z -m "Release vX.Y.Z"
 git push origin vX.Y.Z

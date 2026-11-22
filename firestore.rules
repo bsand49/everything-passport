@@ -36,6 +36,9 @@ service cloud.firestore {
       // Users may only create a mapping that does not already exist and points
       // to their own UID. Username changes are performed as delete + create in
       // a transaction, so regular users cannot update mappings in place.
+      // Known limitation: a user can reserve usernames their profile never
+      // uses. A future tightening can require the post-write profile's
+      // username to match via getAfter() on userProfiles/{uid}.
       allow create: if isAdmin()
         || (isSignedIn()
           && !exists(/databases/$(database)/documents/usernames/$(username))

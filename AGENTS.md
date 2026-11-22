@@ -115,10 +115,12 @@ independently for mobile builds.
   profile images are stored at `profile_pictures/{userId}` in Firebase Storage.
 - `firestore.rules` and `storage.rules` enforce owner-only access for regular
   users and full access for admins listed in the `admins` collection (doc IDs
-  are admin email addresses, and the account's email must be verified). Profile/trip writes must pass the field
-  validation functions in `firestore.rules`; storage uploads must be images
-  under 5 MB. Any unscoped collection or storage prefix is admin-only by
-  default.
+  are admin email addresses, and the account's email must be verified).
+  Profile/trip writes must pass the field validation functions in
+  `firestore.rules`; storage uploads must be images under 5 MB. Admin writes
+  intentionally bypass those validators so admins can repair data — revisit
+  with role-based admin documents if the admin count grows. Any unscoped
+  collection or storage prefix is admin-only by default.
 - Deploy rules with `firebase deploy --only firestore:rules,storage
   --project everything-passport-dev` from the repository root. Bootstrap the
   first `admins/{email}` document through the Firebase console or Admin SDK;
@@ -137,7 +139,11 @@ independently for mobile builds.
 - **Firebase rules**: when adding Firestore collections/subcollections or
   Firebase Storage prefixes, update `firestore.rules`/`storage.rules` in the
   same change. Prefer owner-scoped paths containing the user's UID and keep
-  the admin-only secure default for anything not explicitly scoped.
+  the admin-only secure default for anything not explicitly scoped. CI does
+  not exercise rules — validate changes with
+  `firebase deploy --dry-run --only firestore:rules,storage --project
+  everything-passport-dev`; emulator-based rules tests are a known gap to
+  pick up later.
 - **Changelog**: record notable user-facing or structural changes in
   `CHANGELOG.md` under `[Unreleased]` as part of the same change. Update
   `README.md` when documented behavior, setup, or project structure changes.
