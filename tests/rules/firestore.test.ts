@@ -8,6 +8,7 @@ import {
   assertFails,
   assertSucceeds,
   initializeTestEnvironment,
+  type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
 import {
   collection,
@@ -43,9 +44,9 @@ const VALID_PROFILE = {
   photoUrl: null,
 };
 
-let testEnv;
+let testEnv: RulesTestEnvironment;
 
-function db(uid, token = {}) {
+function db(uid: string, token: Record<string, unknown> = {}) {
   return testEnv.authenticatedContext(uid, token).firestore();
 }
 

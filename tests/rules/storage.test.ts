@@ -8,6 +8,7 @@ import {
   assertFails,
   assertSucceeds,
   initializeTestEnvironment,
+  type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
 import { deleteObject, getBytes, ref, uploadBytes } from 'firebase/storage';
 import { doc, setDoc } from 'firebase/firestore';
@@ -27,13 +28,13 @@ const USER_EMAIL = 'user@example.com';
 
 const PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
 
-function imageBlob(type = 'image/png') {
+function imageBlob(type = 'image/png'): Blob {
   return new Blob([PNG_BYTES], { type });
 }
 
-let testEnv;
+let testEnv: RulesTestEnvironment;
 
-function storage(uid, token = {}) {
+function storage(uid: string, token: Record<string, unknown> = {}) {
   return testEnv.authenticatedContext(uid, token).storage();
 }
 
@@ -62,7 +63,7 @@ test.before(async () => {
   });
 
   // Seed the admins allowlist independently — node --test runs each file in
-  // its own process, so this suite cannot rely on firestore.test.mjs setup.
+  // its own process, so this suite cannot rely on firestore.test.ts setup.
   await testEnv.withSecurityRulesDisabled(async (context) => {
     await setDoc(doc(context.firestore(), 'admins', ADMIN_EMAIL), {
       role: 'owner',
