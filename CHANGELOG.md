@@ -62,6 +62,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Circular flags and dynamic prefix icons in `CountryAutocomplete`.
   - Unit tests for flag rendering and interactions.
 
+### Security
+
+- Added npm `overrides` in the root and `tests/rules` manifests to force
+  patched transitive dependencies (`uuid`, `glob`, `@opentelemetry/core`, and
+  `@grpc/grpc-js`), clearing `npm audit` findings that Dependabot could not
+  resolve within `firebase-tools`/`firebase` version constraints.
+
 <!-- Link references for version headings above -->
 
 [Unreleased]: https://github.com/bsand49/everything-passport/compare/main...HEAD

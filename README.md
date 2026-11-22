@@ -33,6 +33,11 @@ feature list.
 Mobile toolchain requirements (Flutter/Dart SDK, JDK, Android Studio, Xcode)
 are listed in [mobile/README.md](./mobile/README.md#prerequisites).
 
+The root and `tests/rules` `package.json` files use npm `overrides` to pin
+patched transitive dependencies (`uuid`, `glob`, `@opentelemetry/core`, and
+`@grpc/grpc-js`) that `firebase-tools`/`firebase` version constraints
+currently block. See `AGENTS.md` for when these overrides can be revisited.
+
 ## Getting Started
 
 From the repository root, install the Git hook tooling, then install Flutter
@@ -56,7 +61,7 @@ rules have their own emulator suite in `tests/rules/`:
 
 ```bash
 npm --prefix tests/rules install
-firebase emulators:exec --only firestore,storage \
+npx firebase emulators:exec --only firestore,storage \
   --project demo-everything-passport 'npm --prefix tests/rules test'
 ```
 
@@ -150,7 +155,7 @@ access model:
 Deploy rules to the dev project with:
 
 ```bash
-firebase deploy --only firestore:rules,storage --project everything-passport-dev
+npx firebase deploy --only firestore:rules,storage --project everything-passport-dev
 ```
 
 ### Bootstrapping an admin
