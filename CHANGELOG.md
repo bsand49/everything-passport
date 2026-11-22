@@ -41,7 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     and enforce owner-only user access plus admin access via the `admins`
     collection. Admin access additionally requires a verified email, and
     username mappings can only be created alongside a matching profile write,
-    preventing username squatting.
+    preventing username squatting, and username changes must release the
+    previous mapping in the same transaction.
   - Lefthook pre-commit formatting/analysis and pre-push test/coverage checks,
     including local GUI-client overrides.
   - Pull request template and branch-name enforcement workflow.

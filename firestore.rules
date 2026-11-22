@@ -52,11 +52,16 @@ service cloud.firestore {
       allow read: if isOwner(userId) || isAdmin();
 
       // Profile writes must pass field validation and leave a username mapping
-      // that points back to this user. Deletes are admin-only so username
-      // mappings can be cleaned up consistently.
+      // that points back to this user. When the username changes, the previous
+      // mapping must be released in the same transaction so old usernames do
+      // not stay reserved. Deletes are admin-only so username mappings can be
+      // cleaned up consistently.
       allow create, update: if (isOwner(userId) || isAdmin())
         && isValidUserProfile(request.resource.data)
-        && getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.userId == userId;
+        && getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.userId == userId
+        && (!exists(/databases/$(database)/documents/userProfiles/$(userId))
+          || request.resource.data.username == resource.data.username
+          || !existsAfter(/databases/$(database)/documents/usernames/$(resource.data.username)));
       allow delete: if isAdmin();
 
       match /trips/{tripId} {

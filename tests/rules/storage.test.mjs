@@ -10,6 +10,7 @@ import {
   initializeTestEnvironment,
 } from '@firebase/rules-unit-testing';
 import { deleteObject, getBytes, ref, uploadBytes } from 'firebase/storage';
+import { doc, setDoc } from 'firebase/firestore';
 
 const rulesDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -44,14 +45,28 @@ const unverifiedAdminStorage = () =>
   storage('unverified-uid', { email: ADMIN_EMAIL, email_verified: false });
 
 test.before(async () => {
-  const { host, port } = emulatorHost('FIREBASE_STORAGE_EMULATOR_HOST');
+  const storageHost = emulatorHost('FIREBASE_STORAGE_EMULATOR_HOST');
+  const firestoreHost = emulatorHost('FIRESTORE_EMULATOR_HOST');
   testEnv = await initializeTestEnvironment({
     projectId: PROJECT_ID,
     storage: {
       rules: readFileSync(join(rulesDir, 'storage.rules'), 'utf8'),
-      host,
-      port,
+      host: storageHost.host,
+      port: storageHost.port,
     },
+    firestore: {
+      rules: readFileSync(join(rulesDir, 'firestore.rules'), 'utf8'),
+      host: firestoreHost.host,
+      port: firestoreHost.port,
+    },
+  });
+
+  // Seed the admins allowlist independently — node --test runs each file in
+  // its own process, so this suite cannot rely on firestore.test.mjs setup.
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), 'admins', ADMIN_EMAIL), {
+      role: 'owner',
+    });
   });
 });
 

@@ -82,6 +82,11 @@ test.before(async () => {
       username: 'bob',
     });
     await setDoc(doc(fs, 'usernames', 'bob'), { userId: 'user-2' });
+    await setDoc(doc(fs, 'userProfiles', 'user-5'), {
+      ...VALID_PROFILE,
+      username: 'henry',
+    });
+    await setDoc(doc(fs, 'usernames', 'henry'), { userId: 'user-5' });
   });
 });
 
@@ -107,9 +112,11 @@ test('usernames: create requires a matching profile write in the same transactio
     setDoc(doc(userDb('user-2'), 'usernames', 'carol'), { userId: 'user-2' }),
   );
 
-  // Legitimate flow: create mapping + update profile username atomically.
+  // Legitimate flow: release old mapping, create new mapping, and update the
+  // profile username atomically (mirrors UserProfileService.saveProfile).
   const fs = userDb('user-2');
   const batch = writeBatch(fs);
+  batch.delete(doc(fs, 'usernames', 'bob'));
   batch.set(doc(fs, 'usernames', 'carol'), { userId: 'user-2' });
   batch.set(
     doc(fs, 'userProfiles', 'user-2'),
@@ -166,6 +173,31 @@ test('userProfiles: invalid profile data is rejected for regular users', async (
     firstName: '',
   });
   await assertFails(batch.commit());
+});
+
+test('userProfiles: username changes must release the old mapping', async () => {
+  const fs = userDb('user-5');
+
+  // New mapping + profile update while keeping the old mapping -> denied.
+  const stale = writeBatch(fs);
+  stale.set(doc(fs, 'usernames', 'henry2'), { userId: 'user-5' });
+  stale.set(
+    doc(fs, 'userProfiles', 'user-5'),
+    { ...VALID_PROFILE, username: 'henry2' },
+    { merge: true },
+  );
+  await assertFails(stale.commit());
+
+  // Releasing the old mapping in the same transaction -> allowed.
+  const released = writeBatch(fs);
+  released.delete(doc(fs, 'usernames', 'henry'));
+  released.set(doc(fs, 'usernames', 'henry2'), { userId: 'user-5' });
+  released.set(
+    doc(fs, 'userProfiles', 'user-5'),
+    { ...VALID_PROFILE, username: 'henry2' },
+    { merge: true },
+  );
+  await assertSucceeds(released.commit());
 });
 
 test('userProfiles: admins bypass field validation', async () => {

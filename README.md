@@ -55,7 +55,7 @@ The Flutter app's test suite is documented in
 rules have their own emulator suite in `tests/rules/`:
 
 ```bash
-cd tests/rules && npm install
+npm --prefix tests/rules install
 firebase emulators:exec --only firestore,storage \
   --project demo-everything-passport 'npm --prefix tests/rules test'
 ```
