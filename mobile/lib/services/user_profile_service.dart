@@ -101,10 +101,19 @@ class UserProfileService {
     required String currentUserId,
   }) async {
     try {
-      final doc = await _db
+      final docRef = _db
           .collection(_usernamesCollection)
-          .doc(username.toLowerCase())
-          .get();
+          .doc(username.toLowerCase());
+      // Prefer the server so a stale persisted snapshot cannot report a
+      // username as taken or free; fall back to the local cache when the
+      // server is unreachable — the save transaction remains the
+      // authoritative check.
+      DocumentSnapshot<Map<String, dynamic>> doc;
+      try {
+        doc = await docRef.get(const GetOptions(source: Source.server));
+      } on FirebaseException {
+        doc = await docRef.get();
+      }
       if (!doc.exists) return true;
 
       // If it exists, it's available only if it belongs to the current user

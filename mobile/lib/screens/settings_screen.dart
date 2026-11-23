@@ -58,8 +58,8 @@ class SettingsScreen extends StatelessWidget {
       builder: (context) => AlertDialog(
         title: const Text('Clear cache'),
         content: const Text(
-          'Clear downloaded data and cached content? You will need a '
-          'connection to reload it.',
+          'Clear downloaded images and cached app data? Content already '
+          'loaded may still be available without a connection.',
         ),
         actions: [
           TextButton(
@@ -122,7 +122,7 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.cleaning_services_outlined),
             title: const Text('Clear cache'),
-            subtitle: const Text('Clear downloaded data and cached content'),
+            subtitle: const Text('Clear downloaded images and cached app data'),
             onTap: () => _handleClearCache(context),
           ),
           const Divider(),

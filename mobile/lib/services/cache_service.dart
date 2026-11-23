@@ -1,5 +1,4 @@
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter/foundation.dart';
 
 import 'metadata_service.dart';
 
@@ -11,17 +10,21 @@ import 'metadata_service.dart';
 /// snapshot listeners are active, and the persisted cache is already scoped
 /// per install and bounded by `Settings.cacheSizeBytes`.
 class CacheService {
-  CacheService({required MetadataService service}) : _metadataService = service;
+  CacheService({
+    required MetadataService service,
+    Future<void> Function()? clearImageCache,
+  }) : _metadataService = service,
+       _clearImageCache = clearImageCache ?? DefaultCacheManager().emptyCache;
 
   final MetadataService _metadataService;
+  final Future<void> Function() _clearImageCache;
 
   /// Clears all app-managed caches.
+  ///
+  /// Throws if the image cache cannot be cleared so callers can report the
+  /// failure instead of claiming success.
   Future<void> clearAll() async {
     await _metadataService.clearCache();
-    try {
-      await DefaultCacheManager().emptyCache();
-    } catch (e) {
-      debugPrint('Error clearing image cache: $e');
-    }
+    await _clearImageCache();
   }
 }

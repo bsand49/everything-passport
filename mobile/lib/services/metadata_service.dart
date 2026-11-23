@@ -64,7 +64,12 @@ class MetadataService {
       countries.sort((a, b) => a.name.compareTo(b.name));
 
       _cachedCountries = List.unmodifiableOf(countries);
-      _cachedAt = DateTime.now();
+      // A snapshot served from Firestore's offline cache must not extend
+      // the TTL — otherwise an offline read would suppress server refreshes
+      // after reconnecting. The cached data is still kept as a fallback.
+      if (!doc.metadata.isFromCache) {
+        _cachedAt = DateTime.now();
+      }
       return _cachedCountries!;
     } catch (e) {
       debugPrint('Error fetching countries: $e');

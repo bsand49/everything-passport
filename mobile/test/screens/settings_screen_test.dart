@@ -93,7 +93,7 @@ void main() {
         expect(find.byIcon(Icons.chevron_right), findsOneWidget);
         expect(find.text('Clear cache'), findsOneWidget);
         expect(
-          find.text('Clear downloaded data and cached content'),
+          find.textContaining('Clear downloaded images and cached app data'),
           findsOneWidget,
         );
       });
@@ -185,7 +185,7 @@ void main() {
 
         expect(find.text('Clear cache'), findsWidgets);
         expect(
-          find.textContaining('Clear downloaded data and cached content?'),
+          find.textContaining('Clear downloaded images and cached app data?'),
           findsOneWidget,
         );
 
