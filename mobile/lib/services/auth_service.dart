@@ -60,9 +60,12 @@ class AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn}) {
       );
       final user = credential.user;
       if (user != null && !user.emailVerified) {
+        // Capture the UID before the send so the timestamp is always
+        // recorded against the account that received the email.
+        final uid = user.uid;
         try {
           await user.sendEmailVerification();
-          _verificationEmailSentAt = now();
+          _recordVerificationEmailSent(uid);
         } catch (e) {
           debugPrint('AuthService: Email verification send failed: $e');
           // The account exists at this point, so surface the failure as a
@@ -86,14 +89,27 @@ class AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn}) {
   /// tests; production code leaves the default.
   DateTime Function() now = DateTime.now;
 
-  /// When the last verification email was successfully sent. Shared across
-  /// banner instances so the resend cooldown applies to the account rather
-  /// than to a single widget.
-  DateTime? _verificationEmailSentAt;
+  /// Successful verification-email send times, keyed by the UID of the
+  /// account that received the email, so the resend cooldown applies per
+  /// account rather than per banner instance.
+  final Map<String, DateTime> _verificationEmailSentAt = {};
 
-  /// The time the last verification email was successfully sent, or `null`
-  /// if none has been sent this session.
-  DateTime? get verificationEmailSentAt => _verificationEmailSentAt;
+  final ValueNotifier<int> _verificationEmailSentAtVersion = ValueNotifier(0);
+
+  /// Notifies listeners whenever a verification-email send is recorded so
+  /// mounted banners can refresh their cooldown display.
+  ValueListenable<int>? get verificationEmailSentAtVersion =>
+      _verificationEmailSentAtVersion;
+
+  void _recordVerificationEmailSent(String uid) {
+    _verificationEmailSentAt[uid] = now();
+    _verificationEmailSentAtVersion.value++;
+  }
+
+  /// The time the last verification email was successfully sent to [uid],
+  /// or `null` if none has been sent this session.
+  DateTime? verificationEmailSentAtFor(String? uid) =>
+      uid == null ? null : _verificationEmailSentAt[uid];
 
   /// Sends a verification email to the currently signed-in user.
   ///
@@ -105,7 +121,7 @@ class AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn}) {
     }
     try {
       await user.sendEmailVerification();
-      _verificationEmailSentAt = now();
+      _recordVerificationEmailSent(user.uid);
     } on FirebaseAuthException catch (e) {
       debugPrint(
         'AuthService: Email verification error [${e.code}]: ${e.message}',

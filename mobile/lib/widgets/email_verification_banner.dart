@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -30,6 +31,7 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
   bool _isSending = false;
   bool _isRefreshing = false;
   Timer? _cooldownTimer;
+  ValueListenable<int>? _sentAtListenable;
 
   /// Remaining resend cooldown derived from the shared send timestamp in
   /// [AuthService], so every banner instance enforces the same deadline.
@@ -37,7 +39,8 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
   /// against the wall clock so suspended apps cannot drift.
   Duration get _cooldownRemaining {
     final authService = context.read<AuthService>();
-    final sentAt = authService.verificationEmailSentAt;
+    final user = context.read<User?>();
+    final sentAt = authService.verificationEmailSentAtFor(user?.uid);
     if (sentAt == null) return Duration.zero;
     final remaining = sentAt
         .add(widget.resendCooldown)
@@ -63,15 +66,33 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
     });
   }
 
+  /// Another banner (or sign-up) may record a send while this one stays
+  /// mounted — e.g. Settings pushed over Home — so refresh the countdown
+  /// whenever the shared timestamp changes.
+  void _onSentAtChanged() {
+    if (!mounted) return;
+    setState(() {});
+    _ensureCooldownTimer();
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final listenable = context
+        .read<AuthService>()
+        .verificationEmailSentAtVersion;
+    if (!identical(listenable, _sentAtListenable)) {
+      _sentAtListenable?.removeListener(_onSentAtChanged);
+      _sentAtListenable = listenable;
+      _sentAtListenable?.addListener(_onSentAtChanged);
+    }
     _ensureCooldownTimer();
   }
 
   @override
   void dispose() {
     _cooldownTimer?.cancel();
+    _sentAtListenable?.removeListener(_onSentAtChanged);
     super.dispose();
   }
 

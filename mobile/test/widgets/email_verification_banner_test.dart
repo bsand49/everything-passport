@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:everything_passport/widgets/email_verification_banner.dart';
@@ -219,12 +220,14 @@ void main() {
       await tester.pump();
       expect(authService.sendEmailVerificationCalls, 1);
 
-      // A second banner mounted afterwards (e.g. Settings after Home) must
-      // honour the same deadline rather than restarting Resend.
+      // A second, freshly mounted banner (e.g. Settings after Home) must
+      // honour the same deadline rather than restarting Resend. The
+      // different key forces a new State so the element is not reused.
       await tester.pumpWidget(
         createTestableWidget(
           child: Scaffold(
             body: EmailVerificationBanner(
+              key: const ValueKey('second-banner'),
               resendCooldown: const Duration(seconds: 3),
             ),
           ),
@@ -243,13 +246,95 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
     });
 
+    testWidgets('mounted banner starts cooldown when another sends', (
+      WidgetTester tester,
+    ) async {
+      var fakeNow = DateTime(2025);
+      final authService = FakeAuthService()..now = () => fakeNow;
+      final user = FakeUser(
+        emailVerified: false,
+        providerData: [FakeUserInfo('password')],
+      );
+      await tester.pumpWidget(
+        createTestableWidget(
+          child: Scaffold(
+            body: EmailVerificationBanner(
+              resendCooldown: const Duration(seconds: 3),
+            ),
+          ),
+          authService: authService,
+          user: user,
+        ),
+      );
+      await tester.pump();
+      expect(find.text('Resend'), findsOneWidget);
+
+      // A send recorded elsewhere (e.g. the Settings banner) must reach
+      // this still-mounted banner without a remount.
+      await authService.sendEmailVerification();
+      await tester.pump();
+
+      expect(find.text('Resend (3s)'), findsOneWidget);
+      await tester.tap(find.text('Resend (3s)'));
+      await tester.pump();
+      expect(authService.sendEmailVerificationCalls, 1);
+
+      fakeNow = fakeNow.add(const Duration(seconds: 4));
+      await tester.pump(const Duration(seconds: 1));
+    });
+
+    testWidgets('cooldown does not leak across accounts', (
+      WidgetTester tester,
+    ) async {
+      var fakeNow = DateTime(2025);
+      final authService = FakeAuthService()..now = () => fakeNow;
+      final userA = FakeUser(
+        uid: 'user_a',
+        emailVerified: false,
+        providerData: [FakeUserInfo('password')],
+      );
+      final userB = FakeUser(
+        uid: 'user_b',
+        emailVerified: false,
+        providerData: [FakeUserInfo('password')],
+      );
+
+      Widget bannerFor(User user) => createTestableWidget(
+        child: Scaffold(
+          body: EmailVerificationBanner(
+            resendCooldown: const Duration(seconds: 3),
+          ),
+        ),
+        authService: authService,
+        user: user,
+      );
+
+      // Account A sends a verification email.
+      await tester.pumpWidget(bannerFor(userA));
+      await tester.tap(find.text('Resend'));
+      await tester.pump();
+      expect(find.text('Resend (3s)'), findsOneWidget);
+
+      // Signing in as account B must not inherit A's cooldown.
+      await tester.pumpWidget(bannerFor(userB));
+      await tester.pump();
+      expect(find.text('Resend'), findsOneWidget);
+
+      fakeNow = fakeNow.add(const Duration(seconds: 4));
+      await tester.pump(const Duration(seconds: 1));
+    });
+
     testWidgets('cooldown reflects elapsed wall-clock time', (
       WidgetTester tester,
     ) async {
       var fakeNow = DateTime(2025);
       final authService = FakeAuthService();
       authService.now = () => fakeNow;
-      authService.verificationEmailSentAt = DateTime(2025)
+      final user = FakeUser(
+        emailVerified: false,
+        providerData: [FakeUserInfo('password')],
+      );
+      authService.verificationEmailSentAtByUid[user.uid] = DateTime(2025)
           .subtract(const Duration(seconds: 59));
       await tester.pumpWidget(
         createTestableWidget(
@@ -259,10 +344,7 @@ void main() {
             ),
           ),
           authService: authService,
-          user: FakeUser(
-            emailVerified: false,
-            providerData: [FakeUserInfo('password')],
-          ),
+          user: user,
         ),
       );
       await tester.pump();
