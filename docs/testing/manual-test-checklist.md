@@ -21,15 +21,16 @@ checklist into the release PR description.
 ## Authentication & email verification
 
 - [ ] Email/password sign-up succeeds and shows the expected SnackBar
-- [ ] Verification email is delivered and the link verifies the account
+- [ ] Verification email is delivered (do not click the link yet — verifying
+      ends the unverified-state checks below; use a second account if needed)
 - [ ] Unverified password account can sign in (login is not blocked)
 - [ ] Verification banner appears on home, profile onboarding, settings, and
       edit-profile screens for unverified password accounts
 - [ ] Banner is absent for verified accounts and Google sign-in accounts
 - [ ] "Resend" sends another email and shows success feedback; repeat sends
       surface rate-limit/error feedback gracefully
-- [ ] "Refresh" icon clears the banner after verification without restarting
-      the app
+- [ ] Clicking the verification link verifies the account, and "Refresh" then
+      clears the banner without restarting the app
 - [ ] Regression: profile onboarding, username flows, logout, settings
       navigation, and password reset still work
 

@@ -53,6 +53,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     conventions.
   - Detailed root and mobile READMEs covering setup, testing, CI, Firebase
     configuration, and troubleshooting.
+  - `docs/` directory with a manual test checklist template
+    (`docs/testing/manual-test-checklist.md`) referenced by `RELEASING.md`.
 - Utility layer:
   - Shared `Validators`, `DateFormatter`, and `ImageUtils` utilities.
   - Unit tests for utilities and refactored screens/widgets to use shared
