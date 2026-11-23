@@ -10,6 +10,7 @@ import 'package:everything_passport/screens/home_screen.dart';
 import 'package:everything_passport/screens/user_profile_screen.dart';
 import 'package:everything_passport/models/user_profile.dart';
 import 'package:everything_passport/services/metadata_service.dart';
+import 'package:everything_passport/widgets/email_verification_banner.dart';
 import 'package:http/http.dart' as http;
 
 import 'test_helper.dart';
@@ -260,10 +261,21 @@ void main() async {
 
           expect(fakeAuth.reloadCurrentUserCalls, 1);
           expect(find.byType(HomeScreen), findsOneWidget);
-          expect(
-            find.text('Verify your email to unlock admin features'),
-            findsNothing,
+          expect(find.byType(EmailVerificationBanner), findsNothing);
+          // The banner slot must collapse entirely: the host Column's first
+          // child is a zero-height SizedBox, not the SafeArea that reserves
+          // the status-bar inset while the banner is visible.
+          final hostColumn = tester.widget<Column>(
+            find
+                .ancestor(
+                  of: find.byType(HomeScreen),
+                  matching: find.byType(Column),
+                )
+                .first,
           );
+          expect(hostColumn.children.length, 2);
+          expect(hostColumn.children.first, isA<SizedBox>());
+          expect(hostColumn.children.last, isA<Expanded>());
         },
       );
 
