@@ -3,40 +3,33 @@ run-name: "${{ github.event_name == 'pull_request' && format('Build and Test for
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/build-and-test-mobile.yml'
+      - '.github/actions/**'
+      - 'package.json'
+      - 'package-lock.json'
   pull_request:
-    branches: [ main, master ]
+    branches: [main]
     types: [opened, synchronize, reopened]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/build-and-test-mobile.yml'
+      - '.github/actions/**'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  detect-changes:
-    name: Detect Changes
-    runs-on: ubuntu-latest
-    outputs:
-      mobile: ${{ steps.filter.outputs.mobile }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-
-      - name: Check for mobile changes
-        id: filter
-        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4 pinned
-        with:
-          filters: |
-            mobile:
-              - 'mobile/**'
-              - '.github/workflows/build.yml'
-              - '.github/actions/**'
-
   build-and-test-mobile:
     name: Build and Test (Mobile)
-    needs: detect-changes
-    if: needs.detect-changes.outputs.mobile == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment: dev
 
     permissions:
@@ -64,6 +57,13 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
+      - name: Set up Node 26
+        uses: actions/setup-node@v7
+        with:
+          node-version: '26'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -87,6 +87,7 @@ jobs:
           path: |
             mobile/lib/firebase_options_dev.dart
             mobile/android/app/google-services.json
+            mobile/ios/Runner/GoogleService-Info.plist
           retention-days: 1
 
       - name: Generate mock files
@@ -103,10 +104,9 @@ jobs:
         with:
           threshold: ${{ vars.MOBILE_COVERAGE_THRESHOLD || 90 }}
 
-  smoke-test-mobile:
+  smoke-test-mobile-android:
     name: Smoke Test (Android Emulator)
-    needs: [detect-changes, build-and-test-mobile]
-    if: needs.detect-changes.outputs.mobile == 'true'
+    needs: build-and-test-mobile
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: dev
@@ -148,16 +148,6 @@ jobs:
           name: firebase-config
           path: mobile
 
-      - name: Configure Firebase
-        uses: ./.github/actions/configure-firebase
-        with:
-          service-account-json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
-          project-id: ${{ secrets.FIREBASE_PROJECT_ID }}
-          android-package-name: 'com.bsand49.everything_passport'
-          ios-bundle-id: 'com.bsand49.everythingPassport'
-          output-path: 'lib/firebase_options_dev.dart'
-          working-directory: 'mobile'
-
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -197,3 +187,92 @@ jobs:
           disable-animations: true
           working-directory: mobile
           script: flutter test --dart-define=SERVER_CLIENT_ID=${{ secrets.SERVER_CLIENT_ID }} integration_test/app_test.dart
+
+  smoke-test-mobile-ios:
+    name: Smoke Test (iOS Simulator)
+    needs: build-and-test-mobile
+    runs-on: macos-latest
+    timeout-minutes: 45
+    environment: dev
+
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2 pinned
+        with:
+          channel: 'stable'
+          cache: true
+          pub-cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Download Firebase Configuration
+        uses: actions/download-artifact@v8
+        with:
+          name: firebase-config
+          path: mobile
+
+      - name: Set up Node 26
+        uses: actions/setup-node@v7
+        with:
+          node-version: '26'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Configure Firebase iOS
+        env:
+          SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$SERVICE_ACCOUNT_JSON" ]; then
+            echo "No Firebase service account configured; using artifact config."
+            exit 0
+          fi
+          dart pub global activate flutterfire_cli
+          (cd "$GITHUB_WORKSPACE" && npm ci)
+          export PATH="$GITHUB_WORKSPACE/node_modules/.bin:$PATH"
+          echo "$SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/service-account.json"
+          GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/service-account.json" \
+            flutterfire configure \
+            --project=${{ secrets.FIREBASE_PROJECT_ID }} \
+            --platforms=android,ios \
+            --android-package-name=com.bsand49.everything_passport \
+            --ios-bundle-id=com.bsand49.everythingPassport \
+            --out=lib/firebase_options_dev.dart \
+            --yes
+          rm -f "$RUNNER_TEMP/service-account.json"
+
+      - name: Select and boot iOS simulator
+        id: simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          candidates = [
+              device
+              for runtime_devices in data["devices"].values()
+              for device in runtime_devices
+              if device.get("isAvailable") and "iPhone" in device.get("name", "")
+          ]
+          if not candidates:
+              sys.exit("No available iPhone simulators found")
+          print(candidates[0]["udid"])
+          ')
+          echo "Selected simulator: $UDID"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Run Integration Tests (iOS Simulator)
+        run: >-
+          flutter test
+          --dart-define=ENV=dev
+          --dart-define=SERVER_CLIENT_ID=${{ secrets.SERVER_CLIENT_ID }}
+          integration_test/app_test.dart
+          -d ${{ steps.simulator.outputs.udid }}

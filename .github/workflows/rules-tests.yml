@@ -2,17 +2,11 @@ name: Firebase Rules Tests
 run-name: "${{ github.event_name == 'pull_request' && format('Rules Tests for PR #{0} - {1}', github.event.pull_request.number, github.event.pull_request.title) || format('Rules Tests on {0}', github.ref_name) }}"
 
 on:
+  push:
+    branches: [main]
   pull_request:
-    branches: [ main, master ]
+    branches: [main]
     types: [opened, synchronize, reopened]
-    paths:
-      - 'firestore.rules'
-      - 'storage.rules'
-      - 'firebase.json'
-      - 'tests/rules/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/rules-tests.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -22,6 +16,7 @@ jobs:
   rules-tests:
     name: Firestore/Storage Rules Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
@@ -38,7 +33,9 @@ jobs:
         with:
           node-version: '26'
           cache: npm
-          cache-dependency-path: tests/rules/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            tests/rules/package-lock.json
 
       - name: Cache Firebase emulators
         uses: actions/cache@v6

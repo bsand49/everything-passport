@@ -26,7 +26,9 @@ runs:
   using: "composite"
   steps:
     - name: Install Firebase CLI
-      run: npm install -g firebase-tools
+      run: |
+        cd "$GITHUB_WORKSPACE" && npm ci
+        echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
       shell: bash
 
     - name: Install FlutterFire CLI
@@ -70,6 +72,33 @@ runs:
           if [ ! -f "android/app/google-services.json" ]; then
             echo "Creating dummy google-services.json"
             printf '{"project_info":{"project_number":"0","project_id":"dummy","storage_bucket":"dummy.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"dummy","android_client_info":{"package_name":"%s"}},"api_key":[{"current_key":"dummy"}],"services":{"appinvite_service":{"status":1}}}]}\n' "$ANDROID_PACKAGE" > android/app/google-services.json
+          fi
+
+          # Create a dummy GoogleService-Info.plist for iOS builds
+          mkdir -p ios/Runner
+          if [ ! -f "ios/Runner/GoogleService-Info.plist" ]; then
+            echo "Creating dummy GoogleService-Info.plist"
+            printf '%s\n' \
+              '<?xml version="1.0" encoding="UTF-8"?>' \
+              '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' \
+              '<plist version="1.0">' \
+              '<dict>' \
+              '	<key>API_KEY</key><string>dummy</string>' \
+              '	<key>GCM_SENDER_ID</key><string>0</string>' \
+              '	<key>PLIST_VERSION</key><string>1</string>' \
+              "	<key>BUNDLE_ID</key><string>$IOS_BUNDLE</string>" \
+              '	<key>PROJECT_ID</key><string>dummy</string>' \
+              '	<key>STORAGE_BUCKET</key><string>dummy.appspot.com</string>' \
+              '	<key>IS_ADS_ENABLED</key><false/>' \
+              '	<key>IS_ANALYTICS_ENABLED</key><false/>' \
+              '	<key>IS_APPINVITE_ENABLED</key><false/>' \
+              '	<key>IS_GCM_ENABLED</key><false/>' \
+              '	<key>IS_SIGNIN_ENABLED</key><false/>' \
+              '	<key>GOOGLE_APP_ID</key><string>1:0:ios:0123456789abcdef0123</string>' \
+              '	<key>CLIENT_ID</key><string>dummy.apps.googleusercontent.com</string>' \
+              '	<key>REVERSED_CLIENT_ID</key><string>com.googleusercontent.apps.dummy</string>' \
+              '</dict>' \
+              '</plist>' > ios/Runner/GoogleService-Info.plist
           fi
         else
           echo "$SERVICE_ACCOUNT_JSON" > service-account.json

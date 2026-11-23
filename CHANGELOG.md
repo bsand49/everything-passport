@@ -81,6 +81,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     profile screens prompts unverified password users to verify, with resend
     and refresh-status actions. Email verification is required for admin
     access.
+- CI updates:
+  - `.github/workflows/build.yml` renamed to
+    `build-and-test-mobile.yml` and now uses workflow-level `paths` filters
+    instead of a `detect-changes` job; branch triggers normalized to `main`.
+  - Added an iOS simulator integration smoke job (macOS runner) alongside the
+    existing Android emulator smoke test.
+  - `configure-firebase` now also generates a dummy
+    `GoogleService-Info.plist` for builds without Firebase secrets.
+  - `rules-tests.yml` branch filter normalized to `main`, now runs on every
+    PR so its required status check always reports, and gained a `push`
+    trigger for post-merge validation.
 
 ### Security
 

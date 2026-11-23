@@ -78,6 +78,9 @@ These files are gitignored and must be generated locally or by CI:
 Generate dev configuration with `flutterfire configure` (see `README.md`).
 CI uses `.github/actions/configure-firebase`; without Firebase secrets it
 creates dummy options so formatting, analysis, and unit tests can run.
+FlutterFire only writes Apple service files (`GoogleService-Info.plist`)
+on macOS — on Linux runners it produces Dart/Android files only, so iOS
+configuration must be generated on a macOS runner.
 
 Firestore/Storage access is enforced by the repository-root
 `firestore.rules` and `storage.rules`: owner-only for regular users, full
@@ -112,7 +115,17 @@ need matching rule updates in the same change.
 - Android release builds currently use the debug signing config and contain a
   TODO for release signing — configure a real upload keystore before
   distributing store builds.
-- iOS requires Xcode/CocoaPods setup and Apple signing for device or App Store
-  builds.
+- iOS requires Xcode and Apple signing for device or App Store builds.
+- `ios/Flutter/` mixes tracked static templates (`Debug.xcconfig`,
+  `Release.xcconfig`, `AppFrameworkInfo.plist`) with generated files
+  (`Generated.xcconfig`, `ephemeral/`); only the generated files are
+  gitignored. Do not re-add a blanket `ios/Flutter/` ignore — fresh
+  checkouts then fail Xcode builds with "Missing Flutter build settings".
+- SwiftPM `Package.resolved` files under `ios/Runner.xcodeproj/` and
+  `ios/Runner.xcworkspace/` are committed so iOS dependency resolution is
+  reproducible.
+- iOS integration tests run against a booted simulator:
+  `flutter test --dart-define=ENV=dev --dart-define=SERVER_CLIENT_ID=<id>
+  integration_test/app_test.dart -d <simulator-udid>`.
 - The modified root `android/gradlew` setup is intentional for this project;
   use the Flutter/Gradle wrapper rather than a global Gradle binary.

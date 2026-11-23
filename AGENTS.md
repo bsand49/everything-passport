@@ -150,7 +150,9 @@ independently for mobile builds.
   `@opentelemetry/core`, `@grpc/grpc-js`) past `firebase-tools`/`firebase`
   version constraints. When bumping those packages, re-run `npm audit` in
   both directories and remove any override that upstream has made
-  unnecessary.
+  unnecessary. Workflows that need the Firebase CLI must use the locked
+  toolchain (`npm ci` at the repo root) rather than a global install — see
+  `.github/AGENTS.md`.
 - **Follow-ups**: work deferred during review or implementation must be
   recorded in the PR description's follow-ups section (and promoted to a
   tracking issue or `CHANGELOG.md` note if it outlives the PR) — don't let it
@@ -169,8 +171,10 @@ independently for mobile builds.
   --prune`).
 - **PR review comments**: reply inline on the specific review-comment thread
   rather than posting a new top-level comment.
-- **Action versions**: follow the existing workflow style — GitHub-owned
-  actions use major version tags, and third-party workflow actions that are
-  already SHA-pinned should remain pinned.
+- **AGENTS.md scope**: keep each `AGENTS.md` concise and scoped to its
+  directory — record only non-obvious, durable conventions. Don't repeat
+  rules that belong to a more specific `AGENTS.md` (e.g. CI details live in
+  `.github/AGENTS.md`, Flutter details in `mobile/AGENTS.md`); reference
+  them instead.
 - **Code ownership**: `.github/CODEOWNERS` assigns `@bsand49` as the owner of
   all files.
