@@ -150,9 +150,9 @@ independently for mobile builds.
   `@opentelemetry/core`, `@grpc/grpc-js`) past `firebase-tools`/`firebase`
   version constraints. When bumping those packages, re-run `npm audit` in
   both directories and remove any override that upstream has made
-  unnecessary. Workflows that install `firebase-tools` globally (it is not
-  covered by `npm ci`) should pin to the exact `package-lock.json` version
-  (`15.37.0`).
+  unnecessary. Workflows that need the Firebase CLI must use the locked
+  toolchain (`npm ci` at the repo root) rather than a global install — see
+  `.github/AGENTS.md`.
 - **Follow-ups**: work deferred during review or implementation must be
   recorded in the PR description's follow-ups section (and promoted to a
   tracking issue or `CHANGELOG.md` note if it outlives the PR) — don't let it

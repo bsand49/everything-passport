@@ -6,12 +6,14 @@ covers CI-specific ones.
 
 ## Actions
 
-- `actions/configure-firebase` — composite action that installs
-  `firebase-tools` (exact-pinned to the root `package-lock.json` version,
-  currently `15.37.0`) and `flutterfire_cli`, then runs `flutterfire
-  configure` when
+- `actions/configure-firebase` — composite action that installs the
+  locked toolchain via `npm ci` at the repo root (so `firebase-tools`
+  resolves exactly as `package-lock.json`, including the security
+  `overrides`) with `node_modules/.bin` on `PATH`, installs
+  `flutterfire_cli`, then runs `flutterfire configure` when
   `FIREBASE_SERVICE_ACCOUNT_JSON` is set or writes dummy Firebase config
-  otherwise. It runs on the Ubuntu build job.
+  otherwise. It runs on the Ubuntu build job; the iOS smoke job repeats
+  the `npm ci` + PATH setup on macOS for its own configure step.
 - `actions/report-coverage` — uploads `mobile/coverage/lcov.info` to the
   coverage reporter.
 
@@ -34,9 +36,10 @@ covers CI-specific ones.
   `GoogleService-Info.plist` on macOS (`Platform.isMacOS` guard in
   flutterfire_cli). The Ubuntu job cannot produce it — the iOS smoke job
   re-runs configure on the macOS runner when credentials exist.
-- **Global installs in workflows** are not covered by `npm ci`; pin
-  `firebase-tools` to the exact version in `package-lock.json` (`15.37.0`)
-  so CI can't drift from the locked toolchain.
+- **Firebase CLI in workflows**: never `npm install -g firebase-tools` —
+  global installs bypass `package-lock.json` and the security `overrides`.
+  Run `npm ci` at `$GITHUB_WORKSPACE` and put `node_modules/.bin` on
+  `PATH`/`GITHUB_PATH` instead (see `actions/configure-firebase`).
 - **Artifact handoff**: `firebase-config` carries
   `firebase_options_*.dart`, `google-services.json`, and
   `GoogleService-Info.plist` (when generatable) from the build job to both
