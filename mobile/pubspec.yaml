@@ -49,6 +49,7 @@ dev_dependencies:
   image_picker_platform_interface: ^2.11.2
   image_cropper_platform_interface: ^9.0.0
   flutter_launcher_icons: ^0.14.4
+  sqflite_common_ffi: ^2.4.7
 
 flutter:
   uses-material-design: true

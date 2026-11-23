@@ -381,6 +381,10 @@ void main() {
         );
 
         expect(available, isTrue);
+        verifyInOrder([
+          mockDocRef.get(const GetOptions(source: Source.server)),
+          mockDocRef.get(),
+        ]);
       });
 
       test('returns false on error', () async {
