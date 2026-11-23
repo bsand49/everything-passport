@@ -114,9 +114,10 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
 /// Wraps an authenticated screen with [EmailVerificationBanner] when the
 /// current user is an unverified email/password account.
 ///
-/// The wrapper layout is stable whether or not the banner is visible so the
-/// child (and any unsaved form state) stays mounted when verification
-/// completes and the banner disappears.
+/// The banner slot collapses to zero height when verification is not needed
+/// (so it does not reserve the status-bar inset a second time) while
+/// [Expanded] stays at a stable index, keeping the child — and any unsaved
+/// form state — mounted when the banner appears or disappears.
 class EmailVerificationBannerHost extends StatelessWidget {
   final Widget child;
 
@@ -124,9 +125,15 @@ class EmailVerificationBannerHost extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<User?>();
+    final authService = context.read<AuthService>();
+    final showBanner = authService.requiresEmailVerificationFor(user);
     return Column(
       children: [
-        SafeArea(bottom: false, child: const EmailVerificationBanner()),
+        if (showBanner)
+          SafeArea(bottom: false, child: const EmailVerificationBanner())
+        else
+          const SizedBox.shrink(),
         Expanded(child: child),
       ],
     );

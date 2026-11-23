@@ -216,7 +216,7 @@ void main() async {
       });
 
       testWidgets(
-        'hides the verification banner when a reload emits a verified user',
+        'hides the verification banner after refresh emits a verified user',
         (WidgetTester tester) async {
           final fakeAuth = FakeAuthService();
           final fakeProfile = FakeUserProfileService();
@@ -234,6 +234,12 @@ void main() async {
               providerData: [FakeUserInfo('password')],
             ),
           );
+          // Simulate User.reload() publishing a fresh verified snapshot for
+          // the same account through the auth stream.
+          fakeAuth.reloadEmitsUser = FakeUser(
+            emailVerified: true,
+            providerData: [FakeUserInfo('password')],
+          );
 
           await tester.pumpWidget(
             MyApp(
@@ -249,16 +255,10 @@ void main() async {
             findsOneWidget,
           );
 
-          // Simulate User.reload() publishing a fresh verified snapshot for
-          // the same account.
-          fakeAuth.emitUser(
-            FakeUser(
-              emailVerified: true,
-              providerData: [FakeUserInfo('password')],
-            ),
-          );
+          await tester.tap(find.byIcon(Icons.refresh));
           await tester.pump();
 
+          expect(fakeAuth.reloadCurrentUserCalls, 1);
           expect(find.byType(HomeScreen), findsOneWidget);
           expect(
             find.text('Verify your email to unlock admin features'),

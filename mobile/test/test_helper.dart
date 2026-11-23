@@ -29,6 +29,10 @@ class FakeAuthService extends Fake implements AuthService {
   String errorMessage = 'Test Error';
   Completer<UserCredential?>? loginCompleter;
 
+  /// When set, [reloadCurrentUser] emits this user on [user] to simulate
+  /// `User.reload()` publishing a fresh snapshot via `userChanges()`.
+  User? reloadEmitsUser;
+
   @override
   User? get currentUser => _userSubject.value;
 
@@ -92,6 +96,8 @@ class FakeAuthService extends Fake implements AuthService {
   Future<void> reloadCurrentUser() async {
     reloadCurrentUserCalls++;
     if (throwError) throw Exception(errorMessage);
+    final updated = reloadEmitsUser;
+    if (updated != null) emitUser(updated);
   }
 
   @override
