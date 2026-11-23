@@ -126,10 +126,7 @@ void main() async {
         );
 
         expect(find.byType(HomeScreen), findsOneWidget);
-        expect(
-          find.text('Verify your email to unlock admin features'),
-          findsOneWidget,
-        );
+        expect(find.text('Verify your email address'), findsOneWidget);
       });
 
       testWidgets('hides verification banner for unverified Google user', (
@@ -154,10 +151,7 @@ void main() async {
         );
 
         expect(find.byType(HomeScreen), findsOneWidget);
-        expect(
-          find.text('Verify your email to unlock admin features'),
-          findsNothing,
-        );
+        expect(find.text('Verify your email address'), findsNothing);
       });
     });
   });
@@ -251,10 +245,7 @@ void main() async {
           );
           await tester.pump();
 
-          expect(
-            find.text('Verify your email to unlock admin features'),
-            findsOneWidget,
-          );
+          expect(find.text('Verify your email address'), findsOneWidget);
 
           await tester.tap(find.byIcon(Icons.refresh));
           await tester.pump();

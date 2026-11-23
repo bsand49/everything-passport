@@ -13,10 +13,7 @@ void main() {
         ),
       );
 
-      expect(
-        find.text('Verify your email to unlock admin features'),
-        findsNothing,
-      );
+      expect(find.text('Verify your email address'), findsNothing);
     });
 
     testWidgets('is hidden for a verified password user', (
@@ -29,10 +26,7 @@ void main() {
         ),
       );
 
-      expect(
-        find.text('Verify your email to unlock admin features'),
-        findsNothing,
-      );
+      expect(find.text('Verify your email address'), findsNothing);
     });
 
     testWidgets('is hidden for an unverified Google user', (
@@ -48,10 +42,7 @@ void main() {
         ),
       );
 
-      expect(
-        find.text('Verify your email to unlock admin features'),
-        findsNothing,
-      );
+      expect(find.text('Verify your email address'), findsNothing);
     });
 
     testWidgets('is visible for an unverified password user', (
@@ -67,10 +58,7 @@ void main() {
         ),
       );
 
-      expect(
-        find.text('Verify your email to unlock admin features'),
-        findsOneWidget,
-      );
+      expect(find.text('Verify your email address'), findsOneWidget);
       expect(find.text('Resend'), findsOneWidget);
       expect(find.byIcon(Icons.refresh), findsOneWidget);
     });
@@ -147,10 +135,7 @@ void main() {
       await tester.pump();
 
       expect(authService.reloadCurrentUserCalls, 1);
-      expect(
-        find.text('Verify your email to unlock admin features'),
-        findsNothing,
-      );
+      expect(find.text('Verify your email address'), findsNothing);
     });
 
     testWidgets('refresh shows an error SnackBar on failure', (
@@ -195,10 +180,7 @@ void main() {
       );
 
       expect(find.text('Child content'), findsOneWidget);
-      expect(
-        find.text('Verify your email to unlock admin features'),
-        findsNothing,
-      );
+      expect(find.text('Verify your email address'), findsNothing);
     });
 
     testWidgets('shows the banner above the child when needed', (
@@ -218,10 +200,7 @@ void main() {
         ),
       );
 
-      expect(
-        find.text('Verify your email to unlock admin features'),
-        findsOneWidget,
-      );
+      expect(find.text('Verify your email address'), findsOneWidget);
       expect(find.text('Child content'), findsOneWidget);
     });
   });
