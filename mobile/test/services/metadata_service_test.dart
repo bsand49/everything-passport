@@ -10,7 +10,18 @@ import 'metadata_service_test.mocks.dart';
 
 @GenerateMocks(
   [],
-  customMocks: [MockSpec<FirebaseFirestore>(as: #MockFirestore)],
+  customMocks: [
+    MockSpec<FirebaseFirestore>(as: #MockFirestore),
+    MockSpec<CollectionReference<Map<String, dynamic>>>(
+      as: #MockCollectionReference,
+    ),
+    MockSpec<DocumentReference<Map<String, dynamic>>>(
+      as: #MockDocumentReference,
+    ),
+    MockSpec<DocumentReference<List<Country>>>(as: #MockTypedDocumentReference),
+    MockSpec<DocumentSnapshot<List<Country>>>(as: #MockTypedDocumentSnapshot),
+    MockSpec<SnapshotMetadata>(as: #MockSnapshotMetadata),
+  ],
 )
 void main() {
   group('MetadataService', () {
@@ -231,7 +242,7 @@ void main() {
         final countries1 = await metadataService.getCountries();
         expect(countries1, hasLength(1));
 
-        metadataService.clearCache();
+        await metadataService.clearCache();
 
         await mockFirestore.collection('metadata').doc('countries').set({
           'options': [],
@@ -240,6 +251,91 @@ void main() {
         final countries2 = await metadataService.getCountries();
         expect(countries2, isEmpty);
       });
+    });
+
+    group('cache TTL', () {
+      Future<void> seedCountries(FakeFirebaseFirestore db, String id) {
+        return db.collection('metadata').doc('countries').set({
+          'options': [
+            {'id': id, 'name': 'Country $id', 'searchKeywords': []},
+          ],
+        });
+      }
+
+      test('refetches from Firestore when the TTL has expired', () async {
+        await seedCountries(mockFirestore, 'US');
+        final service = MetadataService(
+          db: mockFirestore,
+          cacheTtl: Duration.zero,
+        );
+        await service.getCountries();
+
+        await seedCountries(mockFirestore, 'GB');
+        final countries = await service.getCountries();
+        expect(countries.single.id, 'GB');
+      });
+
+      test(
+        'does not extend the TTL for snapshots served from the offline cache',
+        () async {
+          final firestore = MockFirestore();
+          final collection = MockCollectionReference();
+          final docRef = MockDocumentReference();
+          final typedRef = MockTypedDocumentReference();
+          final snapshot = MockTypedDocumentSnapshot();
+          final metadata = MockSnapshotMetadata();
+
+          when(firestore.collection('metadata')).thenReturn(collection);
+          when(collection.doc('countries')).thenReturn(docRef);
+          when(
+            docRef.withConverter<List<Country>>(
+              fromFirestore: anyNamed('fromFirestore'),
+              toFirestore: anyNamed('toFirestore'),
+            ),
+          ).thenReturn(typedRef);
+          when(typedRef.get()).thenAnswer((_) async => snapshot);
+          when(snapshot.metadata).thenReturn(metadata);
+          when(metadata.isFromCache).thenReturn(true);
+          when(snapshot.data()).thenReturn(const [
+            Country(id: 'US', name: 'United States', searchKeywords: []),
+          ]);
+
+          // Every read reports isFromCache, so _cachedAt must never be set
+          // and each call has to hit Firestore again.
+          final service = MetadataService(db: firestore);
+          await service.getCountries();
+          await service.getCountries();
+
+          verify(typedRef.get()).called(2);
+        },
+      );
+
+      test(
+        'returns stale cache when the TTL expired and Firestore fails',
+        () async {
+          await seedCountries(mockFirestore, 'US');
+
+          final toggleFirestore = MockFirestore();
+          var fail = false;
+          when(toggleFirestore.collection(any)).thenAnswer((invocation) {
+            if (fail) throw Exception('Firestore offline');
+            final path = invocation.positionalArguments[0] as String;
+            return mockFirestore.collection(path);
+          });
+
+          // A zero TTL means the cache is always stale, forcing a fetch.
+          final service = MetadataService(
+            db: toggleFirestore,
+            cacheTtl: Duration.zero,
+          );
+          await service.getCountries();
+
+          fail = true;
+          final countries = await service.getCountries();
+          expect(countries, hasLength(1));
+          expect(countries.single.id, 'US');
+        },
+      );
     });
 
     group('toFirestore()', () {

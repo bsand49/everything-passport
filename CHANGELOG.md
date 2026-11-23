@@ -21,9 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Firebase Authentication with email/password, Google Sign-In, and sign-out;
     the auth service also supports password reset and account deletion.
   - Cloud Firestore profile storage, transactional username uniqueness, and
-    country metadata loading.
+    country metadata loading cached in memory with a 24-hour TTL.
   - Firebase Storage profile-picture uploads.
   - Image picking/cropping and cached remote images.
+  - Settings → Clear cache action that clears the in-memory metadata cache
+    and the downloaded-image cache; Firestore offline persistence is
+    managed by the SDK and intentionally left intact.
 - Testing infrastructure:
   - `flutter_test` unit/widget suite with Mockito and generated mocks.
   - `integration_test` smoke suite for app boot, auth navigation, and shared

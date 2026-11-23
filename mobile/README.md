@@ -21,7 +21,9 @@ Firebase Authentication, Cloud Firestore, and Firebase Storage.
 - Transactional username uniqueness using the Firestore `usernames`
   collection.
 - Profile photo upload to Firebase Storage at `profile_pictures/{userId}`.
-- Country metadata from `metadata/countries` with an in-memory cache.
+- Country metadata from `metadata/countries` cached in memory with a
+  24-hour TTL; Settings → Clear cache clears the metadata cache and
+  downloaded images (Firestore offline persistence is left to the SDK).
 - Material 3 UI and English (UK/US) localization delegates.
 - Home/settings scaffolding; Add Trip and Add Event actions are placeholders
   for future travel-tracking features.

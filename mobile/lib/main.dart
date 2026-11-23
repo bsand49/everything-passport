@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,7 @@ import 'package:rxdart/rxdart.dart';
 import 'firebase_options_dev.dart' as dev;
 import 'firebase_options_dev.dart' as prod; // TODO: Amend to firebase_options_prod.dart once prod project is created
 import 'services/auth_service.dart';
+import 'services/cache_service.dart';
 import 'services/user_profile_service.dart';
 import 'services/metadata_service.dart';
 import 'models/user_profile.dart';
@@ -35,6 +37,13 @@ Future<void> main() async {
   if (Firebase.apps.isEmpty) {
     await Firebase.initializeApp(options: selectedOptions);
   }
+  // Offline persistence is on by default for mobile, but set it explicitly
+  // (with an unbounded cache) so Firestore reads are served from the local
+  // cache whenever possible. Must run before any Firestore instance use.
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
   await GoogleSignIn.instance.initialize(serverClientId: serverClientId);
   runApp(const MyApp());
 }
@@ -44,6 +53,7 @@ class MyApp extends StatelessWidget {
   final AuthService? authService;
   final UserProfileService? userProfileService;
   final MetadataService? metadataService;
+  final CacheService? cacheService;
   final http.Client? httpClient;
 
   const MyApp({
@@ -51,6 +61,7 @@ class MyApp extends StatelessWidget {
     this.authService,
     this.userProfileService,
     this.metadataService,
+    this.cacheService,
     this.httpClient,
   });
 
@@ -70,6 +81,11 @@ class MyApp extends StatelessWidget {
         ),
         Provider<MetadataService>(
           create: (_) => metadataService ?? MetadataService(),
+        ),
+        Provider<CacheService>(
+          create: (context) =>
+              cacheService ??
+              CacheService(service: context.read<MetadataService>()),
         ),
         StreamProvider<User?>(
           create: (context) => context.read<AuthService>().user,
