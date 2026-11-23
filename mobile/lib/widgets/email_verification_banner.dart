@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
@@ -11,7 +13,13 @@ import '../services/auth_service.dart';
 /// password accounts to verify their address. Google sign-in accounts are
 /// verified automatically and never see this banner.
 class EmailVerificationBanner extends StatefulWidget {
-  const EmailVerificationBanner({super.key});
+  /// How long the Resend action stays disabled after a successful send.
+  final Duration resendCooldown;
+
+  const EmailVerificationBanner({
+    super.key,
+    this.resendCooldown = const Duration(seconds: 60),
+  });
 
   @override
   State<EmailVerificationBanner> createState() =>
@@ -21,6 +29,38 @@ class EmailVerificationBanner extends StatefulWidget {
 class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
   bool _isSending = false;
   bool _isRefreshing = false;
+  Duration _cooldownRemaining = Duration.zero;
+  Timer? _cooldownTimer;
+
+  bool get _onCooldown => _cooldownRemaining > Duration.zero;
+
+  /// Starts the resend cooldown after a successful send so users cannot
+  /// spam resends and hit Firebase rate limits. Not started on failure so
+  /// the user can retry immediately.
+  void _startCooldown() {
+    if (!mounted) return;
+    _cooldownTimer?.cancel();
+    setState(() => _cooldownRemaining = widget.resendCooldown);
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _cooldownRemaining -= const Duration(seconds: 1);
+        if (_cooldownRemaining <= Duration.zero) {
+          _cooldownRemaining = Duration.zero;
+          timer.cancel();
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _cooldownTimer?.cancel();
+    super.dispose();
+  }
 
   Future<void> _sendVerification() async {
     setState(() => _isSending = true);
@@ -28,6 +68,7 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
     final authService = context.read<AuthService>();
     try {
       await authService.sendEmailVerification();
+      _startCooldown();
       messenger.showSnackBar(
         const SnackBar(
           content: Text('Verification email sent. Check your inbox.'),
@@ -85,14 +126,18 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
               ),
             ),
             TextButton(
-              onPressed: _isSending ? null : _sendVerification,
+              onPressed: (_isSending || _onCooldown) ? null : _sendVerification,
               child: _isSending
                   ? const SizedBox(
                       height: 16,
                       width: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Resend'),
+                  : Text(
+                      _onCooldown
+                          ? 'Resend (${(_cooldownRemaining.inMilliseconds / 1000).ceil()}s)'
+                          : 'Resend',
+                    ),
             ),
             IconButton(
               tooltip: 'Refresh verification status',

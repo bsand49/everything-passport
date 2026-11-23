@@ -69,7 +69,11 @@ void main() {
       final authService = FakeAuthService();
       await tester.pumpWidget(
         createTestableWidget(
-          child: const Scaffold(body: EmailVerificationBanner()),
+          child: Scaffold(
+            body: EmailVerificationBanner(
+              resendCooldown: const Duration(seconds: 1),
+            ),
+          ),
           authService: authService,
           user: FakeUser(
             emailVerified: false,
@@ -86,6 +90,70 @@ void main() {
         find.text('Verification email sent. Check your inbox.'),
         findsOneWidget,
       );
+
+      // Let the cooldown elapse so no timer is pending at test end.
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('resend is disabled with a countdown during cooldown', (
+      WidgetTester tester,
+    ) async {
+      final authService = FakeAuthService();
+      await tester.pumpWidget(
+        createTestableWidget(
+          child: Scaffold(
+            body: EmailVerificationBanner(
+              resendCooldown: const Duration(seconds: 3),
+            ),
+          ),
+          authService: authService,
+          user: FakeUser(
+            emailVerified: false,
+            providerData: [FakeUserInfo('password')],
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Resend'));
+      await tester.pump();
+
+      expect(find.text('Resend (3s)'), findsOneWidget);
+
+      // Tapping the disabled button must not send again.
+      await tester.tap(find.text('Resend (3s)'));
+      await tester.pump();
+      expect(authService.sendEmailVerificationCalls, 1);
+
+      await tester.pump(const Duration(seconds: 4));
+    });
+
+    testWidgets('resend re-enables after the cooldown elapses', (
+      WidgetTester tester,
+    ) async {
+      final authService = FakeAuthService();
+      await tester.pumpWidget(
+        createTestableWidget(
+          child: Scaffold(
+            body: EmailVerificationBanner(
+              resendCooldown: const Duration(seconds: 2),
+            ),
+          ),
+          authService: authService,
+          user: FakeUser(
+            emailVerified: false,
+            providerData: [FakeUserInfo('password')],
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Resend'));
+      await tester.pump();
+      expect(find.text('Resend (2s)'), findsOneWidget);
+
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump();
+
+      expect(find.text('Resend'), findsOneWidget);
     });
 
     testWidgets('resend shows an error SnackBar on failure', (
@@ -111,6 +179,12 @@ void main() {
         find.textContaining('Could not send verification email'),
         findsOneWidget,
       );
+
+      // A failed send must not start the cooldown — the user can retry.
+      expect(find.text('Resend'), findsOneWidget);
+      await tester.tap(find.text('Resend'));
+      await tester.pump();
+      expect(authService.sendEmailVerificationCalls, 2);
     });
 
     testWidgets('refresh reloads the current user', (
