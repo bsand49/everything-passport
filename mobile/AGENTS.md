@@ -25,7 +25,9 @@ flutter build ipa --release --dart-define=ENV=prod --dart-define=SERVER_CLIENT_I
 
 - JDK 21 is used for Android builds in CI; Android Gradle Plugin is `9.3.0`.
 - `SERVER_CLIENT_ID` is required because `main()` passes it to
-  `GoogleSignIn.instance.initialize`.
+  `GoogleSignIn.instance.initialize`; it must be the web OAuth client
+  (`client_type: 3` in `android/app/google-services.json`), not a dummy
+  value, or Google Sign-In fails at runtime.
 - `ENV=prod` currently falls back to the dev Firebase options until
   `lib/firebase_options_prod.dart` exists; see the TODO in `lib/main.dart`.
 
@@ -41,6 +43,11 @@ flutter build ipa --release --dart-define=ENV=prod --dart-define=SERVER_CLIENT_I
   `Country`.
 - `lib/widgets/` — reusable form, auth, profile, date-picker, and country
   UI components.
+- `lib/theme/` — `AppTheme` light/dark `ThemeData` generated from the brand
+  seed color; screens/widgets should use `ColorScheme`/`textTheme` tokens
+  rather than hardcoded colors. Note that `ListTile` resolves its
+  title/subtitle/icon colors through `listTileTheme`, not `textTheme` — keep
+  `AppTheme.listTileTheme` in sync when changing the palette.
 - `lib/utils/` — shared `Validators`, `DateFormatter`, and `ImageUtils`.
 - `lib/exceptions/` — domain exceptions such as
   `UsernameAlreadyTakenException`.
@@ -129,6 +136,17 @@ need matching rule updates in the same change.
 - SwiftPM `Package.resolved` files under `ios/Runner.xcodeproj/` and
   `ios/Runner.xcworkspace/` are committed so iOS dependency resolution is
   reproducible.
+- Brand assets live in `assets/` (`logo.svg` is the source of truth; the PNGs
+  are rasterized exports for `flutter_launcher_icons` and the bundled login
+  logo). Regenerate launcher icons with `dart run flutter_launcher_icons`
+  after changing artwork; its config is at the bottom of `pubspec.yaml`.
+- The launch screen is fully native (no Flutter splash widget). Android 12+
+  force-masks the system splash icon to a circle, so
+  `drawable-*/android12splash.png` is generated from `assets/splash_icon.png`
+  — the logo padded to ~48% of the canvas so the mask clips nothing. Keep
+  `AppTheme.scaffoldBackground`, `splash_background` (`#FBF8F0`), the Android
+  `launch_background`/`android12splash` drawables, and the iOS
+  `LaunchBackground`/`LaunchImage` assets in sync when the artwork changes.
 - iOS integration tests run against a booted simulator:
   `flutter test --dart-define=ENV=dev --dart-define=SERVER_CLIENT_ID=<id>
   integration_test/app_test.dart -d <simulator-udid>`.

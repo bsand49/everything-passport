@@ -101,7 +101,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> _pickImage() async {
-    final primaryColor = Theme.of(context).primaryColor;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(
       source: ImageSource.gallery,
@@ -120,7 +121,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           AndroidUiSettings(
             toolbarTitle: 'Edit Profile Picture',
             toolbarColor: primaryColor,
-            toolbarWidgetColor: Colors.white,
+            toolbarWidgetColor: onPrimaryColor,
             initAspectRatio: CropAspectRatioPreset.square,
             lockAspectRatio: true,
             cropStyle: CropStyle.circle,
@@ -321,7 +322,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     prefixIcon: Icons.email,
                     readOnly: true,
                     filled: true,
-                    fillColor: Colors.black12,
+                    fillColor: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest,
                     controller: TextEditingController(text: user.email),
                   ),
                   const SizedBox(height: 16),
@@ -403,11 +406,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
 
     if (_isUsernameAvailable == true) {
-      return const Icon(Icons.check_circle, color: Colors.green);
+      return Icon(
+        Icons.check_circle,
+        color: Theme.of(context).colorScheme.primary,
+      );
     }
 
     if (_isUsernameAvailable == false) {
-      return const Icon(Icons.error, color: Colors.red);
+      return Icon(Icons.error, color: Theme.of(context).colorScheme.error);
     }
 
     return const SizedBox.shrink();

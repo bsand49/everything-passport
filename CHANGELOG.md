@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Settings → Clear cache action that clears the in-memory metadata cache
     and the downloaded-image cache; Firestore offline persistence is
     managed by the SDK and intentionally left intact.
+- App branding and Material 3 theming:
+  - Brand teal/cream `AppTheme` light and dark themes applied app-wide.
+  - Launcher icons and native launch screens for Android and iOS.
 - Testing infrastructure:
   - `flutter_test` unit/widget suite with Mockito and generated mocks.
   - `integration_test` smoke suite for app boot, auth navigation, and shared

@@ -21,6 +21,7 @@ class ProfileAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     ImageProvider? backgroundImage;
 
     if (selectedImage != null) {
@@ -35,10 +36,10 @@ class ProfileAvatar extends StatelessWidget {
 
     Widget avatar = CircleAvatar(
       radius: radius,
-      backgroundColor: Colors.grey[200],
+      backgroundColor: colorScheme.surfaceContainerHighest,
       backgroundImage: backgroundImage,
       child: backgroundImage == null
-          ? Icon(fallbackIcon, size: radius, color: Colors.grey)
+          ? Icon(fallbackIcon, size: radius, color: colorScheme.outline)
           : null,
     );
 
@@ -54,13 +55,13 @@ class ProfileAvatar extends StatelessWidget {
             bottom: 0,
             right: 0,
             child: CircleAvatar(
-              backgroundColor: Theme.of(context).primaryColor,
+              backgroundColor: colorScheme.primary,
               radius: 20,
               child: IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.camera_alt,
                   size: 20,
-                  color: Colors.white,
+                  color: colorScheme.onPrimary,
                 ),
                 onPressed: onEditPressed,
               ),

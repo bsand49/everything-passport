@@ -48,6 +48,18 @@ dev_dependencies:
   plugin_platform_interface: ^2.1.8
   image_picker_platform_interface: ^2.11.2
   image_cropper_platform_interface: ^9.0.0
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/logo_app.png
+
+# Run `dart run flutter_launcher_icons` to regenerate launcher icons.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon_legacy.png"
+  adaptive_icon_background: "#FBF8F0"
+  adaptive_icon_foreground: "assets/icon_fg.png"
+  remove_alpha_ios: true

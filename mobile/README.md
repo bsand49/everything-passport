@@ -253,11 +253,13 @@ lib/
   models/           Firestore/auth data models
   screens/          Login, sign-up, profile, home, and settings screens
   services/         Auth, profile, and metadata services
+  theme/            AppTheme light/dark themes and brand colours
   utils/            Validators, date formatting, and image utilities
   widgets/          Reusable UI components
   main.dart         Firebase init, Provider graph, and auth routing
   firebase_options_dev.dart  Generated dev Firebase config (gitignored)
 test/               Unit/widget tests mirroring lib/
+assets/             Brand artwork (logo.svg source, PNG exports)
 integration_test/   Device/emulator integration tests
 android/            Android Gradle project
 ios/                Xcode project

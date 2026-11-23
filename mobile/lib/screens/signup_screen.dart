@@ -86,52 +86,59 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign Up')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 40),
-              AuthTextField(
-                fieldKey: SignUpScreen.emailFieldKey,
-                controller: _emailController,
-                labelText: 'Email',
-                prefixIcon: Icons.email,
-                keyboardType: TextInputType.emailAddress,
-                validator: Validators.validateEmail,
-              ),
-              const SizedBox(height: 16),
-              AuthTextField(
-                fieldKey: SignUpScreen.passwordFieldKey,
-                controller: _passwordController,
-                labelText: 'Password',
-                prefixIcon: Icons.lock,
-                obscureText: true,
-                validator: Validators.validatePassword,
-              ),
-              const SizedBox(height: 16),
-              AuthTextField(
-                fieldKey: SignUpScreen.confirmPasswordFieldKey,
-                controller: _confirmPasswordController,
-                labelText: 'Confirm Password',
-                prefixIcon: Icons.lock_clock,
-                obscureText: true,
-                validator: (value) => Validators.validateConfirmPassword(
-                  value,
-                  _passwordController.text,
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('assets/logo_app.png', height: 180),
+                const SizedBox(height: 40),
+                AuthTextField(
+                  fieldKey: SignUpScreen.emailFieldKey,
+                  controller: _emailController,
+                  labelText: 'Email',
+                  prefixIcon: Icons.email,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: Validators.validateEmail,
                 ),
-              ),
-              const SizedBox(height: 24),
-              LoadingButton(
-                key: SignUpScreen.signUpButtonKey,
-                onPressed: _signUp,
-                isLoading: _isLoading,
-                child: const Text('Sign Up'),
-              ),
-            ],
+                const SizedBox(height: 16),
+                AuthTextField(
+                  fieldKey: SignUpScreen.passwordFieldKey,
+                  controller: _passwordController,
+                  labelText: 'Password',
+                  prefixIcon: Icons.lock,
+                  obscureText: true,
+                  validator: Validators.validatePassword,
+                ),
+                const SizedBox(height: 16),
+                AuthTextField(
+                  fieldKey: SignUpScreen.confirmPasswordFieldKey,
+                  controller: _confirmPasswordController,
+                  labelText: 'Confirm Password',
+                  prefixIcon: Icons.lock_clock,
+                  obscureText: true,
+                  validator: (value) => Validators.validateConfirmPassword(
+                    value,
+                    _passwordController.text,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                LoadingButton(
+                  key: SignUpScreen.signUpButtonKey,
+                  onPressed: _signUp,
+                  isLoading: _isLoading,
+                  child: const Text('Sign Up'),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Already have an account? Log In'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

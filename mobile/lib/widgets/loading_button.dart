@@ -16,6 +16,7 @@ class LoadingButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return SizedBox(
       width: double.infinity,
       height: 50,
@@ -23,12 +24,12 @@ class LoadingButton extends StatelessWidget {
         onPressed: isLoading ? null : onPressed,
         style: style,
         child: isLoading
-            ? const SizedBox(
+            ? SizedBox(
                 height: 20,
                 width: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Colors.white,
+                  color: colorScheme.onPrimary,
                 ),
               )
             : child,

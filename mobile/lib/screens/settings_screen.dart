@@ -132,12 +132,12 @@ class SettingsScreen extends StatelessWidget {
             onTap: () => _handleLogout(context),
           ),
           const Divider(),
-          const Padding(
-            padding: EdgeInsets.all(16.0),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Text(
               // TODO: Use package_info_plus for dynamic versioning
               'App Version 1.0.0',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
+              style: TextStyle(color: colorScheme.outline, fontSize: 12),
               textAlign: TextAlign.center,
             ),
           ),

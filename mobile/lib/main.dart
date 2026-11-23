@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,6 +17,7 @@ import 'models/user_profile.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/user_profile_screen.dart';
+import 'theme/app_theme.dart';
 import 'widgets/email_verification_banner.dart';
 
 import 'package:http/http.dart' as http;
@@ -87,11 +89,17 @@ class MyApp extends StatelessWidget {
               cacheService ??
               CacheService(service: context.read<MetadataService>()),
         ),
+        // lazy: false so the auth/profile streams subscribe on first build
+        // rather than on first read — otherwise AuthWrapper briefly sees
+        // initialData (null) and flashes the login screen for signed-in
+        // users while the first emission is in flight.
         StreamProvider<User?>(
+          lazy: false,
           create: (context) => context.read<AuthService>().user,
           initialData: null,
         ),
         StreamProvider<UserProfile?>(
+          lazy: false,
           create: (context) {
             final userProfileService = context.read<UserProfileService>();
             return context
@@ -111,7 +119,9 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'Everything Passport',
-        theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: ThemeMode.system,
         home: const AuthWrapper(),
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
         supportedLocales: const [
@@ -119,7 +129,22 @@ class MyApp extends StatelessWidget {
           Locale('en', 'US'), // Changes format to MM/dd/yyyy
         ],
         builder: (context, child) {
-          return SafeArea(top: false, bottom: true, child: child!);
+          // Auth screens have no AppBar to supply a status-bar style, so set
+          // icon brightness from the theme to keep them readable on cream.
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: isDark
+                  ? Brightness.light
+                  : Brightness.dark,
+              statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+              // The navigation bar colour is not controlled by the app, so
+              // its icon brightness is left at the native default rather
+              // than risking dark-on-dark buttons.
+            ),
+            child: SafeArea(top: false, bottom: true, child: child!),
+          );
         },
       ),
     );

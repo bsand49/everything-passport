@@ -376,8 +376,8 @@ void main() {
         await tester.tap(find.text('Push'));
         await tester.pumpAndSettle();
 
-        // Tap the back button in the AppBar
-        await tester.tap(find.byIcon(Icons.arrow_back));
+        // Tap the back link at the bottom of the form
+        await tester.tap(find.text('Already have an account? Log In'));
         await tester.pumpAndSettle();
 
         // Verify the screen was popped
