@@ -237,10 +237,11 @@ dart format --output=none --set-exit-if-changed .
 flutter analyze
 ```
 
-Repository hooks run `dart format` and `flutter analyze` on
-staged Dart files before commit, and `flutter test --coverage` with a `90%`
-LCOV threshold before push. See the root [AGENTS.md](../AGENTS.md) for GUI Git
-client setup.
+Repository hooks run `dart format` on staged Dart files and `flutter analyze`
+across the whole `mobile/` package before commit — a lint at any level,
+including infos, in any file can block the commit. `flutter test --coverage`
+with a `90%` LCOV threshold runs before push. See the root
+[AGENTS.md](../AGENTS.md) for GUI Git client setup.
 
 ## Project Structure
 
