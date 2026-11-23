@@ -71,7 +71,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -80,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const FlutterLogo(size: 100),
+                Image.asset('assets/logo_app.png', height: 180),
                 const SizedBox(height: 40),
                 AuthTextField(
                   fieldKey: const Key('emailField'),

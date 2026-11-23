@@ -53,7 +53,6 @@ class _AuthTextFieldState extends State<AuthTextField> {
       decoration: InputDecoration(
         labelText: widget.labelText,
         prefixIcon: widget.prefixIcon != null ? Icon(widget.prefixIcon) : null,
-        border: const OutlineInputBorder(),
         filled: widget.filled,
         fillColor: widget.fillColor,
         helperText: widget.helperText,
