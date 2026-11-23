@@ -141,7 +141,10 @@ class AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn}) {
       return await _auth.signInWithCredential(credential);
     } on GoogleSignInException catch (e) {
       debugPrint('AuthService: Google sign in error [${e.code}]');
-      return null;
+      // Only a user cancellation is a silent outcome; configuration and
+      // other failures must surface as errors.
+      if (e.code == GoogleSignInExceptionCode.canceled) return null;
+      rethrow;
     } catch (e) {
       debugPrint('AuthService: Unexpected Google sign in error: $e');
       rethrow;

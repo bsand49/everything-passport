@@ -475,6 +475,7 @@ void main() {
                       .captured
                       .single
                   as OAuthCredential;
+          expect(credential.providerId, 'google.com');
           expect(credential.idToken, 'fake-id');
           expect(credential.accessToken, 'fake-token');
 
@@ -536,6 +537,25 @@ void main() {
           expect(result, isNull);
         },
       );
+
+      test('rethrows non-cancellation GoogleSignInException', () async {
+        final failingGoogle = MockGoogleSignInMockito();
+        when(failingGoogle.authenticate()).thenThrow(
+          const GoogleSignInException(
+            code: GoogleSignInExceptionCode.clientConfigurationError,
+          ),
+        );
+
+        final service = AuthService(
+          googleSignIn: failingGoogle,
+          auth: mockAuth,
+        );
+
+        expect(
+          () => service.signInWithGoogle(),
+          throwsA(isA<GoogleSignInException>()),
+        );
+      });
 
       test('rethrows generic Exception on failure', () async {
         final failingGoogle = MockGoogleSignInMockito();

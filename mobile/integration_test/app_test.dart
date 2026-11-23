@@ -102,6 +102,9 @@ void main() {
         // The OAuth flow either opens the native account picker (the button
         // stays in its loading state) or surfaces an error SnackBar — e.g. an
         // invalid SERVER_CLIENT_ID. Any other silent outcome is a regression.
+        // A request that hangs before presenting the picker is
+        // indistinguishable from an open picker here; real-account E2E
+        // coverage is tracked in #60.
         await tester.pump();
         await tester.pump(const Duration(seconds: 2));
 
