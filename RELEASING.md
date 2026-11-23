@@ -113,6 +113,10 @@ The integration test requires a connected device or emulator with the native
 Firebase config files and `SERVER_CLIENT_ID` supplied. Unit-test coverage
 must remain at or above `90%` unless `MOBILE_COVERAGE_THRESHOLD` is changed.
 
+Before tagging, also work through
+[`docs/testing/manual-test-checklist.md`](./docs/testing/manual-test-checklist.md)
+against a dev or prod build and record the results in the release PR.
+
 ## Building Release Artifacts
 
 Mobile artifacts are built locally; there is no hosted deployment in this
@@ -142,7 +146,9 @@ Before distributing production builds:
 ## Post-release
 
 - Verify the GitHub Release notes and tag.
-- Build and smoke-test the intended Android/iOS artifacts on a real device.
+- Build and smoke-test the intended Android/iOS artifacts on a real device,
+  covering the manual checklist in
+  `docs/testing/manual-test-checklist.md`.
 - Check that Firebase Auth, Firestore profile reads/writes, username
   uniqueness, and Storage uploads work against the intended environment.
 
