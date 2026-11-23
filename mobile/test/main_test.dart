@@ -10,6 +10,7 @@ import 'package:everything_passport/screens/home_screen.dart';
 import 'package:everything_passport/screens/user_profile_screen.dart';
 import 'package:everything_passport/models/user_profile.dart';
 import 'package:everything_passport/services/metadata_service.dart';
+import 'package:everything_passport/widgets/email_verification_banner.dart';
 import 'package:http/http.dart' as http;
 
 import 'test_helper.dart';
@@ -102,6 +103,62 @@ void main() async {
           expect(find.byType(HomeScreen), findsOneWidget);
         },
       );
+
+      testWidgets('shows verification banner for unverified password user', (
+        WidgetTester tester,
+      ) async {
+        final completeProfile = const UserProfile(
+          userId: 'test_uid',
+          username: 'testuser',
+          firstName: 'Test',
+          lastName: 'User',
+        );
+
+        await tester.pumpWidget(
+          createTestableWidget(
+            child: const AuthWrapper(),
+            user: FakeUser(
+              emailVerified: false,
+              providerData: [FakeUserInfo('password')],
+            ),
+            userProfile: completeProfile,
+          ),
+        );
+
+        expect(find.byType(HomeScreen), findsOneWidget);
+        expect(
+          find.text('Verify your email to unlock admin features'),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('hides verification banner for unverified Google user', (
+        WidgetTester tester,
+      ) async {
+        final completeProfile = const UserProfile(
+          userId: 'test_uid',
+          username: 'testuser',
+          firstName: 'Test',
+          lastName: 'User',
+        );
+
+        await tester.pumpWidget(
+          createTestableWidget(
+            child: const AuthWrapper(),
+            user: FakeUser(
+              emailVerified: false,
+              providerData: [FakeUserInfo('google.com')],
+            ),
+            userProfile: completeProfile,
+          ),
+        );
+
+        expect(find.byType(HomeScreen), findsOneWidget);
+        expect(
+          find.text('Verify your email to unlock admin features'),
+          findsNothing,
+        );
+      });
     });
   });
 
@@ -158,6 +215,100 @@ void main() async {
         // Unmount the widget to hit the dispose logic in lines 62-64
         await tester.pumpWidget(Container());
       });
+
+      testWidgets(
+        'hides the verification banner after refresh emits a verified user',
+        (WidgetTester tester) async {
+          final fakeAuth = FakeAuthService();
+          final fakeProfile = FakeUserProfileService();
+          fakeProfile.emitProfile(
+            const UserProfile(
+              userId: 'test_user',
+              username: 'testuser',
+              firstName: 'Test',
+              lastName: 'User',
+            ),
+          );
+          fakeAuth.emitUser(
+            FakeUser(
+              emailVerified: false,
+              providerData: [FakeUserInfo('password')],
+            ),
+          );
+          // Simulate User.reload() publishing a fresh verified snapshot for
+          // the same account through the auth stream.
+          fakeAuth.reloadEmitsUser = FakeUser(
+            emailVerified: true,
+            providerData: [FakeUserInfo('password')],
+          );
+
+          await tester.pumpWidget(
+            MyApp(
+              authService: fakeAuth,
+              userProfileService: fakeProfile,
+              metadataService: FakeMetadataService(),
+            ),
+          );
+          await tester.pump();
+
+          expect(
+            find.text('Verify your email to unlock admin features'),
+            findsOneWidget,
+          );
+
+          await tester.tap(find.byIcon(Icons.refresh));
+          await tester.pump();
+
+          expect(fakeAuth.reloadCurrentUserCalls, 1);
+          expect(find.byType(HomeScreen), findsOneWidget);
+          expect(find.byType(EmailVerificationBanner), findsNothing);
+          // The banner slot must collapse entirely: the host Column's first
+          // child is a zero-height SizedBox, not the SafeArea that reserves
+          // the status-bar inset while the banner is visible.
+          final hostColumn = tester.widget<Column>(
+            find
+                .ancestor(
+                  of: find.byType(HomeScreen),
+                  matching: find.byType(Column),
+                )
+                .first,
+          );
+          expect(hostColumn.children.length, 2);
+          expect(hostColumn.children.first, isA<SizedBox>());
+          expect(hostColumn.children.last, isA<Expanded>());
+        },
+      );
+
+      testWidgets(
+        'does not restart the profile stream for same-uid user snapshots',
+        (WidgetTester tester) async {
+          final fakeAuth = FakeAuthService();
+          final fakeProfile = FakeUserProfileService();
+
+          await tester.pumpWidget(
+            MyApp(
+              authService: fakeAuth,
+              userProfileService: fakeProfile,
+              metadataService: FakeMetadataService(),
+            ),
+          );
+          await tester.pump();
+
+          fakeAuth.emitUser(FakeUser());
+          await tester.pump();
+          expect(fakeProfile.streamProfileCalls, 1);
+
+          // A reload-style snapshot for the same uid must not resubscribe.
+          fakeAuth.emitUser(FakeUser(emailVerified: false));
+          await tester.pump();
+          expect(fakeProfile.streamProfileCalls, 1);
+
+          // A genuinely different user does resubscribe.
+          fakeAuth.emitUser(FakeUser(uid: 'other_user'));
+          await tester.pump();
+          expect(fakeProfile.streamProfileCalls, 2);
+        },
+      );
     });
   });
 }

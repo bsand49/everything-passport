@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:everything_passport/exceptions/email_verification_send_exception.dart';
 import 'package:everything_passport/screens/signup_screen.dart';
 import 'package:everything_passport/services/auth_service.dart';
 
@@ -236,6 +237,51 @@ void main() {
                 password: 'password123',
               ),
             ).called(1);
+            verify(mockObserver.didPop(any, any)).called(1);
+            expect(
+              find.textContaining('Verification email sent'),
+              findsOneWidget,
+            );
+          },
+        );
+
+        testWidgets(
+          'shows accurate message when verification email fails to send',
+          (WidgetTester tester) async {
+            when(
+              mockAuthService.signUpWithEmail(
+                email: anyNamed('email'),
+                password: anyNamed('password'),
+              ),
+            ).thenThrow(
+              EmailVerificationSendException(Exception('smtp unavailable')),
+            );
+
+            await tester.pumpWidget(
+              createTestableWidget(
+                child: const SignUpScreen(),
+                authService: mockAuthService,
+                observer: mockObserver,
+              ),
+            );
+
+            await fillFormAndSubmit(
+              tester,
+              email: 'test@example.com',
+              password: 'password123',
+              confirmPassword: 'password123',
+            );
+
+            // The account was created, so the screen still pops, but the
+            // message must not claim the verification email was sent.
+            expect(
+              find.textContaining('verification email could not be sent'),
+              findsOneWidget,
+            );
+            expect(
+              find.textContaining('Verification email sent'),
+              findsNothing,
+            );
             verify(mockObserver.didPop(any, any)).called(1);
           },
         );

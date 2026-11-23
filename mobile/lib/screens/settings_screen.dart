@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../services/auth_service.dart';
+import '../widgets/email_verification_banner.dart';
 import 'user_profile_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -55,6 +56,7 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         children: [
+          const EmailVerificationBanner(),
           const SizedBox(height: 16),
           ListTile(
             leading: const Icon(Icons.person_outline),
@@ -65,7 +67,9 @@ class SettingsScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const UserProfileScreen(),
+                  builder: (context) => const EmailVerificationBannerHost(
+                    child: UserProfileScreen(),
+                  ),
                 ),
               );
             },

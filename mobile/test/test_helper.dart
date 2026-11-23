@@ -22,10 +22,16 @@ class FakeAuthService extends Fake implements AuthService {
   int signInWithGoogleCalls = 0;
   int signUpWithEmailCalls = 0;
   int signOutCalls = 0;
+  int sendEmailVerificationCalls = 0;
+  int reloadCurrentUserCalls = 0;
 
   bool throwError = false;
   String errorMessage = 'Test Error';
   Completer<UserCredential?>? loginCompleter;
+
+  /// When set, [reloadCurrentUser] emits this user on [user] to simulate
+  /// `User.reload()` publishing a fresh snapshot via `userChanges()`.
+  User? reloadEmitsUser;
 
   @override
   User? get currentUser => _userSubject.value;
@@ -75,6 +81,26 @@ class FakeAuthService extends Fake implements AuthService {
   }
 
   @override
+  bool requiresEmailVerificationFor(User? user) {
+    if (user == null || user.emailVerified) return false;
+    return user.providerData.any((info) => info.providerId == 'password');
+  }
+
+  @override
+  Future<void> sendEmailVerification() async {
+    sendEmailVerificationCalls++;
+    if (throwError) throw Exception(errorMessage);
+  }
+
+  @override
+  Future<void> reloadCurrentUser() async {
+    reloadCurrentUserCalls++;
+    if (throwError) throw Exception(errorMessage);
+    final updated = reloadEmitsUser;
+    if (updated != null) emitUser(updated);
+  }
+
+  @override
   Future<void> deleteAccount() async {
     if (throwError) throw Exception(errorMessage);
   }
@@ -92,6 +118,7 @@ class FakeUserProfileService extends Fake implements UserProfileService {
   int isUsernameAvailableCalls = 0;
   int saveProfileCalls = 0;
   int uploadProfilePictureCalls = 0;
+  int streamProfileCalls = 0;
   UserProfile? lastSavedProfile;
   bool isUsernameAvailableResponse = true;
   bool throwError = false;
@@ -99,8 +126,10 @@ class FakeUserProfileService extends Fake implements UserProfileService {
   Completer<void>? saveCompleter;
 
   @override
-  Stream<UserProfile?> streamProfile({required String userId}) =>
-      _profileSubject.stream;
+  Stream<UserProfile?> streamProfile({required String userId}) {
+    streamProfileCalls++;
+    return _profileSubject.stream;
+  }
 
   void emitProfile(UserProfile? profile) => _profileSubject.add(profile);
 
@@ -145,13 +174,30 @@ class FakeMetadataService extends Fake implements MetadataService {
       countries;
 }
 
-class FakeUser extends Fake implements User {
+class FakeUserInfo extends Fake implements UserInfo {
+  FakeUserInfo(this.providerId);
+
   @override
-  String get uid => 'test_user';
+  final String providerId;
+}
+
+class FakeUser extends Fake implements User {
+  FakeUser({
+    this.emailVerified = true,
+    this.uid = 'test_user',
+    List<UserInfo>? providerData,
+  }) : providerData = providerData ?? [];
+
+  @override
+  final String uid;
   @override
   String? get email => 'test@example.com';
   @override
   String? get photoURL => 'https://example.com/photo.jpg';
+  @override
+  bool emailVerified;
+  @override
+  final List<UserInfo> providerData;
 }
 
 Widget createTestableWidget({

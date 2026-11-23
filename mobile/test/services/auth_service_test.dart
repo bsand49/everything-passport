@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:everything_passport/exceptions/email_verification_send_exception.dart';
 import 'package:everything_passport/services/auth_service.dart';
 
 import 'auth_service_test.mocks.dart';
@@ -205,6 +206,215 @@ void main() {
           ),
           throwsException,
         );
+      });
+    });
+
+    group('requiresEmailVerificationFor()', () {
+      MockUserMockito makeUser({
+        required bool verified,
+        String providerId = 'password',
+      }) {
+        final user = MockUserMockito();
+        when(user.emailVerified).thenReturn(verified);
+        when(user.providerData).thenReturn([_FakeUserInfo(providerId)]);
+        return user;
+      }
+
+      test('returns false for null user', () {
+        expect(authService.requiresEmailVerificationFor(null), isFalse);
+      });
+
+      test('returns false for verified password user', () {
+        expect(
+          authService.requiresEmailVerificationFor(makeUser(verified: true)),
+          isFalse,
+        );
+      });
+
+      test('returns false for unverified Google user', () {
+        expect(
+          authService.requiresEmailVerificationFor(
+            makeUser(verified: false, providerId: 'google.com'),
+          ),
+          isFalse,
+        );
+      });
+
+      test('returns true for unverified password user', () {
+        expect(
+          authService.requiresEmailVerificationFor(makeUser(verified: false)),
+          isTrue,
+        );
+      });
+
+      test('returns false for unverified user with no providers', () {
+        final user = MockUserMockito();
+        when(user.emailVerified).thenReturn(false);
+        when(user.providerData).thenReturn([]);
+        expect(authService.requiresEmailVerificationFor(user), isFalse);
+      });
+    });
+
+    group('sendEmailVerification()', () {
+      test('sends verification email for current user', () async {
+        final user = MockUserMockito();
+        when(user.sendEmailVerification()).thenAnswer((_) async {});
+        final auth = MockAuth();
+        when(auth.currentUser).thenReturn(user);
+
+        final service = AuthService(auth: auth, googleSignIn: mockGoogleSignIn);
+
+        await service.sendEmailVerification();
+        verify(user.sendEmailVerification()).called(1);
+      });
+
+      test('throws StateError when no user is signed in', () {
+        final auth = MockAuth();
+        when(auth.currentUser).thenReturn(null);
+
+        final service = AuthService(auth: auth, googleSignIn: mockGoogleSignIn);
+
+        expect(service.sendEmailVerification, throwsStateError);
+      });
+
+      test('rethrows FirebaseAuthException on failure', () async {
+        final user = MockUserMockito();
+        when(user.sendEmailVerification())
+            .thenThrow(FirebaseAuthException(code: 'test', message: 'test'));
+        final auth = MockAuth();
+        when(auth.currentUser).thenReturn(user);
+
+        final service = AuthService(auth: auth, googleSignIn: mockGoogleSignIn);
+
+        expect(
+          service.sendEmailVerification,
+          throwsA(isA<FirebaseAuthException>()),
+        );
+      });
+
+      test('rethrows generic Exception on failure', () async {
+        final user = MockUserMockito();
+        when(user.sendEmailVerification())
+            .thenThrow(Exception('Generic failure'));
+        final auth = MockAuth();
+        when(auth.currentUser).thenReturn(user);
+
+        final service = AuthService(auth: auth, googleSignIn: mockGoogleSignIn);
+
+        expect(service.sendEmailVerification, throwsException);
+      });
+    });
+
+    group('reloadCurrentUser()', () {
+      test('reloads the current user', () async {
+        final user = MockUserMockito();
+        when(user.reload()).thenAnswer((_) async {});
+        final auth = MockAuth();
+        when(auth.currentUser).thenReturn(user);
+
+        final service = AuthService(auth: auth, googleSignIn: mockGoogleSignIn);
+
+        await service.reloadCurrentUser();
+        verify(user.reload()).called(1);
+      });
+
+      test('does nothing when no user is signed in', () async {
+        final auth = MockAuth();
+        when(auth.currentUser).thenReturn(null);
+
+        final service = AuthService(auth: auth, googleSignIn: mockGoogleSignIn);
+
+        await expectLater(service.reloadCurrentUser(), completes);
+      });
+
+      test('rethrows FirebaseAuthException on failure', () async {
+        final user = MockUserMockito();
+        when(user.reload())
+            .thenThrow(FirebaseAuthException(code: 'test', message: 'test'));
+        final auth = MockAuth();
+        when(auth.currentUser).thenReturn(user);
+
+        final service = AuthService(auth: auth, googleSignIn: mockGoogleSignIn);
+
+        expect(
+          service.reloadCurrentUser,
+          throwsA(isA<FirebaseAuthException>()),
+        );
+      });
+
+      test('rethrows generic Exception on failure', () async {
+        final user = MockUserMockito();
+        when(user.reload()).thenThrow(Exception('Generic failure'));
+        final auth = MockAuth();
+        when(auth.currentUser).thenReturn(user);
+
+        final service = AuthService(auth: auth, googleSignIn: mockGoogleSignIn);
+
+        expect(service.reloadCurrentUser, throwsException);
+      });
+    });
+
+    group('signUpWithEmail() email verification', () {
+      AuthService serviceWithCredential({
+        required MockUserMockito? user,
+        Object? sendError,
+      }) {
+        final auth = MockAuth();
+        final credential = MockUserCredential();
+        when(credential.user).thenReturn(user);
+        when(
+          auth.createUserWithEmailAndPassword(
+            email: anyNamed('email'),
+            password: anyNamed('password'),
+          ),
+        ).thenAnswer((_) async => credential);
+        if (user != null) {
+          when(user.emailVerified).thenReturn(false);
+          if (sendError != null) {
+            when(user.sendEmailVerification()).thenThrow(sendError);
+          } else {
+            when(user.sendEmailVerification()).thenAnswer((_) async {});
+          }
+        }
+        return AuthService(auth: auth, googleSignIn: mockGoogleSignIn);
+      }
+
+      test('sends verification email after sign up', () async {
+        final user = MockUserMockito();
+        final service = serviceWithCredential(user: user);
+
+        await service.signUpWithEmail(
+          email: 'new@example.com',
+          password: 'password123',
+        );
+
+        verify(user.sendEmailVerification()).called(1);
+      });
+
+      test('does not send when credential has no user', () async {
+        final service = serviceWithCredential(user: null);
+
+        await service.signUpWithEmail(
+          email: 'new@example.com',
+          password: 'password123',
+        );
+      });
+
+      test('throws EmailVerificationSendException when send fails', () async {
+        final user = MockUserMockito();
+        final service = serviceWithCredential(
+          user: user,
+          sendError: Exception('send failed'),
+        );
+
+        await expectLater(
+          service.signUpWithEmail(
+            email: 'new@example.com',
+            password: 'password123',
+          ),
+          throwsA(isA<EmailVerificationSendException>()),
+        );
+        verify(user.sendEmailVerification()).called(1);
       });
     });
 
@@ -429,4 +639,11 @@ void main() {
       });
     });
   });
+}
+
+class _FakeUserInfo extends Fake implements UserInfo {
+  _FakeUserInfo(this.providerId);
+
+  @override
+  final String providerId;
 }
