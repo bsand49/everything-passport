@@ -63,7 +63,12 @@ flutter build ipa --release --dart-define=ENV=prod --dart-define=SERVER_CLIENT_I
   uniqueness through the `usernames` collection in a transaction, and uploads
   photos to `profile_pictures/{userId}`.
 - `MetadataService` reads `metadata/countries` and caches the result in
-  memory; use `forceRefresh` when a fresh read is required.
+  memory for the app session with a TTL (`cacheTtl`, default 24h) — a cold
+  start always re-fetches; use `forceRefresh` when a fresh read is required.
+  `CacheService.clearAll()` (wired in Settings → Clear cache) clears the
+  metadata cache and the `cached_network_image` disk cache; Firestore's own
+  offline persistence is configured in `main()` and intentionally left to
+  the SDK.
 - Usernames are normalized to lowercase before uniqueness checks and storage.
 
 ## Firebase configuration

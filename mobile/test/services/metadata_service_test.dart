@@ -231,7 +231,7 @@ void main() {
         final countries1 = await metadataService.getCountries();
         expect(countries1, hasLength(1));
 
-        metadataService.clearCache();
+        await metadataService.clearCache();
 
         await mockFirestore.collection('metadata').doc('countries').set({
           'options': [],
@@ -240,6 +240,56 @@ void main() {
         final countries2 = await metadataService.getCountries();
         expect(countries2, isEmpty);
       });
+    });
+
+    group('cache TTL', () {
+      Future<void> seedCountries(FakeFirebaseFirestore db, String id) {
+        return db.collection('metadata').doc('countries').set({
+          'options': [
+            {'id': id, 'name': 'Country $id', 'searchKeywords': []},
+          ],
+        });
+      }
+
+      test('refetches from Firestore when the TTL has expired', () async {
+        await seedCountries(mockFirestore, 'US');
+        final service = MetadataService(
+          db: mockFirestore,
+          cacheTtl: Duration.zero,
+        );
+        await service.getCountries();
+
+        await seedCountries(mockFirestore, 'GB');
+        final countries = await service.getCountries();
+        expect(countries.single.id, 'GB');
+      });
+
+      test(
+        'returns stale cache when the TTL expired and Firestore fails',
+        () async {
+          await seedCountries(mockFirestore, 'US');
+
+          final toggleFirestore = MockFirestore();
+          var fail = false;
+          when(toggleFirestore.collection(any)).thenAnswer((invocation) {
+            if (fail) throw Exception('Firestore offline');
+            final path = invocation.positionalArguments[0] as String;
+            return mockFirestore.collection(path);
+          });
+
+          // A zero TTL means the cache is always stale, forcing a fetch.
+          final service = MetadataService(
+            db: toggleFirestore,
+            cacheTtl: Duration.zero,
+          );
+          await service.getCountries();
+
+          fail = true;
+          final countries = await service.getCountries();
+          expect(countries, hasLength(1));
+          expect(countries.single.id, 'US');
+        },
+      );
     });
 
     group('toFirestore()', () {

@@ -5,11 +5,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:everything_passport/services/auth_service.dart';
+import 'package:everything_passport/services/cache_service.dart';
 import 'package:everything_passport/services/user_profile_service.dart';
 import 'package:everything_passport/services/metadata_service.dart';
 import 'package:everything_passport/models/user_profile.dart';
 import 'package:everything_passport/models/country.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:rxdart/rxdart.dart';
 
 // Manual Fake classes with call tracking to avoid Mockito null-safety issues with 'any'
@@ -169,9 +172,55 @@ class FakeMetadataService extends Fake implements MetadataService {
   List<Country> countries = [
     Country(id: 'US', name: 'United States', searchKeywords: ['usa']),
   ];
+  int clearCacheCalls = 0;
+  bool throwClearCacheError = false;
   @override
   Future<List<Country>> getCountries({bool forceRefresh = false}) async =>
       countries;
+  @override
+  Future<void> clearCache() async {
+    clearCacheCalls++;
+    if (throwClearCacheError) throw Exception('Clear cache error');
+  }
+}
+
+class FakeCacheService extends Fake implements CacheService {
+  int clearAllCalls = 0;
+  bool throwError = false;
+  String errorMessage = 'Test Error';
+  @override
+  Future<void> clearAll() async {
+    clearAllCalls++;
+    if (throwError) throw Exception(errorMessage);
+  }
+}
+
+/// Fake [PathProviderPlatform] returning stub paths for tests. [tempPath]
+/// overrides the temporary directory (defaults to `'.'`).
+class FakePathProviderPlatform extends PathProviderPlatform
+    with MockPlatformInterfaceMixin {
+  FakePathProviderPlatform({this.tempPath});
+
+  final String? tempPath;
+
+  @override
+  Future<String?> getTemporaryPath() async => tempPath ?? '.';
+  @override
+  Future<String?> getApplicationSupportPath() async => tempPath ?? '.';
+  @override
+  Future<String?> getLibraryPath() async => tempPath ?? '.';
+  @override
+  Future<String?> getApplicationDocumentsPath() async => tempPath ?? '.';
+  @override
+  Future<String?> getExternalStoragePath() async => tempPath ?? '.';
+  @override
+  Future<List<String>?> getExternalCachePaths() async => [];
+  @override
+  Future<List<String>?> getExternalStoragePaths({
+    StorageDirectory? type,
+  }) async => [];
+  @override
+  Future<String?> getDownloadsPath() async => tempPath ?? '.';
 }
 
 class FakeUserInfo extends Fake implements UserInfo {
@@ -205,6 +254,7 @@ Widget createTestableWidget({
   AuthService? authService,
   UserProfileService? userProfileService,
   MetadataService? metadataService,
+  CacheService? cacheService,
   User? user,
   UserProfile? userProfile,
   NavigatorObserver? observer,
@@ -220,6 +270,7 @@ Widget createTestableWidget({
       Provider<MetadataService>.value(
         value: metadataService ?? FakeMetadataService(),
       ),
+      Provider<CacheService>.value(value: cacheService ?? FakeCacheService()),
       Provider<User?>.value(value: user),
       Provider<UserProfile?>.value(value: userProfile),
     ],

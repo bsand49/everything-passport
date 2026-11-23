@@ -6,6 +6,7 @@ import 'package:everything_passport/screens/settings_screen.dart';
 import 'package:everything_passport/screens/user_profile_screen.dart';
 import 'package:everything_passport/models/user_profile.dart';
 import 'package:everything_passport/services/auth_service.dart';
+import 'package:everything_passport/services/cache_service.dart';
 
 import '../test_helper.dart';
 
@@ -37,7 +38,10 @@ void main() {
 
     /// Helper to reduce redundant pumpWidget boilerplate
     /// Pushes SettingsScreen onto a parent route so that popping works realistically
-    Future<void> pumpSettingsScreen(WidgetTester tester) async {
+    Future<void> pumpSettingsScreen(
+      WidgetTester tester, {
+      CacheService? cacheService,
+    }) async {
       await tester.pumpWidget(
         createTestableWidget(
           child: Scaffold(
@@ -58,6 +62,7 @@ void main() {
             ),
           ),
           authService: mockAuthService,
+          cacheService: cacheService,
           userProfile: mockProfile,
           observer: mockObserver,
         ),
@@ -86,6 +91,11 @@ void main() {
         expect(find.byIcon(Icons.person_outline), findsOneWidget);
         expect(find.byIcon(Icons.logout), findsOneWidget);
         expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+        expect(find.text('Clear cache'), findsOneWidget);
+        expect(
+          find.text('Clear downloaded data and cached content'),
+          findsOneWidget,
+        );
       });
     });
 
@@ -159,6 +169,64 @@ void main() {
               findsOneWidget,
             );
           },
+        );
+      });
+    });
+
+    group('Clear cache', () {
+      testWidgets('clears cache after confirmation and shows SnackBar', (
+        WidgetTester tester,
+      ) async {
+        final cacheService = FakeCacheService();
+        await pumpSettingsScreen(tester, cacheService: cacheService);
+
+        await tester.tap(find.text('Clear cache'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Clear cache'), findsWidgets);
+        expect(
+          find.textContaining('Clear downloaded data and cached content?'),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.widgetWithText(TextButton, 'Clear'));
+        await tester.pumpAndSettle();
+
+        expect(cacheService.clearAllCalls, 1);
+        expect(find.text('Cache cleared'), findsOneWidget);
+      });
+
+      testWidgets('does not clear cache when dialog is cancelled', (
+        WidgetTester tester,
+      ) async {
+        final cacheService = FakeCacheService();
+        await pumpSettingsScreen(tester, cacheService: cacheService);
+
+        await tester.tap(find.text('Clear cache'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+        await tester.pumpAndSettle();
+
+        expect(cacheService.clearAllCalls, 0);
+        expect(find.byType(AlertDialog), findsNothing);
+      });
+
+      testWidgets('shows SnackBar error when clearing cache fails', (
+        WidgetTester tester,
+      ) async {
+        final cacheService = FakeCacheService()..throwError = true;
+        await pumpSettingsScreen(tester, cacheService: cacheService);
+
+        await tester.tap(find.text('Clear cache'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(TextButton, 'Clear'));
+        await tester.pumpAndSettle();
+
+        expect(cacheService.clearAllCalls, 1);
+        expect(
+          find.text('Error clearing cache: Exception: Test Error'),
+          findsOneWidget,
         );
       });
     });
