@@ -92,7 +92,7 @@ runs:
               '	<key>IS_APPINVITE_ENABLED</key><false/>' \
               '	<key>IS_GCM_ENABLED</key><false/>' \
               '	<key>IS_SIGNIN_ENABLED</key><false/>' \
-              '	<key>GOOGLE_APP_ID</key><string>1:0:ios:dummy</string>' \
+              '	<key>GOOGLE_APP_ID</key><string>1:0:ios:0123456789abcdef0123</string>' \
               '	<key>CLIENT_ID</key><string>dummy.apps.googleusercontent.com</string>' \
               '	<key>REVERSED_CLIENT_ID</key><string>com.googleusercontent.apps.dummy</string>' \
               '</dict>' \

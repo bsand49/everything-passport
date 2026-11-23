@@ -180,7 +180,7 @@ jobs:
   smoke-test-mobile-ios:
     name: Smoke Test (iOS Simulator)
     needs: build-and-test-mobile
-    runs-on: xcode-27
+    runs-on: macos-latest
     timeout-minutes: 45
     environment: dev
 
@@ -207,6 +207,26 @@ jobs:
         with:
           name: firebase-config
           path: mobile
+
+      - name: Configure Firebase iOS
+        env:
+          SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$SERVICE_ACCOUNT_JSON" ]; then
+            echo "No Firebase service account configured; using artifact config."
+            exit 0
+          fi
+          dart pub global activate flutterfire_cli
+          echo "$SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/service-account.json"
+          GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/service-account.json" \
+            flutterfire configure \
+            --project=${{ secrets.FIREBASE_PROJECT_ID }} \
+            --platforms=android,ios \
+            --android-package-name=com.bsand49.everything_passport \
+            --ios-bundle-id=com.bsand49.everythingPassport \
+            --out=lib/firebase_options_dev.dart \
+            --yes
+          rm -f "$RUNNER_TEMP/service-account.json"
 
       - name: Select and boot iOS simulator
         id: simulator
