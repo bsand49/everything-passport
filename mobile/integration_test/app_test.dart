@@ -89,5 +89,31 @@ void main() {
         expect(find.byType(LoginScreen), findsOneWidget);
       });
     });
+
+    group('Google Sign-In', () {
+      testWidgets('tap reaches a defined outcome without crashing', (
+        tester,
+      ) async {
+        await app.main();
+        await ensureLoggedOut(tester);
+
+        await tester.tap(find.text('Sign in with Google'));
+
+        // The OAuth flow either opens the native account picker (the button
+        // stays in its loading state) or surfaces an error SnackBar — e.g. an
+        // invalid SERVER_CLIENT_ID. Any other silent outcome is a regression.
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 2));
+
+        final flowInitiated = find
+            .byType(CircularProgressIndicator)
+            .evaluate()
+            .isNotEmpty;
+        final errorShown = find.byType(SnackBar).evaluate().isNotEmpty;
+
+        expect(flowInitiated || errorShown, isTrue);
+        expect(find.byType(LoginScreen), findsOneWidget);
+      });
+    });
   });
 }

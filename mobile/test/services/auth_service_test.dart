@@ -442,6 +442,52 @@ void main() {
       });
 
       test(
+        'passes id/access tokens and email/profile scopes to Firebase',
+        () async {
+          final mockGoogle = MockGoogleSignInMockito();
+          final mockAccount = MockGoogleSignInAccountMockito();
+          final mockAuthDetails = MockGoogleSignInAuthenticationMockito();
+          final mockAuthClient = MockGoogleSignInAuthorizationClient();
+          final mockClientAuth = MockGoogleSignInClientAuthorization();
+          final mockFirebaseAuth = MockAuth();
+          final mockCredential = MockUserCredential();
+
+          when(mockGoogle.authenticate()).thenAnswer((_) async => mockAccount);
+          when(mockAccount.authentication).thenReturn(mockAuthDetails);
+          when(mockAccount.authorizationClient).thenReturn(mockAuthClient);
+          when(mockAuthClient.authorizationForScopes(any))
+              .thenAnswer((_) async => mockClientAuth);
+          when(mockAuthDetails.idToken).thenReturn('fake-id');
+          when(mockClientAuth.accessToken).thenReturn('fake-token');
+          when(mockFirebaseAuth.signInWithCredential(any))
+              .thenAnswer((_) async => mockCredential);
+
+          final service = AuthService(
+            googleSignIn: mockGoogle,
+            auth: mockFirebaseAuth,
+          );
+
+          final result = await service.signInWithGoogle();
+          expect(result, same(mockCredential));
+
+          final credential =
+              verify(mockFirebaseAuth.signInWithCredential(captureAny))
+                      .captured
+                      .single
+                  as OAuthCredential;
+          expect(credential.idToken, 'fake-id');
+          expect(credential.accessToken, 'fake-token');
+
+          final scopes =
+              verify(mockAuthClient.authorizationForScopes(captureAny))
+                      .captured
+                      .single
+                  as List<String>;
+          expect(scopes, ['email', 'profile']);
+        },
+      );
+
+      test(
         'calls authorizeScopes when authorizationForScopes returns null',
         () async {
           final mockGoogle = MockGoogleSignInMockito();
