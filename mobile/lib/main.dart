@@ -139,9 +139,9 @@ class MyApp extends StatelessWidget {
                   ? Brightness.light
                   : Brightness.dark,
               statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-              systemNavigationBarIconBrightness: isDark
-                  ? Brightness.light
-                  : Brightness.dark,
+              // The navigation bar colour is not controlled by the app, so
+              // its icon brightness is left at the native default rather
+              // than risking dark-on-dark buttons.
             ),
             child: SafeArea(top: false, bottom: true, child: child!),
           );

@@ -77,7 +77,12 @@ void main() {
         expect(find.byType(SignUpScreen), findsOneWidget);
         expect(find.text('Sign Up'), findsWidgets);
 
-        // Go back to Login via the sign-up screen's back link
+        // Go back to Login via the sign-up screen's back link; scroll it
+        // into view first since it sits below the form on short viewports.
+        await tester.ensureVisible(
+          find.text('Already have an account? Log In'),
+        );
+        await tester.pumpAndSettle();
         await tester.tap(find.text('Already have an account? Log In'));
         await tester.pumpAndSettle();
 
