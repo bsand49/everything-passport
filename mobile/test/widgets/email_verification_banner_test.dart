@@ -320,6 +320,11 @@ void main() {
       await tester.pump();
       expect(find.text('Resend'), findsOneWidget);
 
+      // Switching back to A must still show the remainder of its cooldown.
+      await tester.pumpWidget(bannerFor(userA));
+      await tester.pump();
+      expect(find.text('Resend (3s)'), findsOneWidget);
+
       fakeNow = fakeNow.add(const Duration(seconds: 4));
       await tester.pump(const Duration(seconds: 1));
     });
