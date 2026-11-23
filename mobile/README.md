@@ -257,7 +257,9 @@ AGENTS.md           Flutter-specific repository conventions
 ## CI
 
 `.github/workflows/build-and-test-mobile.yml` is path-filtered to `mobile/**`,
-the workflow file itself, and `.github/actions/**`, then runs:
+the workflow file itself, `.github/actions/**`, and the root `package.json` /
+`package-lock.json` (mobile CI consumes the locked Firebase toolchain), then
+runs:
 
 1. `dart format --output=none --set-exit-if-changed .`
 2. Firebase configuration via `.github/actions/configure-firebase`
@@ -270,8 +272,9 @@ the workflow file itself, and `.github/actions/**`, then runs:
    (macOS runner)
 
 Because the workflow is path-filtered, mobile checks do not run on PRs that
-don't touch `mobile/` and are not required status checks — treat failures on
-mobile PRs as blocking manually.
+don't touch `mobile/`, the workflow/actions, or the root npm manifests — and
+they are not required status checks, so treat failures on mobile PRs as
+blocking manually.
 
 Coverage fails below `MOBILE_COVERAGE_THRESHOLD`, which defaults to `90%`.
 
