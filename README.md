@@ -77,7 +77,7 @@ Git hooks are managed by **Lefthook** and installed by the root `prepare`
 script when `npm install` runs at the repository root:
 
 - `pre-commit`: `dart format` on staged Dart files and
-  `flutter analyze --no-fatal-infos`
+  `flutter analyze`
 - `pre-push`: `flutter test --coverage` plus a `90%` LCOV coverage threshold
 
 For GUI Git clients that cannot find Flutter, create the gitignored
