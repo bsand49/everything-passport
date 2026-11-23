@@ -55,5 +55,10 @@ covers CI-specific ones.
   required status checks (they'd stay Pending and block merges). Only
   always-run workflows — or jobs that always execute and self-skip — may be
   listed in the Main Branch Protection ruleset.
+- **Mobile smoke jobs are advisory**: `smoke-test-mobile-android` and
+  `smoke-test-mobile-ios` in `build-and-test-mobile.yml` are intentionally
+  not required checks (decision for #45). Making them enforceable would
+  require an always-run gate job that self-skips on non-mobile changes; that
+  mechanism is deferred unless the smoke jobs prove flaky enough to need it.
 - **iOS smoke runner**: `macos-latest`. The static `ios/Flutter/` templates
   must be tracked in git — see `mobile/AGENTS.md` platform notes.
