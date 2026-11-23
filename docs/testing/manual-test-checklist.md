@@ -31,8 +31,8 @@ checklist into the release PR description.
       surface rate-limit/error feedback gracefully
 - [ ] Clicking the verification link verifies the account, and "Refresh" then
       clears the banner without restarting the app
-- [ ] Regression: profile onboarding, username flows, logout, settings
-      navigation, and password reset still work
+- [ ] Regression: profile onboarding, username flows, logout, and settings
+      navigation still work
 
 ## UI / platform spot-checks
 

@@ -26,3 +26,6 @@ npm-debug.log*
 .env
 .env.*
 lefthook-local.yml
+
+# Manual test run notes (temporary, per docs/AGENTS.md)
+docs/testing/manual-test-run*.md

@@ -95,6 +95,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     PR so its required status check always reports, and gained a `push`
     trigger for post-merge validation.
 
+### Fixed
+
+- iOS Google Sign-In crashed when started because `ios/Runner/Info.plist`
+  lacked the `CFBundleURLTypes` entry for the OAuth reversed client ID
+  scheme.
+
 ### Security
 
 - Added npm `overrides` in the root and `tests/rules` manifests to force
