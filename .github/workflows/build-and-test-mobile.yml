@@ -180,7 +180,7 @@ jobs:
   smoke-test-mobile-ios:
     name: Smoke Test (iOS Simulator)
     needs: build-and-test-mobile
-    runs-on: macos-latest
+    runs-on: xcode-27
     timeout-minutes: 45
     environment: dev
 
