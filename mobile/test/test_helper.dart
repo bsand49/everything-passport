@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -35,6 +36,32 @@ class FakeAuthService extends Fake implements AuthService {
   /// When set, [reloadCurrentUser] emits this user on [user] to simulate
   /// `User.reload()` publishing a fresh snapshot via `userChanges()`.
   User? reloadEmitsUser;
+
+  /// Mirrors [AuthService.verificationEmailSentAtFor]; keyed by UID and set
+  /// automatically by a successful [sendEmailVerification] or assigned
+  /// directly by tests.
+  final Map<String, DateTime> verificationEmailSentAtByUid = {};
+
+  final ValueNotifier<int> _sentAtVersion = ValueNotifier(0);
+
+  @override
+  ValueListenable<int>? get verificationEmailSentAtVersion => _sentAtVersion;
+
+  @override
+  DateTime? verificationEmailSentAtFor(String? uid) =>
+      uid == null ? null : verificationEmailSentAtByUid[uid];
+
+  void _recordSentAt() {
+    final uid = currentUser?.uid;
+    if (uid == null) return;
+    verificationEmailSentAtByUid[uid] = now();
+    _sentAtVersion.value++;
+  }
+
+  /// Mirrors [AuthService.now]; tests may assign a fake clock that advances
+  /// independently of `tester.pump`.
+  @override
+  DateTime Function() now = DateTime.now;
 
   @override
   User? get currentUser => _userSubject.value;
@@ -93,6 +120,7 @@ class FakeAuthService extends Fake implements AuthService {
   Future<void> sendEmailVerification() async {
     sendEmailVerificationCalls++;
     if (throwError) throw Exception(errorMessage);
+    _recordSentAt();
   }
 
   @override
@@ -260,10 +288,14 @@ Widget createTestableWidget({
   NavigatorObserver? observer,
   http.Client? httpClient,
 }) {
+  final resolvedAuthService = authService ?? FakeAuthService();
+  if (resolvedAuthService is FakeAuthService && user != null) {
+    resolvedAuthService.emitUser(user);
+  }
   return MultiProvider(
     providers: [
       Provider<http.Client>.value(value: httpClient ?? http.Client()),
-      Provider<AuthService>.value(value: authService ?? FakeAuthService()),
+      Provider<AuthService>.value(value: resolvedAuthService),
       Provider<UserProfileService>.value(
         value: userProfileService ?? FakeUserProfileService(),
       ),

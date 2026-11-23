@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -11,7 +14,13 @@ import '../services/auth_service.dart';
 /// password accounts to verify their address. Google sign-in accounts are
 /// verified automatically and never see this banner.
 class EmailVerificationBanner extends StatefulWidget {
-  const EmailVerificationBanner({super.key});
+  /// How long the Resend action stays disabled after a successful send.
+  final Duration resendCooldown;
+
+  const EmailVerificationBanner({
+    super.key,
+    this.resendCooldown = const Duration(seconds: 60),
+  });
 
   @override
   State<EmailVerificationBanner> createState() =>
@@ -21,13 +30,80 @@ class EmailVerificationBanner extends StatefulWidget {
 class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
   bool _isSending = false;
   bool _isRefreshing = false;
+  Timer? _cooldownTimer;
+  ValueListenable<int>? _sentAtListenable;
+
+  /// Remaining resend cooldown derived from the shared send timestamp in
+  /// [AuthService], so every banner instance enforces the same deadline.
+  /// The periodic timer only refreshes the display; elapsed time is measured
+  /// against the wall clock so suspended apps cannot drift.
+  Duration get _cooldownRemaining {
+    final authService = context.read<AuthService>();
+    final user = context.read<User?>();
+    final sentAt = authService.verificationEmailSentAtFor(user?.uid);
+    if (sentAt == null) return Duration.zero;
+    final remaining = sentAt
+        .add(widget.resendCooldown)
+        .difference(authService.now());
+    return remaining.isNegative ? Duration.zero : remaining;
+  }
+
+  bool get _onCooldown => _cooldownRemaining > Duration.zero;
+
+  void _ensureCooldownTimer() {
+    if (_cooldownTimer != null || !_onCooldown) return;
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        _cooldownTimer = null;
+        return;
+      }
+      setState(() {});
+      if (!_onCooldown) {
+        timer.cancel();
+        _cooldownTimer = null;
+      }
+    });
+  }
+
+  /// Another banner (or sign-up) may record a send while this one stays
+  /// mounted — e.g. Settings pushed over Home — so refresh the countdown
+  /// whenever the shared timestamp changes.
+  void _onSentAtChanged() {
+    if (!mounted) return;
+    setState(() {});
+    _ensureCooldownTimer();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final listenable = context
+        .read<AuthService>()
+        .verificationEmailSentAtVersion;
+    if (!identical(listenable, _sentAtListenable)) {
+      _sentAtListenable?.removeListener(_onSentAtChanged);
+      _sentAtListenable = listenable;
+      _sentAtListenable?.addListener(_onSentAtChanged);
+    }
+    _ensureCooldownTimer();
+  }
+
+  @override
+  void dispose() {
+    _cooldownTimer?.cancel();
+    _sentAtListenable?.removeListener(_onSentAtChanged);
+    super.dispose();
+  }
 
   Future<void> _sendVerification() async {
+    if (_onCooldown) return;
     setState(() => _isSending = true);
     final messenger = ScaffoldMessenger.of(context);
     final authService = context.read<AuthService>();
     try {
       await authService.sendEmailVerification();
+      if (mounted) _ensureCooldownTimer();
       messenger.showSnackBar(
         const SnackBar(
           content: Text('Verification email sent. Check your inbox.'),
@@ -85,14 +161,18 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
               ),
             ),
             TextButton(
-              onPressed: _isSending ? null : _sendVerification,
+              onPressed: (_isSending || _onCooldown) ? null : _sendVerification,
               child: _isSending
                   ? const SizedBox(
                       height: 16,
                       width: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Resend'),
+                  : Text(
+                      _onCooldown
+                          ? 'Resend (${(_cooldownRemaining.inMilliseconds / 1000).ceil()}s)'
+                          : 'Resend',
+                    ),
             ),
             IconButton(
               tooltip: 'Refresh verification status',

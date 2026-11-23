@@ -258,6 +258,7 @@ void main() {
     group('sendEmailVerification()', () {
       test('sends verification email for current user', () async {
         final user = MockUserMockito();
+        when(user.uid).thenReturn('test_uid');
         when(user.sendEmailVerification()).thenAnswer((_) async {});
         final auth = MockAuth();
         when(auth.currentUser).thenReturn(user);
@@ -266,6 +267,7 @@ void main() {
 
         await service.sendEmailVerification();
         verify(user.sendEmailVerification()).called(1);
+        expect(service.verificationEmailSentAtFor('test_uid'), isNotNull);
       });
 
       test('throws StateError when no user is signed in', () {
@@ -369,6 +371,7 @@ void main() {
           ),
         ).thenAnswer((_) async => credential);
         if (user != null) {
+          when(user.uid).thenReturn('new_user_uid');
           when(user.emailVerified).thenReturn(false);
           if (sendError != null) {
             when(user.sendEmailVerification()).thenThrow(sendError);
