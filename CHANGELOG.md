@@ -105,6 +105,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - iOS Google Sign-In crashed when started because `ios/Runner/Info.plist`
   lacked the `CFBundleURLTypes` entry for the OAuth reversed client ID
   scheme.
+- Google Sign-In failures that are not user cancellations (for example
+  configuration errors) now surface an error message instead of returning
+  silently.
 
 ### Security
 
