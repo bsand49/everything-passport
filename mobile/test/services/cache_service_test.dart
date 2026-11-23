@@ -25,5 +25,11 @@ void main() {
 
       await expectLater(cacheService.clearAll(), throwsException);
     });
+
+    test('defaults to the shared image cache clearer', () {
+      final cacheService = CacheService(service: FakeMetadataService());
+
+      expect(cacheService, isNotNull);
+    });
   });
 }

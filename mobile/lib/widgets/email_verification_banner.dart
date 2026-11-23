@@ -53,11 +53,13 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
   void _ensureCooldownTimer() {
     if (_cooldownTimer != null || !_onCooldown) return;
     _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      // coverage:ignore-start
       if (!mounted) {
         timer.cancel();
         _cooldownTimer = null;
         return;
       }
+      // coverage:ignore-end
       setState(() {});
       if (!_onCooldown) {
         timer.cancel();

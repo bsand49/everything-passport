@@ -10,6 +10,7 @@ import 'package:everything_passport/screens/home_screen.dart';
 import 'package:everything_passport/screens/user_profile_screen.dart';
 import 'package:everything_passport/models/user_profile.dart';
 import 'package:everything_passport/services/metadata_service.dart';
+import 'package:everything_passport/services/cache_service.dart';
 import 'package:everything_passport/widgets/email_verification_banner.dart';
 import 'package:http/http.dart' as http;
 
@@ -202,6 +203,7 @@ void main() async {
         final BuildContext context = tester.element(find.byType(AuthWrapper));
         expect(Provider.of<http.Client>(context, listen: false), isNotNull);
         expect(Provider.of<MetadataService>(context, listen: false), isNotNull);
+        expect(Provider.of<CacheService>(context, listen: false), isNotNull);
 
         // Verify that the user was propagated through the StreamProvider
         expect(Provider.of<User?>(context, listen: false), isNotNull);
