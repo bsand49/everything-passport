@@ -81,7 +81,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     verification status reaches the UI.
   - A persistent in-app banner on the home, profile, settings, and edit
     profile screens prompts unverified password users to verify, with resend
-    and refresh-status actions. Email verification is required for admin
+    and refresh-status actions. Resend is rate-limited by a 60-second
+    countdown shared across all banner instances, so navigating between
+    screens does not reset it. Email verification is required for admin
     access.
 - CI updates:
   - `.github/workflows/build.yml` renamed to
