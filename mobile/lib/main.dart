@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -128,7 +129,22 @@ class MyApp extends StatelessWidget {
           Locale('en', 'US'), // Changes format to MM/dd/yyyy
         ],
         builder: (context, child) {
-          return SafeArea(top: false, bottom: true, child: child!);
+          // Auth screens have no AppBar to supply a status-bar style, so set
+          // icon brightness from the theme to keep them readable on cream.
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: isDark
+                  ? Brightness.light
+                  : Brightness.dark,
+              statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+              systemNavigationBarIconBrightness: isDark
+                  ? Brightness.light
+                  : Brightness.dark,
+            ),
+            child: SafeArea(top: false, bottom: true, child: child!),
+          );
         },
       ),
     );

@@ -55,7 +55,7 @@ class ProfileAvatar extends StatelessWidget {
             bottom: 0,
             right: 0,
             child: CircleAvatar(
-              backgroundColor: Theme.of(context).primaryColor,
+              backgroundColor: colorScheme.primary,
               radius: 20,
               child: IconButton(
                 icon: Icon(

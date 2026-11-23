@@ -77,13 +77,8 @@ void main() {
         expect(find.byType(SignUpScreen), findsOneWidget);
         expect(find.text('Sign Up'), findsWidgets);
 
-        // Go back to Login
-        final backButton = find.byIcon(Icons.arrow_back);
-        if (backButton.evaluate().isNotEmpty) {
-          await tester.tap(backButton);
-        } else {
-          await tester.pageBack();
-        }
+        // Go back to Login via the sign-up screen's back link
+        await tester.tap(find.text('Already have an account? Log In'));
         await tester.pumpAndSettle();
 
         expect(find.byType(LoginScreen), findsOneWidget);
