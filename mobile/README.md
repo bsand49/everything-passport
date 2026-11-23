@@ -143,6 +143,13 @@ cd ..
 On Apple Silicon Macs, use `arch -x86_64 pod install` if CocoaPods reports
 compatibility issues.
 
+Google Sign-In on iOS requires `ios/Runner/Info.plist` to register the OAuth
+callback scheme: `CFBundleURLTypes` → `CFBundleURLSchemes` must contain the
+`REVERSED_CLIENT_ID` from `ios/Runner/GoogleService-Info.plist` (e.g.
+`com.googleusercontent.apps.<id>`). If `flutterfire configure` is re-run for
+a different Firebase project, update the scheme to match the new plist — a
+missing or mismatched scheme crashes the app when sign-in starts.
+
 ### 4. Run the app
 
 The app requires compile-time `--dart-define` values:
