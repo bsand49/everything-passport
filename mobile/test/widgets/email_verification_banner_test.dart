@@ -66,7 +66,8 @@ void main() {
     testWidgets('resend sends a verification email and shows a SnackBar', (
       WidgetTester tester,
     ) async {
-      final authService = FakeAuthService();
+      var fakeNow = DateTime(2025);
+      final authService = FakeAuthService()..now = () => fakeNow;
       await tester.pumpWidget(
         createTestableWidget(
           child: Scaffold(
@@ -92,13 +93,15 @@ void main() {
       );
 
       // Let the cooldown elapse so no timer is pending at test end.
-      await tester.pump(const Duration(seconds: 2));
+      fakeNow = fakeNow.add(const Duration(seconds: 2));
+      await tester.pump(const Duration(seconds: 1));
     });
 
     testWidgets('resend is disabled with a countdown during cooldown', (
       WidgetTester tester,
     ) async {
-      final authService = FakeAuthService();
+      var fakeNow = DateTime(2025);
+      final authService = FakeAuthService()..now = () => fakeNow;
       await tester.pumpWidget(
         createTestableWidget(
           child: Scaffold(
@@ -124,13 +127,15 @@ void main() {
       await tester.pump();
       expect(authService.sendEmailVerificationCalls, 1);
 
-      await tester.pump(const Duration(seconds: 4));
+      fakeNow = fakeNow.add(const Duration(seconds: 4));
+      await tester.pump(const Duration(seconds: 1));
     });
 
     testWidgets('resend re-enables after the cooldown elapses', (
       WidgetTester tester,
     ) async {
-      final authService = FakeAuthService();
+      var fakeNow = DateTime(2025);
+      final authService = FakeAuthService()..now = () => fakeNow;
       await tester.pumpWidget(
         createTestableWidget(
           child: Scaffold(
@@ -150,7 +155,8 @@ void main() {
       await tester.pump();
       expect(find.text('Resend (2s)'), findsOneWidget);
 
-      await tester.pump(const Duration(seconds: 2));
+      fakeNow = fakeNow.add(const Duration(seconds: 2));
+      await tester.pump(const Duration(seconds: 1));
       await tester.pump();
 
       expect(find.text('Resend'), findsOneWidget);
@@ -185,6 +191,92 @@ void main() {
       await tester.tap(find.text('Resend'));
       await tester.pump();
       expect(authService.sendEmailVerificationCalls, 2);
+    });
+
+    testWidgets('cooldown is shared across banner instances', (
+      WidgetTester tester,
+    ) async {
+      var fakeNow = DateTime(2025);
+      final authService = FakeAuthService()..now = () => fakeNow;
+      final user = FakeUser(
+        emailVerified: false,
+        providerData: [FakeUserInfo('password')],
+      );
+
+      // Send from the first banner instance.
+      await tester.pumpWidget(
+        createTestableWidget(
+          child: Scaffold(
+            body: EmailVerificationBanner(
+              resendCooldown: const Duration(seconds: 3),
+            ),
+          ),
+          authService: authService,
+          user: user,
+        ),
+      );
+      await tester.tap(find.text('Resend'));
+      await tester.pump();
+      expect(authService.sendEmailVerificationCalls, 1);
+
+      // A second banner mounted afterwards (e.g. Settings after Home) must
+      // honour the same deadline rather than restarting Resend.
+      await tester.pumpWidget(
+        createTestableWidget(
+          child: Scaffold(
+            body: EmailVerificationBanner(
+              resendCooldown: const Duration(seconds: 3),
+            ),
+          ),
+          authService: authService,
+          user: user,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Resend (3s)'), findsOneWidget);
+      await tester.tap(find.text('Resend (3s)'));
+      await tester.pump();
+      expect(authService.sendEmailVerificationCalls, 1);
+
+      fakeNow = fakeNow.add(const Duration(seconds: 4));
+      await tester.pump(const Duration(seconds: 1));
+    });
+
+    testWidgets('cooldown reflects elapsed wall-clock time', (
+      WidgetTester tester,
+    ) async {
+      var fakeNow = DateTime(2025);
+      final authService = FakeAuthService();
+      authService.now = () => fakeNow;
+      authService.verificationEmailSentAt = DateTime(2025)
+          .subtract(const Duration(seconds: 59));
+      await tester.pumpWidget(
+        createTestableWidget(
+          child: Scaffold(
+            body: EmailVerificationBanner(
+              resendCooldown: const Duration(seconds: 60),
+            ),
+          ),
+          authService: authService,
+          user: FakeUser(
+            emailVerified: false,
+            providerData: [FakeUserInfo('password')],
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Only ~1s of the 60s cooldown remains.
+      expect(find.text('Resend (1s)'), findsOneWidget);
+
+      // Jump the clock past the deadline — expiry does not depend on
+      // receiving every intermediate timer tick.
+      fakeNow = fakeNow.add(const Duration(seconds: 2));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump();
+
+      expect(find.text('Resend'), findsOneWidget);
     });
 
     testWidgets('refresh reloads the current user', (

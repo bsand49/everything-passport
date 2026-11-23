@@ -33,6 +33,16 @@ class FakeAuthService extends Fake implements AuthService {
   /// `User.reload()` publishing a fresh snapshot via `userChanges()`.
   User? reloadEmitsUser;
 
+  /// Mirrors [AuthService.verificationEmailSentAt]; set automatically by a
+  /// successful [sendEmailVerification] or assigned directly by tests.
+  @override
+  DateTime? verificationEmailSentAt;
+
+  /// Mirrors [AuthService.now]; tests may assign a fake clock that advances
+  /// independently of `tester.pump`.
+  @override
+  DateTime Function() now = DateTime.now;
+
   @override
   User? get currentUser => _userSubject.value;
 
@@ -90,6 +100,7 @@ class FakeAuthService extends Fake implements AuthService {
   Future<void> sendEmailVerification() async {
     sendEmailVerificationCalls++;
     if (throwError) throw Exception(errorMessage);
+    verificationEmailSentAt = now();
   }
 
   @override

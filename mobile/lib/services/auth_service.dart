@@ -62,6 +62,7 @@ class AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn}) {
       if (user != null && !user.emailVerified) {
         try {
           await user.sendEmailVerification();
+          _verificationEmailSentAt = now();
         } catch (e) {
           debugPrint('AuthService: Email verification send failed: $e');
           // The account exists at this point, so surface the failure as a
@@ -81,6 +82,19 @@ class AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn}) {
     }
   }
 
+  /// Clock used for verification-email cooldown bookkeeping. Overridable in
+  /// tests; production code leaves the default.
+  DateTime Function() now = DateTime.now;
+
+  /// When the last verification email was successfully sent. Shared across
+  /// banner instances so the resend cooldown applies to the account rather
+  /// than to a single widget.
+  DateTime? _verificationEmailSentAt;
+
+  /// The time the last verification email was successfully sent, or `null`
+  /// if none has been sent this session.
+  DateTime? get verificationEmailSentAt => _verificationEmailSentAt;
+
   /// Sends a verification email to the currently signed-in user.
   ///
   /// Throws a [StateError] when no user is signed in.
@@ -91,6 +105,7 @@ class AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn}) {
     }
     try {
       await user.sendEmailVerification();
+      _verificationEmailSentAt = now();
     } on FirebaseAuthException catch (e) {
       debugPrint(
         'AuthService: Email verification error [${e.code}]: ${e.message}',

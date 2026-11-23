@@ -29,31 +29,44 @@ class EmailVerificationBanner extends StatefulWidget {
 class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
   bool _isSending = false;
   bool _isRefreshing = false;
-  Duration _cooldownRemaining = Duration.zero;
   Timer? _cooldownTimer;
+
+  /// Remaining resend cooldown derived from the shared send timestamp in
+  /// [AuthService], so every banner instance enforces the same deadline.
+  /// The periodic timer only refreshes the display; elapsed time is measured
+  /// against the wall clock so suspended apps cannot drift.
+  Duration get _cooldownRemaining {
+    final authService = context.read<AuthService>();
+    final sentAt = authService.verificationEmailSentAt;
+    if (sentAt == null) return Duration.zero;
+    final remaining = sentAt
+        .add(widget.resendCooldown)
+        .difference(authService.now());
+    return remaining.isNegative ? Duration.zero : remaining;
+  }
 
   bool get _onCooldown => _cooldownRemaining > Duration.zero;
 
-  /// Starts the resend cooldown after a successful send so users cannot
-  /// spam resends and hit Firebase rate limits. Not started on failure so
-  /// the user can retry immediately.
-  void _startCooldown() {
-    if (!mounted) return;
-    _cooldownTimer?.cancel();
-    setState(() => _cooldownRemaining = widget.resendCooldown);
+  void _ensureCooldownTimer() {
+    if (_cooldownTimer != null || !_onCooldown) return;
     _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
+        _cooldownTimer = null;
         return;
       }
-      setState(() {
-        _cooldownRemaining -= const Duration(seconds: 1);
-        if (_cooldownRemaining <= Duration.zero) {
-          _cooldownRemaining = Duration.zero;
-          timer.cancel();
-        }
-      });
+      setState(() {});
+      if (!_onCooldown) {
+        timer.cancel();
+        _cooldownTimer = null;
+      }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _ensureCooldownTimer();
   }
 
   @override
@@ -63,12 +76,13 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
   }
 
   Future<void> _sendVerification() async {
+    if (_onCooldown) return;
     setState(() => _isSending = true);
     final messenger = ScaffoldMessenger.of(context);
     final authService = context.read<AuthService>();
     try {
       await authService.sendEmailVerification();
-      _startCooldown();
+      if (mounted) _ensureCooldownTimer();
       messenger.showSnackBar(
         const SnackBar(
           content: Text('Verification email sent. Check your inbox.'),
