@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
+import '../exceptions/email_verification_send_exception.dart';
 import '../services/auth_service.dart';
 import '../utils/validators.dart';
 import '../widgets/auth_text_field.dart';
@@ -56,6 +57,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         );
         Navigator.pop(context); // Go back to login or let wrapper handle it
+      }
+    } on EmailVerificationSendException {
+      // The account was created but the verification email failed to send;
+      // the user can resend it later from the verification banner.
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Account created, but the verification email could not be sent. '
+              'You can resend it later.',
+            ),
+          ),
+        );
+        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {

@@ -69,14 +69,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `GlobalMaterialLocalizations.delegates`.
 - Email verification for password accounts:
   - A verification email is sent automatically after email/password sign-up;
-    sign-up still succeeds if the send fails.
+    the account is still created if the send fails, and sign-up surfaces a
+    distinct `EmailVerificationSendException` so the UI can say the email
+    was not sent instead of claiming it was.
   - `AuthService` exposes `sendEmailVerification()` and
     `reloadCurrentUser()`, and detects unverified password accounts via
     `requiresEmailVerificationFor` (Google sign-in accounts are already
-    verified).
-  - A persistent in-app banner on the home, profile, and settings screens
-    prompts unverified password users to verify, with resend and
-    refresh-status actions. Email verification is required for admin access.
+    verified). The auth stream uses `userChanges()` so reload-updated
+    verification status reaches the UI.
+  - A persistent in-app banner on the home, profile, settings, and edit
+    profile screens prompts unverified password users to verify, with resend
+    and refresh-status actions. Email verification is required for admin
+    access.
 
 ### Security
 

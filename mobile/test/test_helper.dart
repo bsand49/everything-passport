@@ -112,6 +112,7 @@ class FakeUserProfileService extends Fake implements UserProfileService {
   int isUsernameAvailableCalls = 0;
   int saveProfileCalls = 0;
   int uploadProfilePictureCalls = 0;
+  int streamProfileCalls = 0;
   UserProfile? lastSavedProfile;
   bool isUsernameAvailableResponse = true;
   bool throwError = false;
@@ -119,8 +120,10 @@ class FakeUserProfileService extends Fake implements UserProfileService {
   Completer<void>? saveCompleter;
 
   @override
-  Stream<UserProfile?> streamProfile({required String userId}) =>
-      _profileSubject.stream;
+  Stream<UserProfile?> streamProfile({required String userId}) {
+    streamProfileCalls++;
+    return _profileSubject.stream;
+  }
 
   void emitProfile(UserProfile? profile) => _profileSubject.add(profile);
 
@@ -173,11 +176,14 @@ class FakeUserInfo extends Fake implements UserInfo {
 }
 
 class FakeUser extends Fake implements User {
-  FakeUser({this.emailVerified = true, List<UserInfo>? providerData})
-    : providerData = providerData ?? [];
+  FakeUser({
+    this.emailVerified = true,
+    this.uid = 'test_user',
+    List<UserInfo>? providerData,
+  }) : providerData = providerData ?? [];
 
   @override
-  String get uid => 'test_user';
+  final String uid;
   @override
   String? get email => 'test@example.com';
   @override

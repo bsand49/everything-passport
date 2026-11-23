@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:everything_passport/exceptions/email_verification_send_exception.dart';
 import 'package:everything_passport/services/auth_service.dart';
 
 import 'auth_service_test.mocks.dart';
@@ -399,19 +400,20 @@ void main() {
         );
       });
 
-      test('swallows verification send failure', () async {
+      test('throws EmailVerificationSendException when send fails', () async {
         final user = MockUserMockito();
         final service = serviceWithCredential(
           user: user,
           sendError: Exception('send failed'),
         );
 
-        final result = await service.signUpWithEmail(
-          email: 'new@example.com',
-          password: 'password123',
+        await expectLater(
+          service.signUpWithEmail(
+            email: 'new@example.com',
+            password: 'password123',
+          ),
+          throwsA(isA<EmailVerificationSendException>()),
         );
-
-        expect(result, isNotNull);
         verify(user.sendEmailVerification()).called(1);
       });
     });

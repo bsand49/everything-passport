@@ -214,6 +214,89 @@ void main() async {
         // Unmount the widget to hit the dispose logic in lines 62-64
         await tester.pumpWidget(Container());
       });
+
+      testWidgets(
+        'hides the verification banner when a reload emits a verified user',
+        (WidgetTester tester) async {
+          final fakeAuth = FakeAuthService();
+          final fakeProfile = FakeUserProfileService();
+          fakeProfile.emitProfile(
+            const UserProfile(
+              userId: 'test_user',
+              username: 'testuser',
+              firstName: 'Test',
+              lastName: 'User',
+            ),
+          );
+          fakeAuth.emitUser(
+            FakeUser(
+              emailVerified: false,
+              providerData: [FakeUserInfo('password')],
+            ),
+          );
+
+          await tester.pumpWidget(
+            MyApp(
+              authService: fakeAuth,
+              userProfileService: fakeProfile,
+              metadataService: FakeMetadataService(),
+            ),
+          );
+          await tester.pump();
+
+          expect(
+            find.text('Verify your email to unlock admin features'),
+            findsOneWidget,
+          );
+
+          // Simulate User.reload() publishing a fresh verified snapshot for
+          // the same account.
+          fakeAuth.emitUser(
+            FakeUser(
+              emailVerified: true,
+              providerData: [FakeUserInfo('password')],
+            ),
+          );
+          await tester.pump();
+
+          expect(find.byType(HomeScreen), findsOneWidget);
+          expect(
+            find.text('Verify your email to unlock admin features'),
+            findsNothing,
+          );
+        },
+      );
+
+      testWidgets(
+        'does not restart the profile stream for same-uid user snapshots',
+        (WidgetTester tester) async {
+          final fakeAuth = FakeAuthService();
+          final fakeProfile = FakeUserProfileService();
+
+          await tester.pumpWidget(
+            MyApp(
+              authService: fakeAuth,
+              userProfileService: fakeProfile,
+              metadataService: FakeMetadataService(),
+            ),
+          );
+          await tester.pump();
+
+          fakeAuth.emitUser(FakeUser());
+          await tester.pump();
+          expect(fakeProfile.streamProfileCalls, 1);
+
+          // A reload-style snapshot for the same uid must not resubscribe.
+          fakeAuth.emitUser(FakeUser(emailVerified: false));
+          await tester.pump();
+          expect(fakeProfile.streamProfileCalls, 1);
+
+          // A genuinely different user does resubscribe.
+          fakeAuth.emitUser(FakeUser(uid: 'other_user'));
+          await tester.pump();
+          expect(fakeProfile.streamProfileCalls, 2);
+        },
+      );
     });
   });
 }

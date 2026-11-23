@@ -78,10 +78,17 @@ class MyApp extends StatelessWidget {
         StreamProvider<UserProfile?>(
           create: (context) {
             final userProfileService = context.read<UserProfileService>();
-            return context.read<AuthService>().user.switchMap((user) {
-              if (user == null) return Stream.value(null);
-              return userProfileService.streamProfile(userId: user.uid);
-            });
+            return context
+                .read<AuthService>()
+                .user
+                // userChanges() emits a fresh User snapshot on reload()
+                // (e.g. after email verification); only restart the profile
+                // subscription when the signed-in user actually changes.
+                .distinct((a, b) => a?.uid == b?.uid)
+                .switchMap((user) {
+                  if (user == null) return Stream.value(null);
+                  return userProfileService.streamProfile(userId: user.uid);
+                });
           },
           initialData: null,
         ),

@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../exceptions/email_verification_send_exception.dart';
+
 class AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn}) {
   final FirebaseAuth _auth = auth ?? FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = googleSignIn ?? GoogleSignIn.instance;
@@ -13,7 +15,11 @@ class AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn}) {
   User? get currentUser => _auth.currentUser;
 
   /// Stream of [User] auth state changes.
-  Stream<User?> get user => _auth.authStateChanges();
+  ///
+  /// Uses [FirebaseAuth.userChanges] rather than
+  /// [FirebaseAuth.authStateChanges] so that snapshots refreshed via
+  /// [User.reload] (for example after email verification) are emitted too.
+  Stream<User?> get user => _auth.userChanges();
 
   /// Whether [user] is an email/password account that has not verified its
   /// email address. Google sign-in accounts are verified automatically and
@@ -58,9 +64,14 @@ class AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn}) {
           await user.sendEmailVerification();
         } catch (e) {
           debugPrint('AuthService: Email verification send failed: $e');
+          // The account exists at this point, so surface the failure as a
+          // distinct error instead of pretending the email was sent.
+          throw EmailVerificationSendException(e);
         }
       }
       return credential;
+    } on EmailVerificationSendException {
+      rethrow;
     } on FirebaseAuthException catch (e) {
       debugPrint('AuthService: Sign up error [${e.code}]: ${e.message}');
       rethrow;
