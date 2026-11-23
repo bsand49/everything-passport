@@ -6,8 +6,9 @@ import '../services/auth_service.dart';
 
 /// Persistent banner shown to unverified email/password accounts.
 ///
-/// Email verification is required for admin features (the Firestore
-/// `isAdmin()` check requires a verified email). Google sign-in accounts are
+/// Verification is required for admin features (the Firestore `isAdmin()`
+/// check requires a verified email), so the banner prompts unverified
+/// password accounts to verify their address. Google sign-in accounts are
 /// verified automatically and never see this banner.
 class EmailVerificationBanner extends StatefulWidget {
   const EmailVerificationBanner({super.key});
@@ -79,7 +80,7 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Verify your email to unlock admin features',
+                'Verify your email address',
                 style: TextStyle(color: colorScheme.onSecondaryContainer),
               ),
             ),
