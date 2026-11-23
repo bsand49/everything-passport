@@ -174,6 +174,9 @@ independently for mobile builds.
   --prune`).
 - **PR review comments**: reply inline on the specific review-comment thread
   rather than posting a new top-level comment.
+- **Pull requests**: fill in `.github/pull_request_template.md` — Related
+  Issue, Description, Type of change, How Has This Been Tested, and the
+  checklist — rather than improvising a summary/test-plan format.
 - **AGENTS.md scope**: keep each `AGENTS.md` concise and scoped to its
   directory — record only non-obvious, durable conventions. Don't repeat
   rules that belong to a more specific `AGENTS.md` (e.g. CI details live in

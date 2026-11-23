@@ -188,6 +188,9 @@ jobs:
           working-directory: mobile
           script: flutter test --dart-define=SERVER_CLIENT_ID=${{ secrets.SERVER_CLIENT_ID }} integration_test/app_test.dart
 
+  # Advisory only: this workflow is path-filtered, so its jobs cannot be
+  # required status checks (they'd stay Pending on non-mobile PRs). See
+  # .github/AGENTS.md.
   smoke-test-mobile-ios:
     name: Smoke Test (iOS Simulator)
     needs: build-and-test-mobile
