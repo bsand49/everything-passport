@@ -61,7 +61,7 @@ Firebase files and `*.mocks.dart` files are gitignored; regenerate them with
 Lefthook is installed by the root `prepare` script (`npm install`).
 
 - `pre-commit`: `dart format` on staged Dart files and
-  `flutter analyze --no-fatal-infos`.
+  `flutter analyze`.
 - `pre-push`: `flutter test --coverage`, then checks `mobile/coverage/lcov.info`
   against a `90%` line-coverage threshold.
 
@@ -133,8 +133,8 @@ independently for mobile builds.
 ## Conventions
 
 - **Formatting/analysis**: run `dart format` and `flutter analyze` before
-  pushing Flutter changes. The pre-commit hook uses
-  `flutter analyze --no-fatal-infos`; CI runs `flutter analyze`.
+  pushing Flutter changes. The pre-commit hook and CI both run
+  `flutter analyze`.
 - **Tests**: `test/` mirrors `lib/`; use `test/test_helper.dart` fakes for
   widget/service tests where possible. Mockito mocks are generated and ignored
   — run `build_runner` after changing `@GenerateNiceMocks` tests.

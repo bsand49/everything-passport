@@ -237,7 +237,7 @@ dart format --output=none --set-exit-if-changed .
 flutter analyze
 ```
 
-Repository hooks run `dart format` and `flutter analyze --no-fatal-infos` on
+Repository hooks run `dart format` and `flutter analyze` on
 staged Dart files before commit, and `flutter test --coverage` with a `90%`
 LCOV threshold before push. See the root [AGENTS.md](../AGENTS.md) for GUI Git
 client setup.
