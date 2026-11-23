@@ -98,6 +98,7 @@ firebase.json            Firebase CLI deploy config for security rules
 firestore.rules          Firestore owner/admin access rules
 storage.rules            Firebase Storage owner/admin access rules
 tests/rules/             Firebase emulator tests for the security rules
+docs/                    Project docs — see docs/AGENTS.md
 package.json             Root Lefthook dependency only
 package-lock.json        Root npm lockfile
 lefthook.yml             Git hook configuration

@@ -26,6 +26,9 @@ inside `mobile/`.
 - `tests/rules/` — Firebase emulator tests for the security rules.
 - `CHANGELOG.md`, `README.md`, `RELEASING.md`, `AGENTS.md` — repository
   documentation.
+- `docs/` — project documentation; see `docs/AGENTS.md`. Includes
+  `docs/testing/manual-test-checklist.md`, a template for manual testing
+  passes; copy it into PRs/releases when hands-on verification is needed.
 
 ## Commands
 
