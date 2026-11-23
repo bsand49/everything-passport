@@ -20,7 +20,9 @@ covers CI-specific ones.
 ## Workflows
 
 - `build-and-test-mobile.yml` — path-filtered to `mobile/**`, the workflow
-  file itself, and `.github/actions/**`. Three jobs: `build-and-test-mobile`
+  file itself, `.github/actions/**`, and the root `package.json` /
+  `package-lock.json` (mobile CI consumes the locked Firebase toolchain).
+  Three jobs: `build-and-test-mobile`
   (Ubuntu: format, Firebase config, build_runner, analyze, tests, coverage),
   `smoke-test-mobile-android`, and `smoke-test-mobile-ios` (both download
   the `firebase-config` artifact produced by the build job).
@@ -39,7 +41,9 @@ covers CI-specific ones.
 - **Firebase CLI in workflows**: never `npm install -g firebase-tools` —
   global installs bypass `package-lock.json` and the security `overrides`.
   Run `npm ci` at `$GITHUB_WORKSPACE` and put `node_modules/.bin` on
-  `PATH`/`GITHUB_PATH` instead (see `actions/configure-firebase`).
+  `PATH`/`GITHUB_PATH` instead (see `actions/configure-firebase`). Any job
+  doing this must `actions/setup-node` with `node-version: '26'` (matching
+  `rules-tests.yml`) rather than relying on the runner's default Node.
 - **Artifact handoff**: `firebase-config` carries
   `firebase_options_*.dart`, `google-services.json`, and
   `GoogleService-Info.plist` (when generatable) from the build job to both
