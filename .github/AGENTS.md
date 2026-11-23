@@ -7,8 +7,9 @@ covers CI-specific ones.
 ## Actions
 
 - `actions/configure-firebase` — composite action that installs
-  `firebase-tools` (pinned to the root `package.json` version, currently
-  `^15.37.0`) and `flutterfire_cli`, then runs `flutterfire configure` when
+  `firebase-tools` (exact-pinned to the root `package-lock.json` version,
+  currently `15.37.0`) and `flutterfire_cli`, then runs `flutterfire
+  configure` when
   `FIREBASE_SERVICE_ACCOUNT_JSON` is set or writes dummy Firebase config
   otherwise. It runs on the Ubuntu build job.
 - `actions/report-coverage` — uploads `mobile/coverage/lcov.info` to the
@@ -34,7 +35,8 @@ covers CI-specific ones.
   flutterfire_cli). The Ubuntu job cannot produce it — the iOS smoke job
   re-runs configure on the macOS runner when credentials exist.
 - **Global installs in workflows** are not covered by `npm ci`; pin
-  `firebase-tools` to `^15.37.0` to match the root manifest.
+  `firebase-tools` to the exact version in `package-lock.json` (`15.37.0`)
+  so CI can't drift from the locked toolchain.
 - **Artifact handoff**: `firebase-config` carries
   `firebase_options_*.dart`, `google-services.json`, and
   `GoogleService-Info.plist` (when generatable) from the build job to both

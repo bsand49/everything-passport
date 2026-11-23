@@ -26,7 +26,7 @@ runs:
   using: "composite"
   steps:
     - name: Install Firebase CLI
-      run: npm install -g firebase-tools@^15.37.0
+      run: npm install -g firebase-tools@15.37.0
       shell: bash
 
     - name: Install FlutterFire CLI
