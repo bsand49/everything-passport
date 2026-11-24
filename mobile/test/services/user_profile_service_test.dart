@@ -17,6 +17,13 @@ import 'user_profile_service_test.mocks.dart';
   [],
   customMocks: [
     MockSpec<FirebaseFirestore>(as: #MockFirestore),
+    MockSpec<CollectionReference<Map<String, dynamic>>>(
+      as: #MockCollectionReference,
+    ),
+    MockSpec<DocumentReference<Map<String, dynamic>>>(
+      as: #MockDocumentReference,
+    ),
+    MockSpec<DocumentSnapshot<Map<String, dynamic>>>(as: #MockDocumentSnapshot),
     MockSpec<FirebaseStorage>(as: #MockStorage),
     MockSpec<Reference>(as: #MockStorageReference),
     MockSpec<UploadTask>(as: #MockUploadTaskMockito),
@@ -352,6 +359,32 @@ void main() {
           currentUserId: 'user_123',
         );
         expect(available, isTrue);
+      });
+
+      test('falls back to the cached read when the server get fails', () async {
+        final mockDb = MockFirestore();
+        final mockCollection = MockCollectionReference();
+        final mockDocRef = MockDocumentReference();
+        final mockSnapshot = MockDocumentSnapshot();
+        when(mockDb.collection('usernames')).thenReturn(mockCollection);
+        when(mockCollection.doc('taken')).thenReturn(mockDocRef);
+        when(mockDocRef.get(any)).thenThrow(
+          FirebaseException(plugin: 'cloud_firestore', code: 'unavailable'),
+        );
+        when(mockDocRef.get()).thenAnswer((_) async => mockSnapshot);
+        when(mockSnapshot.exists).thenReturn(false);
+
+        final service = UserProfileService(db: mockDb, storage: mockStorage);
+        final available = await service.isUsernameAvailable(
+          username: 'taken',
+          currentUserId: 'user_123',
+        );
+
+        expect(available, isTrue);
+        verifyInOrder([
+          mockDocRef.get(const GetOptions(source: Source.server)),
+          mockDocRef.get(),
+        ]);
       });
 
       test('returns false on error', () async {

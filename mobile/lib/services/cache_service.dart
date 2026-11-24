@@ -14,10 +14,11 @@ class CacheService {
     required MetadataService service,
     Future<void> Function()? clearImageCache,
   }) : _metadataService = service,
-       _clearImageCache = clearImageCache ?? DefaultCacheManager().emptyCache;
+       // ignore: prefer_initializing_formals
+       _clearImageCache = clearImageCache;
 
   final MetadataService _metadataService;
-  final Future<void> Function() _clearImageCache;
+  final Future<void> Function()? _clearImageCache;
 
   /// Clears all app-managed caches.
   ///
@@ -25,6 +26,8 @@ class CacheService {
   /// failure instead of claiming success.
   Future<void> clearAll() async {
     await _metadataService.clearCache();
-    await _clearImageCache();
+    // Resolved lazily: DefaultCacheManager touches path_provider, which is
+    // unavailable outside a running app (and unnecessary until first use).
+    await (_clearImageCache ?? DefaultCacheManager().emptyCache)();
   }
 }

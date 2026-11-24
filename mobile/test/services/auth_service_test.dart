@@ -270,6 +270,20 @@ void main() {
         expect(service.verificationEmailSentAtFor('test_uid'), isNotNull);
       });
 
+      test('increments the sent-at version notifier on send', () async {
+        final user = MockUserMockito();
+        when(user.uid).thenReturn('test_uid');
+        when(user.sendEmailVerification()).thenAnswer((_) async {});
+        final auth = MockAuth();
+        when(auth.currentUser).thenReturn(user);
+
+        final service = AuthService(auth: auth, googleSignIn: mockGoogleSignIn);
+
+        expect(service.verificationEmailSentAtVersion?.value, 0);
+        await service.sendEmailVerification();
+        expect(service.verificationEmailSentAtVersion?.value, 1);
+      });
+
       test('throws StateError when no user is signed in', () {
         final auth = MockAuth();
         when(auth.currentUser).thenReturn(null);
