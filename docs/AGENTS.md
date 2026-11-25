@@ -9,7 +9,8 @@ Flutter-specific `mobile/` docs.
   Copy its sections into the PR description, release PR, or a pinned issue
   when a change needs hands-on verification that automated tests cannot
   cover (real email delivery, platform UI behavior, CI workflow behavior).
-- `testing/manual-test-run.md` — a completed checklist from a previous pass.
+- `testing/manual-test-run*.md` — local-only completed checklists from
+  previous passes (gitignored; not present on a fresh checkout).
 - `testing/manual-test-playbook.md` — playbook for running device/emulator passes:
   launch commands, adb/Maestro/simctl tooling, and gotchas.
 

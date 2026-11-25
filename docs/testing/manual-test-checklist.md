@@ -45,7 +45,9 @@ checklist into the release PR description.
 - [ ] Locale-sensitive formatting is correct (e.g. en-GB vs en-US dates)
 - [ ] Google Sign-In completes end-to-end
 - [ ] Profile photo upload/pick/crop works, and the uploaded object is
-      visible in Firebase Storage (`profile_pictures/{userId}`)
+      visible in Firebase Storage (`profile_pictures/{userId}`) with an
+      update time from this run — a stale object from a previous pass must
+      not satisfy the check
 
 ## CI / workflow verification (when applicable)
 

@@ -161,8 +161,10 @@ independently for mobile builds.
   tracking issue or `CHANGELOG.md` note if it outlives the PR) — don't let it
   live only in review threads.
 - **Changelog**: record notable user-facing or structural changes in
-  `CHANGELOG.md` under `[Unreleased]` as part of the same change. Update
-  `README.md` when documented behavior, setup, or project structure changes.
+  `CHANGELOG.md` under `[Unreleased]` as part of the same change. Fixes to
+  features that have not yet shipped in a tagged release do not need an
+  entry. Update `README.md` when documented behavior, setup, or project
+  structure changes.
 - **Branch names**: PR branches must satisfy `branch-name-check.yml` —
   `<prefix>/<description>` or `<prefix>/<issue-id>-<description>`, where the
   prefix is `feat`, `fix`, `refactor`, `docs`, `ci`, `test`, or `chore`.

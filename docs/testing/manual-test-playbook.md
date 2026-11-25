@@ -1,8 +1,10 @@
 # Manual test playbook
 
 How to run a hands-on pass on real devices/emulators, plus the tooling that
-makes it fast. Pair with `manual-test-checklist.md` (the checklist template)
-and `manual-test-run.md` (a completed example).
+makes it fast. Pair with `manual-test-checklist.md` (the checklist template).
+Completed run notes are kept locally as `manual-test-run*.md` files (see
+`docs/.gitignore`) and are not committed — record outcomes in the relevant
+PR description instead.
 
 ## Launching the app
 
