@@ -98,10 +98,13 @@ void main() {
     testWidgets('routes to profile onboarding when the profile is incomplete', (
       tester,
     ) async {
+      // Username is set but names are empty, so isIncomplete is true and the
+      // onboarding form prefills the username — proving this profile (not a
+      // null one) reached AuthWrapper.
       fakeProfileService.emitProfile(
         const UserProfile(
           userId: 'test_user',
-          username: '',
+          username: 'e2e_user',
           firstName: '',
           lastName: '',
         ),
@@ -114,6 +117,7 @@ void main() {
       expect(mockAuth.currentUser, isNotNull);
       expect(find.byType(UserProfileScreen), findsOneWidget);
       expect(find.text('Complete Your Profile'), findsOneWidget);
+      expect(find.text('e2e_user'), findsOneWidget);
       expect(find.byType(LoginScreen), findsNothing);
       expect(find.byType(HomeScreen), findsNothing);
     });
