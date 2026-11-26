@@ -29,6 +29,9 @@ checklist into the release PR description.
 - [ ] Banner is absent for verified accounts and Google sign-in accounts
 - [ ] "Resend" sends another email and shows success feedback; repeat sends
       surface rate-limit/error feedback gracefully
+- [ ] Resend cooldown: countdown disables the button for ~60s and is shared
+      across screens; it resets on app restart and does not leak between
+      accounts
 - [ ] Clicking the verification link verifies the account, and "Refresh" then
       clears the banner without restarting the app
 - [ ] Regression: profile onboarding, username flows, logout, and settings
@@ -36,10 +39,15 @@ checklist into the release PR description.
 
 ## UI / platform spot-checks
 
-- [ ] Theme, colors, and core widgets render correctly (no broken layouts)
+- [ ] Theme, colors, and core widgets render correctly (no broken layouts),
+      including dark mode (splash retains brand colours; status/nav-bar
+      contrast stays readable)
 - [ ] Locale-sensitive formatting is correct (e.g. en-GB vs en-US dates)
 - [ ] Google Sign-In completes end-to-end
-- [ ] Profile photo upload/pick/crop works
+- [ ] Profile photo upload/pick/crop works, and the uploaded object is
+      visible in Firebase Storage (`profile_pictures/{userId}`) with an
+      update time from this run — a stale object from a previous pass must
+      not satisfy the check
 
 ## CI / workflow verification (when applicable)
 

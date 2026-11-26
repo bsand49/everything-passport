@@ -124,6 +124,9 @@ need matching rule updates in the same change.
 
 - Android uses Gradle Kotlin DSL with AGP `9.3.0`, Kotlin `2.3.20`, compile
   SDK `37`, and Java/Kotlin JVM target `17`; CI still runs JDK 21.
+- `image_cropper` requires `com.yalantis.ucrop.UCropActivity` to be declared
+  in the app `AndroidManifest.xml` (the ucrop AAR does not declare it);
+  removing that entry crashes profile-photo cropping on Android.
 - Android release builds currently use the debug signing config and contain a
   TODO for release signing — configure a real upload keystore before
   distributing store builds.
