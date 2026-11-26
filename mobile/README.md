@@ -226,8 +226,13 @@ Prerequisites:
 flutter test \
   --dart-define=ENV=dev \
   --dart-define=SERVER_CLIENT_ID=your-web-client-id \
-  integration_test/app_test.dart
+  integration_test/
 ```
+
+`app_test.dart` is the smoke suite and needs real Firebase config plus
+`SERVER_CLIENT_ID`. `google_sign_in_test.dart` and `auth_flow_test.dart`
+run the real widget tree and services against fake plugin layers, so they
+need no credentials but still run on a device/emulator.
 
 If the app is already signed in on the device, the test attempts to sign out
 first to establish a clean state.

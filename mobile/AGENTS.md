@@ -17,7 +17,7 @@ flutter test --coverage
 flutter test \
   --dart-define=ENV=dev \
   --dart-define=SERVER_CLIENT_ID=<web-client-id> \
-  integration_test/app_test.dart
+  integration_test/
 flutter run --dart-define=ENV=dev --dart-define=SERVER_CLIENT_ID=<web-client-id>
 flutter build apk --release --dart-define=ENV=prod --dart-define=SERVER_CLIENT_ID=<web-client-id>
 flutter build ipa --release --dart-define=ENV=prod --dart-define=SERVER_CLIENT_ID=<web-client-id>
@@ -53,7 +53,9 @@ flutter build ipa --release --dart-define=ENV=prod --dart-define=SERVER_CLIENT_I
   `UsernameAlreadyTakenException`.
 - `test/` — unit/widget tests mirroring `lib/`; `test/test_helper.dart`
   provides reusable fakes and `createTestableWidget`.
-- `integration_test/` — device/emulator smoke tests.
+- `integration_test/` — device/emulator tests; see
+  `integration_test/AGENTS.md` for the smoke suite vs. mock-backed
+  Google Sign-In coverage split and run commands.
 - `android/` and `ios/` — generated/native platform projects. Do not edit
   generated Firebase or plugin files by hand.
 
@@ -152,6 +154,6 @@ need matching rule updates in the same change.
   `LaunchBackground`/`LaunchImage` assets in sync when the artwork changes.
 - iOS integration tests run against a booted simulator:
   `flutter test --dart-define=ENV=dev --dart-define=SERVER_CLIENT_ID=<id>
-  integration_test/app_test.dart -d <simulator-udid>`.
+  integration_test/ -d <simulator-udid>`.
 - The modified root `android/gradlew` setup is intentional for this project;
   use the Flutter/Gradle wrapper rather than a global Gradle binary.

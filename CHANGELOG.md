@@ -33,7 +33,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Testing infrastructure:
   - `flutter_test` unit/widget suite with Mockito and generated mocks.
   - `integration_test` smoke suite for app boot, auth navigation, and shared
-    validation behavior.
+    validation behavior, plus mock-backed suites that drive the real
+    `AuthService` and widget tree on device: Google Sign-In success,
+    cancellation, and error round trips (#60), email/password sign-in, and
+    the auth/onboarding routing matrix. The real native account picker
+    remains a manual/Maestro concern — see issues #60 and #64.
   - `build_runner` mock generation.
   - `tests/rules/` Firebase emulator suite covering Firestore and Storage
     security rules (owner/admin access, field validation, and secure
