@@ -90,33 +90,9 @@ void main() {
       });
     });
 
-    group('Google Sign-In', () {
-      testWidgets('tap reaches a defined outcome without crashing', (
-        tester,
-      ) async {
-        await app.main();
-        await ensureLoggedOut(tester);
-
-        await tester.tap(find.text('Sign in with Google'));
-
-        // The OAuth flow either opens the native account picker (the button
-        // stays in its loading state) or surfaces an error SnackBar — e.g. an
-        // invalid SERVER_CLIENT_ID. Any other silent outcome is a regression.
-        // A request that hangs before presenting the picker is
-        // indistinguishable from an open picker here; real-account E2E
-        // coverage is tracked in #60.
-        await tester.pump();
-        await tester.pump(const Duration(seconds: 2));
-
-        final flowInitiated = find
-            .byType(CircularProgressIndicator)
-            .evaluate()
-            .isNotEmpty;
-        final errorShown = find.byType(SnackBar).evaluate().isNotEmpty;
-
-        expect(flowInitiated || errorShown, isTrue);
-        expect(find.byType(LoginScreen), findsOneWidget);
-      });
-    });
+    // Deterministic Google Sign-In coverage (success/cancel/error round
+    // trips through the real AuthService with a mocked plugin layer) lives in
+    // google_sign_in_test.dart. Driving the real native account picker is
+    // manual/Maestro territory — see #60 and #64.
   });
 }

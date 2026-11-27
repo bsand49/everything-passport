@@ -48,7 +48,7 @@ flutter test --coverage
 flutter test \
   --dart-define=ENV=dev \
   --dart-define=SERVER_CLIENT_ID=<web-client-id> \
-  integration_test/app_test.dart
+  integration_test/
 flutter run --dart-define=ENV=dev --dart-define=SERVER_CLIENT_ID=<web-client-id>
 ```
 

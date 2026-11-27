@@ -186,7 +186,7 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           working-directory: mobile
-          script: flutter test --dart-define=SERVER_CLIENT_ID=${{ secrets.SERVER_CLIENT_ID }} integration_test/app_test.dart
+          script: flutter test --dart-define=SERVER_CLIENT_ID=${{ secrets.SERVER_CLIENT_ID }} integration_test/
 
   # Advisory only: this workflow is path-filtered, so its jobs cannot be
   # required status checks (they'd stay Pending on PRs that don't touch the
@@ -277,5 +277,5 @@ jobs:
           flutter test
           --dart-define=ENV=dev
           --dart-define=SERVER_CLIENT_ID=${{ secrets.SERVER_CLIENT_ID }}
-          integration_test/app_test.dart
+          integration_test/
           -d ${{ steps.simulator.outputs.udid }}
