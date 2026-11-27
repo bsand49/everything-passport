@@ -54,7 +54,10 @@ void main() {
       'password123',
     );
     await tester.pump();
-    // The soft keyboard can cover the button on small viewports.
+    // Dismiss the soft keyboard first — on smaller viewports it can keep
+    // covering the submit button even after ensureVisible scrolls.
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.widgetWithText(ElevatedButton, 'Login'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
