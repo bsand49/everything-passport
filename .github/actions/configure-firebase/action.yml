@@ -52,6 +52,12 @@ runs:
 
         if [ -z "$SERVICE_ACCOUNT_JSON" ]; then
           echo "Using dummy Firebase options for CI build."
+          # iOS Firebase validates the API key format (39 chars, starts with
+          # 'A') when FirebaseApp.configure() runs at app launch, and the Dart
+          # Firebase.initializeApp soft-check requires the Dart apiKey to match
+          # the natively configured one — so all three dummy artifacts must
+          # share one format-valid key.
+          DUMMY_API_KEY='AIzaSyDummyDummyDummyDummyDummyDummy123'
           mkdir -p $(dirname $OUT_PATH)
           printf "// coverage:ignore-file\n" > $OUT_PATH
           printf "// ignore_for_file: type=lint\n" >> $OUT_PATH
@@ -59,7 +65,7 @@ runs:
           printf "class DefaultFirebaseOptions {\n" >> $OUT_PATH
           printf "  static FirebaseOptions get currentPlatform {\n" >> $OUT_PATH
           printf "    return const FirebaseOptions(\n" >> $OUT_PATH
-          printf "      apiKey: 'dummy',\n" >> $OUT_PATH
+          printf "      apiKey: '%s',\n" "$DUMMY_API_KEY" >> $OUT_PATH
           printf "      appId: 'dummy',\n" >> $OUT_PATH
           printf "      messagingSenderId: 'dummy',\n" >> $OUT_PATH
           printf "      projectId: 'dummy',\n" >> $OUT_PATH
@@ -71,7 +77,7 @@ runs:
           mkdir -p android/app
           if [ ! -f "android/app/google-services.json" ]; then
             echo "Creating dummy google-services.json"
-            printf '{"project_info":{"project_number":"0","project_id":"dummy","storage_bucket":"dummy.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"dummy","android_client_info":{"package_name":"%s"}},"api_key":[{"current_key":"dummy"}],"services":{"appinvite_service":{"status":1}}}]}\n' "$ANDROID_PACKAGE" > android/app/google-services.json
+            printf '{"project_info":{"project_number":"0","project_id":"dummy","storage_bucket":"dummy.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"dummy","android_client_info":{"package_name":"%s"}},"api_key":[{"current_key":"%s"}],"services":{"appinvite_service":{"status":1}}}]}\n' "$ANDROID_PACKAGE" "$DUMMY_API_KEY" > android/app/google-services.json
           fi
 
           # Create a dummy GoogleService-Info.plist for iOS builds
@@ -83,7 +89,7 @@ runs:
               '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' \
               '<plist version="1.0">' \
               '<dict>' \
-              '	<key>API_KEY</key><string>dummy</string>' \
+              "	<key>API_KEY</key><string>$DUMMY_API_KEY</string>" \
               '	<key>GCM_SENDER_ID</key><string>0</string>' \
               '	<key>PLIST_VERSION</key><string>1</string>' \
               "	<key>BUNDLE_ID</key><string>$IOS_BUNDLE</string>" \
