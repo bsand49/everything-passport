@@ -12,7 +12,12 @@ covers CI-specific ones.
   `overrides`) with `node_modules/.bin` on `PATH`, installs
   `flutterfire_cli`, then runs `flutterfire configure` when
   `FIREBASE_SERVICE_ACCOUNT_JSON` is set or writes dummy Firebase config
-  otherwise. It runs on the Ubuntu build job; the iOS smoke job repeats
+  otherwise. The dummy `apiKey` must be format-valid (iOS `FIRInstallations`
+  rejects malformed keys at app launch) and identical across the Dart options,
+  `google-services.json`, and `GoogleService-Info.plist` — Dart
+  `Firebase.initializeApp` throws `duplicate-app` when its apiKey differs
+  from the natively configured app's. It runs on the Ubuntu build job; the
+  iOS smoke job repeats
   the `npm ci` + PATH setup on macOS for its own configure step.
 - `actions/report-coverage` — uploads `mobile/coverage/lcov.info` to the
   coverage reporter.
